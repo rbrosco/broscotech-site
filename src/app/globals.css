@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
+    --foreground: #ededed;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Novo gradiente substituindo o anterior */
+.gradient {
+  background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
+}
+
+
+/* Oculta a marca d'água do Chatwoot */
+iframe[src*="chatwoot"] {
+  opacity: 0.99; /* Tenta forçar uma re-renderização */
+}
+
+iframe[src*="chatwoot"] ~ div {
+  display: none !important;
+}
+
+/* Esconde links de branding */
+a[href*="chatwoot"], div[title="Chatwoot"] {
+  display: none !important;
+}
+
+/* Animação para o IconBanner */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Move metade da largura total, pois os ícones são duplicados para o efeito de loop */
+    transform: translateX(-50%); 
+  }
+}
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) linear infinite;
+}
