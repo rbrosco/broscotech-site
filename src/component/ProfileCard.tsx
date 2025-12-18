@@ -2,8 +2,9 @@ import Image from "next/image";
 
 const ProfileCard: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500">
-      <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 bg-white shadow-2xl rounded-3xl dark:bg-gray-800 dark:text-white border-2 border-blue-500 dark:border-blue-700 mt-10 sm:mt-12">
+    <section className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)]">
+      <div className="container mx-auto px-4 sm:px-6 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto p-6 sm:p-8 bg-white/85 shadow-2xl rounded-3xl dark:bg-gray-800/80 dark:text-white backdrop-blur-md border border-white/20 dark:border-gray-700/50">
         {/* Profile Image */}
         <div className="flex justify-center mb-6">
           <Image
@@ -111,7 +112,8 @@ const ProfileCard: React.FC = () => {
 
         </div>
       </div>
-    </div>
+      </div>
+    </section>
   );
 };
 

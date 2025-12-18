@@ -75,60 +75,54 @@ const Servicos: React.FC = () => {
   ];
 
   return (
-    <div id="Servicos">
-    <div
-      className={`min-h-screen py-12 transition-all duration-300 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white`}
-    >
-      <div className="text-center text-white">
-        <h1 className="text-4xl font-semibold mb-8 animate__animated animate__fadeIn">
-          Nossos Serviços
-        </h1>
-        <p className="text-lg max-w-3xl mx-auto mb-12 animate__animated animate__fadeIn animate__delay-1s">
-          Nós oferecemos soluções de desenvolvimento personalizadas para atender às
-          necessidades específicas de seu projeto. Nosso time especializado trabalha com
-          diversas tecnologias para garantir que seu produto seja inovador, escalável e de
-          alta qualidade.
-        </p>
-      </div>
+    <section id="Servicos" className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)] text-white">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center">
+          <h1 className="text-3xl sm:text-4xl font-semibold mb-6 animate__animated animate__fadeIn">
+            Nossos Serviços
+          </h1>
+          <p className="text-base sm:text-lg max-w-3xl mx-auto mb-10 animate__animated animate__fadeIn animate__delay-1s text-slate-100">
+            Nós oferecemos soluções de desenvolvimento personalizadas para atender às
+            necessidades específicas de seu projeto. Nosso time especializado trabalha com
+            diversas tecnologias para garantir que seu produto seja inovador, escalável e de
+            alta qualidade.
+          </p>
+        </div>
 
-      {/* Serviços */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"> {/* Ajustado para 2 colunas no desktop (md) e 1 no mobile */}
-        {servicesData.map((service, index) => (
-          <div key={index} 
-            className={`flex flex-col p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate__animated animate__fadeIn 
-              bg-white text-gray-700 dark:bg-gray-800 dark:text-white`}
-          >
-            <div className="flex-shrink-0">
-              {service.icon}
+        {/* Serviços */}
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {servicesData.map((service, index) => (
+            <div
+              key={index}
+              className={`flex flex-col p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate__animated animate__fadeIn 
+              bg-white/85 text-gray-800 dark:bg-gray-800/80 dark:text-white backdrop-blur-md border border-white/20 dark:border-gray-700/50`}
+            >
+              <div className="flex-shrink-0">{service.icon}</div>
+              <div className="flex-grow mt-2">
+                <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">{service.title}</h3>
+                <p className="mb-3 text-xs sm:text-sm">{service.description}</p>
+                <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm">
+                  {service.items.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+              </div>
             </div>
-            <div className="flex-grow mt-2">
-              <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">{service.title}</h3>
-              {/* A cor do texto do parágrafo e da lista será herdada do card: text-gray-700 (claro) ou dark:text-white (escuro) */}
-              <p className="mb-3 text-xs sm:text-sm"> 
-                {service.description}
-              </p>
-              <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm"> 
-              {service.items.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
-          </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Call to Action */}
-      <div className="text-center mt-16">
-        <button
-          onClick={openModal}
-          className="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 text-lg font-semibold"
-        >
-          Solicite um Orçamento
-        </button>
-      </div>
+        {/* Call to Action */}
+        <div id="ContactFormModal" className="text-center mt-14 scroll-mt-[calc(var(--header-height)+1rem)]">
+          <button
+            onClick={openModal}
+            className="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 text-lg font-semibold"
+          >
+            Solicite um Orçamento
+          </button>
+        </div>
 
-      {/* Modal de Contato */}
-      <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />
-    </div>
-    </div>
+        {/* Modal de Contato */}
+        <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />
+      </div>
+    </section>
   );
 };
 

@@ -79,23 +79,41 @@ export default function Home() {
       {isLoading && <LoadingSpinner />}
       <div className={`transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}> 
         <Header />
-        <ImageSlider slides={slidesData} />
-        
-        {/* Seção do Vídeo */}
-        <div className="w-full py-8 md:py-12 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500">
-          <video 
-            className="w-full max-w-2xl mx-auto rounded-xl shadow-2xl border-2 border-blue-500 dark:border-blue-700"
-            src="/video/dynamic-tech.mp4" 
-            autoPlay 
-            loop 
-            muted 
-            playsInline
-            controls
-          />
+        <div id="Home" className="pt-[var(--header-height)] scroll-mt-[calc(var(--header-height)+1rem)]">
+          <ImageSlider slides={slidesData} />
         </div>
 
-        <ProfileCard />
         <IconBanner icons={iconBannerData} speed="60s" />
+
+        {/* Seção do Vídeo */}
+        <section
+          aria-labelledby="home-demo"
+          className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)]"
+        >
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="rounded-2xl bg-white/80 dark:bg-gray-900/60 backdrop-blur-md border border-white/20 dark:border-gray-700/50 p-4 sm:p-6">
+              <h2 id="home-demo" className="text-center text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100">
+                Veja em ação
+              </h2>
+              <p className="mt-2 text-center text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                Um exemplo rápido do tipo de experiência e visual que entregamos.
+              </p>
+              <div className="mt-6">
+                <video
+                  className="w-full max-w-4xl mx-auto rounded-xl shadow-2xl border border-white/20 dark:border-gray-700/50"
+                  src="/video/dynamic-tech.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <ProfileCard />
         <Servicos />
         <Sobre />
         <Chatbot />

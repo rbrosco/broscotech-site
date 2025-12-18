@@ -63,8 +63,6 @@ const Header: React.FC = () => {
   return (
     <header 
       className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md shadow-md z-50 dark:bg-gray-900 dark:backdrop-blur-md dark:shadow-md"
-      // Define uma variável CSS com a altura do header. Ajuste o valor se a altura do header mudar.
-      style={{ '--header-height': '50px' } as React.CSSProperties} // Ajustado para a altura do logo
     >
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6"> {/* py-2 removido */}
         {/* Logo e Texto */}
@@ -81,7 +79,6 @@ const Header: React.FC = () => {
           <Link href="/">
             <span
               className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-white"
-              style={{ fontFamily: "'Poppins', sans-serif" }} // Se Poppins não for sua fonte principal via Tailwind, mantenha. Caso contrário, pode remover.
             >
               BROSCOTECH
             </span>

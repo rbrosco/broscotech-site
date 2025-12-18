@@ -16,7 +16,7 @@ const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
   const duplicatedIcons = [...iconsArray, ...iconsArray];
 
   return (
-    <div className="w-full py-8 md:py-12 overflow-hidden bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500">
+    <div className="w-full py-10 md:py-14 overflow-hidden bg-white/5 dark:bg-black/10">
       <div className="relative">
         <h2 className="text-3xl font-semibold text-center text-white mb-8">
           Tecnologias e Ferramentas que Dominamos
