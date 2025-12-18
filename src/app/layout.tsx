@@ -23,11 +23,32 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    const storageKey = 'theme';
+    const stored = localStorage.getItem(storageKey);
+    const theme = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+    const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(isDark ? 'dark' : 'light');
+  } catch (_) {
+    // noop
+  }
+})();`,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <ThemeProvider /> {/* Aplica o tema no cliente sem quebrar o SSR */}
-        <main className="flex-1 pt-10">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <main className="flex-1 pt-10">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

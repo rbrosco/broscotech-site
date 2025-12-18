@@ -1,9 +1,24 @@
 @import "tailwindcss";
 
+/* Tailwind v4: faz o variant `dark:` responder à classe `.dark` no HTML */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --header-height: 50px;
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+.light {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+.dark {
+  color-scheme: dark;
   --background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
-  --foreground: #171717;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -11,13 +26,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
-    --foreground: #ededed;
-  }
 }
 
 html {
@@ -60,6 +68,34 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
     transform: translateX(-50%); 
   }
 }
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
 .animate-scroll {
   animation: scroll var(--animation-duration, 40s) linear infinite;
+}
+.animate-scroll-reverse {
+  animation: scroll-reverse var(--animation-duration, 40s) linear infinite;
+}
+
+/* Animações gerais */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
 }

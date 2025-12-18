@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState(''); // Pode ser login ou email
@@ -35,14 +36,13 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Login bem-sucedido
-        // Em uma aplicação real, você armazenaria o token/sessão aqui
-        // e atualizaria o estado global de autenticação.
         console.log('Login bem-sucedido:', data.message);
-        // Exemplo: Salvar dados do usuário no localStorage (simplificado)
+        // Set token cookie
+        document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
         localStorage.setItem('userData', JSON.stringify(data.user));
         localStorage.setItem('isLoggedIn', 'true');
         
-        router.push('/dashboard'); // Redireciona para o dashboard ou página principal
+        router.push('/dashboard'); // Redireciona para o dashboard
       } else {
         setError(data.message || 'Falha no login. Verifique suas credenciais.');
       }
@@ -55,7 +55,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white pt-24 pb-12 px-4">
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white pt-24 pb-12 px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-xl shadow-2xl dark:bg-gray-900">
         <h2 className="text-3xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400">
           Acessar Conta
@@ -122,6 +127,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

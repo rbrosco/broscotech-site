@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { getPool } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -59,8 +60,10 @@ export async function POST(req: Request) {
       email: userRow.email,
     };
 
+    const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '7d' });
+
     return NextResponse.json(
-      { message: "Login bem-sucedido.", user },
+      { message: "Login bem-sucedido.", user, token },
       { status: 200 }
     );
   } catch (error) {

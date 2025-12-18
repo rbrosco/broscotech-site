@@ -1,20 +1,7 @@
 'use client'; // Certifique-se de que este arquivo seja tratado no lado do cliente
 import React, { useState, useEffect, useCallback } from 'react'; // useState e useEffect já estão aqui
 import Image from 'next/image';
-
-// SVG para o ícone de seta para a esquerda
-const ChevronLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-  </svg>
-);
-
-// SVG para o ícone de seta para a direita
-const ChevronRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-  </svg>
-);
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 interface Slide {
   type: 'image' | 'gif' | 'mp4';
@@ -37,8 +24,12 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
   useEffect(() => {
     const updateThemeState = () => {
         const storedTheme = localStorage.getItem("theme");
-        const isDark = storedTheme === "dark" || (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        setIsDarkMode(isDark);
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const isDark = storedTheme === "dark" || (storedTheme === "system" && systemDark);
+
+        // Fallback: se alguém aplicou a classe no <html>, respeita.
+        const rootHasDarkClass = document.documentElement.classList.contains('dark');
+        setIsDarkMode(rootHasDarkClass || isDark);
     };
     
     updateThemeState();
@@ -49,8 +40,17 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
         }
     };
     window.addEventListener('storage', handleStorageChange);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleMediaChange = () => {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'system') updateThemeState();
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
+
     return () => {
         window.removeEventListener('storage', handleStorageChange);
+      mediaQuery.removeEventListener('change', handleMediaChange);
     };
   }, []);
 
@@ -140,7 +140,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
                         transition-all duration-200 opacity-0 group-hover:opacity-100 z-20`}
             aria-label="Slide anterior"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6"><ChevronLeftIcon /></div>
+            <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           <button
@@ -152,7 +152,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
                         transition-all duration-200 opacity-0 group-hover:opacity-100 z-20`}
             aria-label="Próximo slide"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6"><ChevronRightIcon /></div>
+            <FiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           <div className="absolute bottom-5 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2.5 z-20">

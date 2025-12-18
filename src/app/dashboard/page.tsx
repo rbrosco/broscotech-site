@@ -1,7 +1,30 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DashboardSidebar from '../../component/DashboardSidebar'; 
 import DashboardNav from '../../component/DashboardNav';     
+import { FiActivity, FiAlertCircle, FiCheckCircle, FiClock, FiTrendingUp } from 'react-icons/fi';
+
+type Project = {
+  id: number;
+  title: string;
+  status: string;
+  progress: number;
+  updated_at: string;
+} | null;
+
+type ProjectUpdate = {
+  id: number;
+  kind: string;
+  message: string;
+  created_at: string;
+};
+
+type UserData = {
+  id: number;
+  name: string;
+  login: string;
+  email: string;
+};
 
 // Componente de placeholder para os cards de estatísticas
 const StatCard = ({ title, value, icon, iconBgColor, change, changePeriod }: { title: string; value: string; icon: string; iconBgColor: string; change: string; changePeriod: string; }) => (
@@ -31,6 +54,64 @@ const StatCard = ({ title, value, icon, iconBgColor, change, changePeriod }: { t
 );
 
 const DashboardPage: React.FC = () => {
+  const [user, setUser] = useState<UserData | null>(null);
+  const [project, setProject] = useState<Project>(null);
+  const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
+  const [loadingProject, setLoadingProject] = useState(true);
+  const [projectError, setProjectError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('userData');
+      if (raw) setUser(JSON.parse(raw) as UserData);
+    } catch {
+      setUser(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.id) {
+        setLoadingProject(false);
+        return;
+      }
+
+      setLoadingProject(true);
+      setProjectError(null);
+      try {
+        const res = await fetch(`/api/projects?userId=${encodeURIComponent(String(user.id))}`);
+        const data = (await res.json()) as { project?: Project; updates?: ProjectUpdate[]; message?: string };
+        if (!res.ok) throw new Error(data.message || 'Falha ao carregar projeto.');
+        setProject(data.project ?? null);
+        setUpdates(Array.isArray(data.updates) ? data.updates : []);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Erro desconhecido.';
+        setProjectError(msg);
+      } finally {
+        setLoadingProject(false);
+      }
+    };
+
+    void load();
+  }, [user?.id]);
+
+  const statusBadge = useMemo(() => {
+    const status = project?.status || '—';
+    const base = 'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold border';
+
+    if (status.toLowerCase().includes('planej')) {
+      return { className: `${base} bg-white/10 border-white/15 text-white`, Icon: FiClock, label: status };
+    }
+    if (status.toLowerCase().includes('and')) {
+      return { className: `${base} bg-emerald-500/15 border-emerald-500/30 text-emerald-100`, Icon: FiActivity, label: status };
+    }
+    if (status.toLowerCase().includes('concl')) {
+      return { className: `${base} bg-blue-500/15 border-blue-500/30 text-blue-100`, Icon: FiCheckCircle, label: status };
+    }
+
+    return { className: `${base} bg-white/10 border-white/15 text-white`, Icon: FiTrendingUp, label: status };
+  }, [project?.status]);
+
   return (
     <div className="w-full relative flex ct-docs-disable-sidebar-content overflow-x-hidden bg-blueGray-100 dark:bg-gray-900 min-h-screen">
       <DashboardSidebar />
@@ -51,8 +132,103 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Conteúdo Principal (Gráficos, Tabelas, etc.) */}
+        {/* Conteúdo Principal (Status do Projeto) */}
         <div className="px-4 md:px-6 mx-auto w-full -mt-24">
+          <div className="mb-8">
+            <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashboard do cliente</p>
+                  <h1 className="mt-1 text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
+                    {user?.name ? `Olá, ${user.name}` : 'Olá'}
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    Acompanhe o status do seu projeto e as últimas atualizações.
+                  </p>
+                </div>
+                <div>
+                  <span className={statusBadge.className}>
+                    <statusBadge.Icon className="h-4 w-4" aria-hidden="true" />
+                    {statusBadge.label}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-4">
+                  <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Projeto</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                    {loadingProject ? 'Carregando…' : project?.title || 'Nenhum projeto ainda'}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    {project?.updated_at ? `Atualizado em ${new Date(project.updated_at).toLocaleString()}` : ''}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-4">
+                  <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Progresso</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                    {loadingProject ? '—' : `${Math.max(0, Math.min(100, project?.progress ?? 0))}%`}
+                  </p>
+                  <div className="mt-3 h-2 rounded-full bg-slate-200 dark:bg-gray-700 overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 dark:bg-blue-500"
+                      style={{ width: `${Math.max(0, Math.min(100, project?.progress ?? 0))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-4">
+                  <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Ação rápida</p>
+                  <a
+                    href="/iaagent"
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 text-white px-4 py-2.5 font-semibold hover:bg-blue-700 transition"
+                  >
+                    Atualizar briefing no IA Agent
+                  </a>
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                    Use o agente para detalhar requisitos e acelerar as próximas etapas.
+                  </p>
+                </div>
+              </div>
+
+              {projectError && (
+                <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-100">
+                  <div className="flex items-start gap-2">
+                    <FiAlertCircle className="h-5 w-5 mt-0.5" aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-semibold">Banco de dados não configurado</p>
+                      <p className="mt-1 text-xs text-amber-100/90">{projectError}</p>
+                      <p className="mt-2 text-xs text-amber-100/90">
+                        Rode o schema em `scripts/schema.sql` e configure `DATABASE_URL`.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!loadingProject && !projectError && project && (
+                <div className="mt-5">
+                  <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Últimas atualizações</h2>
+                  {updates.length === 0 ? (
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                      Ainda não há atualizações. Em breve você verá tudo por aqui.
+                    </p>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {updates.map((u) => (
+                        <div key={u.id} className="rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-4">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(u.created_at).toLocaleString()}</p>
+                          <p className="mt-1 text-sm text-slate-900 dark:text-white whitespace-pre-wrap">{u.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex flex-wrap">
             {/* Placeholder para Gráfico de Linha */}
             <div className="w-full xl:w-8/12 px-4 mb-8 ">

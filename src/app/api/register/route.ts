@@ -51,7 +51,19 @@ export async function POST(req: Request) {
       [name, login, hashedPassword, email]
     );
 
-    const user = insertResult.rows[0];
+    const user = insertResult.rows[0] as { id: string | number; name: string; login: string; email: string };
+
+    // Projeto padrão para o cliente já visualizar no dashboard.
+    try {
+      await getPool().query(
+        "INSERT INTO projects (user_id, title, status, progress) VALUES ($1, $2, $3, $4)",
+        [user.id, "Seu projeto", "Em planejamento", 0]
+      );
+    } catch (error) {
+      // Não impede cadastro caso a tabela ainda não exista.
+      console.error("register: failed to create default project", error);
+    }
+
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error("register error", error);

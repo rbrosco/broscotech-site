@@ -3,6 +3,8 @@ import { useState, useEffect } from "react"; // Adicionado useEffect
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle"; // Importar o ThemeToggle
+import { FiBell } from "react-icons/fi";
+import { motion } from "framer-motion";
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -61,10 +63,15 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header 
-      className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md shadow-md z-50 dark:bg-gray-900 dark:backdrop-blur-md dark:shadow-md"
+    <motion.header 
+      className="fixed top-0 left-0 w-full z-50"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
     >
-      <div className="container mx-auto flex items-center justify-between px-4 sm:px-6"> {/* py-2 removido */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mt-3 rounded-2xl border border-black/10 bg-white/70 backdrop-blur-xl shadow-sm dark:border-white/15 dark:bg-black/30">
+          <div className="flex items-center justify-between px-3 sm:px-4"> {/* py-2 removido */}
         {/* Logo e Texto */}
         <div className="flex items-center space-x-2"> {/* Reduzido espaço para economizar em telas pequenas */}
           <Link href="/">
@@ -78,7 +85,7 @@ const Header: React.FC = () => {
           </Link>
           <Link href="/">
             <span
-              className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-white"
+              className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white"
             >
               BROSCOTECH
             </span>
@@ -91,10 +98,10 @@ const Header: React.FC = () => {
             {navLinks.map(({ label, href }, index) => (
               <li key={index} className="relative group">
                 <Link href={href} passHref>
-                  <span className="hover:text-blue-600 transition dark:hover:text-blue-400"> {/* Manter cores de hover da marca */}
+                  <span className="px-3 py-2 rounded-full hover:bg-black/5 hover:text-slate-900 transition dark:hover:bg-white/10 dark:hover:text-white">
                     {label}
                     <span
-                      className="absolute left-0 bottom-0 w-full h-[1px] dark:bg-gray-600 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                      className="absolute left-0 bottom-0 w-full h-[1px] dark:bg-white/30 bg-black/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
                     ></span>
                   </span>
                 </Link>
@@ -149,12 +156,12 @@ const Header: React.FC = () => {
             // Login and Register Buttons (Desktop only)
             <div className="hidden lg:flex items-center space-x-3">
               <Link href="/login" passHref>
-                <span className="flex items-center px-5 py-2.5 border border-slate-400 text-slate-700 font-medium rounded-full dark:border-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-800 transition duration-300 ease-in-out dark:hover:bg-slate-700 dark:hover:text-white">
+                <span className="flex items-center px-5 py-2.5 border border-black/15 text-slate-700 font-medium rounded-full hover:bg-black/5 hover:text-slate-900 transition duration-300 ease-in-out dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white">
                   Login
                 </span>
               </Link>
               <Link href="/register" passHref>
-                <span className="flex items-center px-5 py-2.5 bg-blue-600 text-white font-medium rounded-full hover:bg-blue-700 transition duration-300 ease-in-out dark:bg-blue-500 dark:hover:bg-blue-600">
+                <span className="flex items-center px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition duration-300 ease-in-out dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
                   Cadastre-se
                 </span>
               </Link>
@@ -169,12 +176,10 @@ const Header: React.FC = () => {
           {/* Notification Bell Icon */}
             <button
               onClick={toggleNotificationDropdown}
-              className="relative p-1.5 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-800 focus:ring-blue-500 transition-colors duration-200"
+              className="relative p-1.5 rounded-full text-slate-700 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-black/10 transition-colors duration-200 dark:text-white/80 dark:hover:bg-white/10 dark:focus:ring-white/10"
               aria-label="View notifications"
             >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
+              <FiBell className="h-5 w-5 sm:h-6 sm:w-6" />
               {hasNewNotifications && (
                 <span className="absolute top-0.5 right-0.5 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ring-2 ring-white dark:ring-gray-900 bg-red-500">
                   <span className="sr-only">New notifications</span>
@@ -217,11 +222,13 @@ const Header: React.FC = () => {
           </button>
           </div>
         </div>
+          </div>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden bg-white shadow-lg dark:bg-gray-900 dark:shadow-lg transition-transform ${
+        className={`lg:hidden mt-2 rounded-2xl border border-black/10 bg-white/80 backdrop-blur-xl shadow-sm dark:border-white/15 dark:bg-black/30 transition-transform ${
           isMobileMenuOpen ? "block" : "hidden"
         }`}
       >
@@ -230,11 +237,11 @@ const Header: React.FC = () => {
             {navLinks.map(({ label, href }, index) => (
               <li key={index} className="relative group w-full text-center">
                 <Link href={href} passHref>
-                  <span className="block py-2 text-slate-700 text-lg font-semibold hover:text-blue-600 transition dark:text-slate-300 dark:hover:text-blue-400">
+                  <span className="block py-2 text-slate-800 text-lg font-semibold hover:bg-black/5 rounded-xl transition dark:text-white/80 dark:hover:bg-white/10">
                     {label}
                     {/* Efeito de sublinhado similar ao desktop */}
                     <span
-                      className="absolute left-1/2 bottom-0 w-1/2 h-[1px] dark:bg-gray-600 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 transform -translate-x-1/2"
+                      className="absolute left-1/2 bottom-0 w-1/2 h-[1px] dark:bg-white/30 bg-black/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 transform -translate-x-1/2"
                     ></span>
                   </span>
                 </Link>
@@ -275,12 +282,12 @@ const Header: React.FC = () => {
           ) : (
             <>
               <Link href="/login" passHref>
-                <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500 dark:hover:text-white transition-all duration-300 transform hover:scale-105">
+                <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-xl border border-black/15 text-slate-800 hover:bg-black/5 transition-all duration-300 transform hover:scale-[1.02] dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10">
                   Login
                 </span>
               </Link>
               <Link href="/register" passHref>
-                <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-all duration-300 transform hover:scale-105">
+                <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all duration-300 transform hover:scale-[1.02] dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
                   Cadastre-se
                 </span>
               </Link>
@@ -288,7 +295,7 @@ const Header: React.FC = () => {
           )}
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 };
 
