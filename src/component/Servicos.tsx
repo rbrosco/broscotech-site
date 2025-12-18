@@ -1,7 +1,5 @@
 'use client';
-import React from 'react'; // Adicionar esta linha
 import { useState } from "react"; // useEffect não é mais necessário para o tema aqui
-import Image from "next/image"; // Importando Image caso queira adicionar imagens para os serviços
 import ContactFormModal from "./ContactFormModal"; // Importando o modal
 
 const Servicos: React.FC = () => {

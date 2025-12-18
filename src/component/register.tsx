@@ -1,5 +1,5 @@
 'use client'; // Certifique-se de que este arquivo seja tratado no lado do cliente
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link'; // Importar Link
 import { useRouter } from 'next/navigation'; // Alterado para next/navigation
 
@@ -47,7 +47,7 @@ const Register = () => {
       } else {
         setError(data.message || 'Erro ao criar usuário');
       }
-    } catch (error) {
+    } catch {
       setError('Erro ao conectar com o servidor');
     }
   };

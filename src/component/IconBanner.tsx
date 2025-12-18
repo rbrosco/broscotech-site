@@ -6,13 +6,14 @@ interface IconBannerProps {
   icons: {
     src: string;
     alt: string;
-  }[];
+  }[] | ReadonlyArray<{ src: string; alt: string }>;
   speed?: string; // Duração da animação, ex: '20s', '40s'
 }
 
 const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
   // Duplicar os ícones para criar um efeito de loop contínuo e suave
-  const duplicatedIcons = [...icons, ...icons];
+  const iconsArray = Array.from(icons);
+  const duplicatedIcons = [...iconsArray, ...iconsArray];
 
   return (
     <div className="w-full py-8 md:py-12 overflow-hidden bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500">

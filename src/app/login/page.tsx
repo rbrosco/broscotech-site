@@ -3,8 +3,6 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Header from '../../component/Header';
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState(''); // Pode ser login ou email
