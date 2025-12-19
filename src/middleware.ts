@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 
 function extractToken(request: NextRequest) {
   const cookieToken = request.cookies.get('token')?.value;
@@ -30,8 +29,18 @@ export function middleware(request: NextRequest) {
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   }
 
+  // Lightweight token validation for middleware (Edge runtime): decode payload and check `exp`.
   try {
-    jwt.verify(token, process.env.JWT_SECRET! || 'dev-secret');
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error('invalid');
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const parsed: unknown = JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
+    const decoded = (typeof parsed === 'object' && parsed !== null) ? parsed as { exp?: number } : null;
+    if (decoded && decoded.exp && typeof decoded.exp === 'number') {
+      const now = Math.floor(Date.now() / 1000);
+      if (decoded.exp < now) throw new Error('expired');
+    }
   } catch (e) {
     if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });

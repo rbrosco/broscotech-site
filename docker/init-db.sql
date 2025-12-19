@@ -2,9 +2,10 @@
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
   name TEXT,
-  password_hash TEXT,
+  login TEXT UNIQUE,
+  email TEXT UNIQUE,
+  password TEXT,
   role TEXT DEFAULT 'user',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -34,9 +35,9 @@ CREATE TABLE IF NOT EXISTS kanban_cards (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- Seed admin user (change password after first login)
-INSERT INTO users (email, name, password_hash, role)
-VALUES ('admin@local', 'Admin', 'changeme', 'admin')
+-- Create admin user with login 'admin' and password 'admin' (bcrypt hashed)
+INSERT INTO users (email, name, login, password, role)
+VALUES ('admin@local', 'Admin', 'admin', '$2b$10$uCmk.xVaTszSteP9QXH31uo9c.Qg4oUZvNM7mUt75dwPZfeQ3S3mK', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- Seed a sample project and columns

@@ -30,3 +30,8 @@ CREATE TABLE IF NOT EXISTS project_updates (
 
 CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_project_updates_project_id ON project_updates(project_id);
+
+-- Seed admin user for local dev
+INSERT INTO users (name, login, email, password)
+SELECT 'Admin', 'admin', 'admin@local', '$2b$10$uCmk.xVaTszSteP9QXH31uo9c.Qg4oUZvNM7mUt75dwPZfeQ3S3mK'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE login = 'admin' OR email = 'admin@local');
