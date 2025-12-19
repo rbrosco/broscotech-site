@@ -21,6 +21,10 @@ RUN pnpm build
 FROM node:20-bullseye-slim AS runner
 WORKDIR /app
 COPY --from=base /app .
+
+# Ensure pnpm is available in the runtime image
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 ENV NODE_ENV=production
 EXPOSE 4000
 CMD ["pnpm", "start"]

@@ -1,11 +1,11 @@
-version: '3.8'
-
 services:
   web:
-    build: ..
+    build: .
     image: broscotech-frontend:latest
     ports:
       - "4000:4000"
+    env_file:
+      - ./.env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://broscotech:${POSTGRES_PASSWORD}@postgres:5432/broscotech
@@ -18,7 +18,7 @@ services:
     container_name: broscotech-postgres
     restart: unless-stopped
     env_file:
-      - ../.env
+      - ./.env
     environment:
       POSTGRES_DB: broscotech
       POSTGRES_USER: broscotech
@@ -27,7 +27,7 @@ services:
       - "5432:5432"
     volumes:
       - broscotech_pgdata:/var/lib/postgresql/data
-      - ../docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s

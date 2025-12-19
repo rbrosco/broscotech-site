@@ -27,6 +27,7 @@ export default function LoginPage() {
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -38,8 +39,6 @@ export default function LoginPage() {
       if (response.ok) {
         // Login bem-sucedido
         console.log('Login bem-sucedido:', data.message);
-        // Set token cookie
-        document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
         localStorage.setItem('userData', JSON.stringify(data.user));
         localStorage.setItem('isLoggedIn', 'true');
         

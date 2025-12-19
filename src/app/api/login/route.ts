@@ -62,10 +62,23 @@ export async function POST(req: Request) {
 
     const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '7d' });
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Login bem-sucedido.", user, token },
       { status: 200 }
     );
+
+    // Server-set cookie so middleware can protect /dashboard without relying on localStorage.
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     console.error("login error", error);
     return NextResponse.json(

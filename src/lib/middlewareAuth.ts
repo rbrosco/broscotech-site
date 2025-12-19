@@ -4,23 +4,51 @@ type DecodedUser = { id?: string | number; name?: string; login?: string; email?
 
 type HeaderLike = { get?(name: string): string | null } | Record<string, string | undefined>;
 
+function parseCookieToken(cookieHeader: string | null | undefined): string | null {
+  if (!cookieHeader) return null;
+  const parts = cookieHeader.split(';');
+  for (const part of parts) {
+    const [rawKey, ...rest] = part.trim().split('=');
+    if (!rawKey) continue;
+    const key = rawKey.trim();
+    if (key !== 'token') continue;
+    const value = rest.join('=');
+    return value ? decodeURIComponent(value) : null;
+  }
+  return null;
+}
+
+function getHeader(headers: HeaderLike, name: string): string | null {
+  if (!headers) return null;
+  if (typeof ((headers as { get?: unknown }).get) === 'function') {
+    return (headers as { get(name: string): string | null }).get(name);
+  }
+  if (typeof headers === 'object') {
+    const h = headers as Record<string, string | undefined>;
+    return h[name] || h[name.toLowerCase()] || null;
+  }
+  return null;
+}
+
 export function requireAuth(headers: HeaderLike): DecodedUser {
   if (!headers) return null;
 
-  let authHeader: string | null | undefined = null;
+  const authHeader = getHeader(headers, 'authorization') || getHeader(headers, 'Authorization');
+  const cookieHeader = getHeader(headers, 'cookie') || getHeader(headers, 'Cookie');
 
-  if (typeof ((headers as { get?: unknown }).get) === 'function') {
-    authHeader = (headers as { get(name: string): string | null }).get('authorization') || (headers as { get(name: string): string | null }).get('Authorization');
-  } else if (typeof headers === 'object') {
-    const h = headers as Record<string, string | undefined>;
-    authHeader = h.authorization || h.Authorization || h['Authorization'] || h['authorization'];
+  let token: string | null = null;
+  if (authHeader && typeof authHeader === 'string') {
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && /^Bearer$/i.test(parts[0]) && parts[1]) {
+      token = parts[1];
+    }
   }
 
-  if (!authHeader || typeof authHeader !== 'string') return null;
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2) return null;
-  const [scheme, token] = parts;
-  if (!/^Bearer$/i.test(scheme) || !token) return null;
+  if (!token) {
+    token = parseCookieToken(cookieHeader);
+  }
+
+  if (!token) return null;
 
   try {
     const secret = process.env.JWT_SECRET || 'dev-secret';
