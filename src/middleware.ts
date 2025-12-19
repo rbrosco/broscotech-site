@@ -41,7 +41,7 @@ export function middleware(request: NextRequest) {
       const now = Math.floor(Date.now() / 1000);
       if (decoded.exp < now) throw new Error('expired');
     }
-  } catch (e) {
+  } catch {
     if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   }
