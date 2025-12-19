@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Header from "../component/Header";
 import ProfileCard from "../component/ProfileCard";
 import HeroProfileCard from "../component/HeroProfileCard";
+import IAHomeBanner from "../component/IAHomeBanner";
 import Chatbot from "../component/ChatBot";
 import Servicos from "../component/Servicos";
 import Sobre from "../component/Sobre";
@@ -101,6 +102,11 @@ export default function Home() {
                 {/* Hero profile card (diferenciado) */}
                 <div className="mt-6">
                   <HeroProfileCard />
+                </div>
+
+                {/* IA banner: mensagem diferenciada com botão para conversar com a IA */}
+                <div className="mt-4">
+                  <IAHomeBanner />
                 </div>
                 <h1 id="home-title" className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
                   Transforme seu negócio em uma

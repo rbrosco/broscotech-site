@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "../component/Footer";
 import ThemeProvider from "../component/ThemeProvider"; // Importando o ThemeProvider
+import IAAgentButton from "../component/IAAgentButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
           <main className="flex-1 pt-10">{children}</main>
+          <IAAgentButton />
           <Footer />
         </ThemeProvider>
       </body>

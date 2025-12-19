@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { requireAuth } from "../../../lib/middlewareAuth";
 
 export const runtime = 'nodejs';
 
@@ -31,6 +32,10 @@ export async function POST(req: Request) {
   if (messages.length === 0) {
     return NextResponse.json({ message: 'Envie messages.' }, { status: 400 });
   }
+
+  // Require valid JWT to access IA agent
+  const user = requireAuth(req.headers);
+  if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
