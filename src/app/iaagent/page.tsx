@@ -212,7 +212,7 @@ export default function IAAAgentPage() {
                     </button>
                   </div>
                   <p className="mt-2 text-xs text-white/60">
-                    Para respostas reais via LLM, configure `OPENAI_API_KEY` no ambiente do servidor.
+                    
                   </p>
                 </form>
               </div>

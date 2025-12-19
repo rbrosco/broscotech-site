@@ -64,13 +64,13 @@ const Register = () => {
   };
 
   return (
-    <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-green-500 via-teal-600 to-blue-500 text-white pt-24 pb-12 px-4"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+    <motion.div
+      className="w-full max-w-md mx-auto"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
     >
-      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-xl shadow-2xl dark:bg-gray-900">
+      <div className="w-full p-6 sm:p-8 rounded-2xl bg-white/95 dark:bg-gray-900/80 border border-black/10 dark:border-white/10 shadow-2xl">
         <h2 className="text-3xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400">
           Criar Nova Conta
         </h2>
@@ -207,9 +207,9 @@ const Register = () => {
           Entrar com Google
         </button>
 
-        <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-8 text-center text-sm text-slate-700 dark:text-slate-400">
           Já tem uma conta?{' '}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 underline">
+          <Link href="/login" className="font-medium text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 underline">
             Faça login
           </Link>
         </p>

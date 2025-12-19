@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Header from '../../component/Header';
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState(''); // Pode ser login ou email
@@ -55,16 +56,18 @@ export default function LoginPage() {
   };
 
   return (
-    <motion.div 
-      className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white pt-24 pb-12 px-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-xl shadow-2xl dark:bg-gray-900">
-        <h2 className="text-3xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400">
-          Acessar Conta
-        </h2>
+    <>
+      <Header />
+      <motion.main
+        className="min-h-screen pt-[var(--header-height)] scroll-mt-[calc(var(--header-height)+1rem)] flex items-center justify-center px-4 pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+      >
+        <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white/90 dark:bg-gray-900/80 border border-black/10 dark:border-white/10 shadow-2xl">
+          <h2 className="text-3xl font-semibold mb-6 text-center text-slate-900 dark:text-white">
+            Acessar Conta
+          </h2>
         {error && (
           <p className="text-red-500 dark:text-red-400 text-sm mb-4 p-2 bg-red-100 dark:bg-red-900/30 rounded-md text-center">
             {error}
@@ -120,13 +123,14 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-8 text-center text-sm text-slate-700 dark:text-slate-400">
           Não tem uma conta?{' '}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 underline">
+          <Link href="/register" className="font-medium text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 underline">
             Cadastre-se
           </Link>
         </p>
-      </div>
-    </motion.div>
+        </div>
+      </motion.main>
+    </>
   );
 }

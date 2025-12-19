@@ -1,10 +1,11 @@
-'use client';
+"use client";
 import { useState, useEffect } from "react"; // Adicionado useEffect
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle"; // Importar o ThemeToggle
 import { FiBell } from "react-icons/fi";
 import { motion } from "framer-motion";
+import LoginModal from "./LoginModal";
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ const Header: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Inicializa como não logado
   const [userData, setUserData] = useState<{ name: string; email: string; avatar: string } | null>(null); // Inicializa como null
   const [hasNewNotifications, setHasNewNotifications] = useState(true); // Estado para controlar a bolinha de notificação
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     // Verifica o localStorage para o estado de login quando o componente monta no cliente
@@ -44,6 +46,9 @@ const Header: React.FC = () => {
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
+  const openLoginModal = () => setIsLoginModalOpen(true);
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+
   const handleSignOut = () => {
     setIsLoggedIn(false);
     setIsUserDropdownOpen(false);
@@ -54,15 +59,16 @@ const Header: React.FC = () => {
     // Em uma aplicação real, você chamaria seu método de logout da autenticação aqui
   };
 
-  // Definindo os links do menu
+  // Definindo os links do menu — usar root-relative anchors para funcionar em outras rotas
   const navLinks = [
-    { label: "Home", href: "#Home" },
-    { label: "Sobre", href: "#Sobre" },
-    { label: "Serviços", href: "#Servicos" },
-    { label: "Contato", href: "#ContactFormModal" }
+    { label: "Home", href: "/#Home" },
+    { label: "Sobre", href: "/#Sobre" },
+    { label: "Serviços", href: "/#Servicos" },
+    { label: "Contato", href: "/#ContactFormModal" }
   ];
 
   return (
+    <>
     <motion.header 
       className="fixed top-0 left-0 w-full z-50"
       initial={{ y: -100, opacity: 0 }}
@@ -155,11 +161,9 @@ const Header: React.FC = () => {
           ) : (
             // Login and Register Buttons (Desktop only)
             <div className="hidden lg:flex items-center space-x-3">
-              <Link href="/login" passHref>
-                <span className="flex items-center px-5 py-2.5 border border-black/15 text-slate-700 font-medium rounded-full hover:bg-black/5 hover:text-slate-900 transition duration-300 ease-in-out dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white">
-                  Login
-                </span>
-              </Link>
+              <button onClick={openLoginModal} className="flex items-center px-5 py-2.5 border border-black/15 text-slate-700 font-medium rounded-full hover:bg-black/5 hover:text-slate-900 transition duration-300 ease-in-out dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white">
+                Entrar
+              </button>
               <Link href="/register" passHref>
                 <span className="flex items-center px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition duration-300 ease-in-out dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
                   Cadastre-se
@@ -281,11 +285,9 @@ const Header: React.FC = () => {
             </>
           ) : (
             <>
-              <Link href="/login" passHref>
-                <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-xl border border-black/15 text-slate-800 hover:bg-black/5 transition-all duration-300 transform hover:scale-[1.02] dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10">
-                  Login
-                </span>
-              </Link>
+              <button onClick={openLoginModal} className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-xl border border-black/15 text-slate-800 hover:bg-black/5 transition-all duration-300 transform hover:scale-[1.02] dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10">
+                Entrar
+              </button>
               <Link href="/register" passHref>
                 <span className="w-11/12 sm:w-3/4 flex justify-center items-center px-8 py-4 text-lg font-medium rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all duration-300 transform hover:scale-[1.02] dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
                   Cadastre-se
@@ -296,6 +298,8 @@ const Header: React.FC = () => {
         </div>
       </div>
     </motion.header>
+    <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+    </>
   );
 };
 

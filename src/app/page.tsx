@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from "../component/Header";
 import ProfileCard from "../component/ProfileCard";
+import HeroProfileCard from "../component/HeroProfileCard";
 import Chatbot from "../component/ChatBot";
 import Servicos from "../component/Servicos";
 import Sobre from "../component/Sobre";
@@ -97,6 +98,10 @@ export default function Home() {
                   <span className="text-slate-600 dark:text-white/80">Soluções digitais que realmente entregam</span>
                 </p>
 
+                {/* Hero profile card (diferenciado) */}
+                <div className="mt-6">
+                  <HeroProfileCard />
+                </div>
                 <h1 id="home-title" className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
                   Transforme seu negócio em uma
                   <span className="block">máquina de crescimento.</span>
