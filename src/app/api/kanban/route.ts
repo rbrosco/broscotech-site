@@ -321,96 +321,15 @@ export async function PATCH(req: Request) {
   try {
     const { projectId } = await ensureDefaultProjectAndColumns(userId);
 
++    const roleRes = await getPool().query('SELECT role FROM users WHERE id = $1 LIMIT 1', [userId]);
++    const role = roleRes.rows[0]?.role;
++    if (role !== 'admin') {
++      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
++    }
+
     // Validate destination column belongs to user
     const colRes = await pool.query(
       "SELECT id FROM kanban_columns WHERE id = $1 AND project_id = $2 LIMIT 1",
       [toColumnId, projectId]
     );
-    if (!colRes.rowCount) {
-      return NextResponse.json({ message: "Coluna inválida." }, { status: 400 });
-    }
-
-    await pool.query("BEGIN");
-
-    // Lock card row
-    const cardRes = await pool.query(
-      "SELECT id, column_id, position FROM kanban_cards WHERE id = $1 FOR UPDATE",
-      [cardId]
-    );
-    const current = cardRes.rows[0] as { id: number; column_id: number; position: number } | undefined;
-    if (!current) {
-      await pool.query("ROLLBACK");
-      return NextResponse.json({ message: "Card não encontrado." }, { status: 404 });
-    }
-
-    const fromColumnId = Number(current.column_id);
-
-    // Shift positions in destination column to make space
-    await pool.query(
-      "UPDATE kanban_cards SET position = position + 1 WHERE column_id = $1 AND position >= $2",
-      [toColumnId, toPosition]
-    );
-
-    // Move card
-    await pool.query(
-      "UPDATE kanban_cards SET column_id = $1, position = $2 WHERE id = $3",
-      [toColumnId, toPosition, cardId]
-    );
-
-    // Compact positions in source column if moved across
-    if (fromColumnId !== toColumnId) {
-      await pool.query(
-        "WITH ordered AS (SELECT id, ROW_NUMBER() OVER (ORDER BY position ASC, id ASC) - 1 AS new_pos FROM kanban_cards WHERE column_id = $1) UPDATE kanban_cards c SET position = o.new_pos FROM ordered o WHERE c.id = o.id",
-        [fromColumnId]
-      );
-    }
-
-    // Compact destination column
-    await pool.query(
-      "WITH ordered AS (SELECT id, ROW_NUMBER() OVER (ORDER BY position ASC, id ASC) - 1 AS new_pos FROM kanban_cards WHERE column_id = $1) UPDATE kanban_cards c SET position = o.new_pos FROM ordered o WHERE c.id = o.id",
-      [toColumnId]
-    );
-
-    await pool.query("COMMIT");
-
-    return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error) {
-    try {
-      await getPool().query("ROLLBACK");
-    } catch {
-      // ignore
-    }
-    console.error("kanban PATCH error", error);
-    return NextResponse.json({ message: "Erro ao mover card." }, { status: 500 });
-  }
-}
-
-type DeleteBody = { cardId?: number };
-
-export async function DELETE(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: DeleteBody;
-  try {
-    body = (await req.json()) as DeleteBody;
-  } catch {
-    return NextResponse.json({ message: "JSON inválido." }, { status: 400 });
-  }
-
-  const cardId = body.cardId ? Number(body.cardId) : NaN;
-  if (!Number.isFinite(cardId)) {
-    return NextResponse.json({ message: "cardId é obrigatório." }, { status: 400 });
-  }
-
-  try {
-    await getPool().query("DELETE FROM kanban_cards WHERE id = $1", [cardId]);
-    return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error) {
-    console.error("kanban DELETE error", error);
-    return NextResponse.json({ message: "Erro ao deletar card." }, { status: 500 });
-  }
-}
+*** End Patch
