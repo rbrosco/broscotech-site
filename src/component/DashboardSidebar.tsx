@@ -6,11 +6,6 @@ import Image from 'next/image';
 const DashboardSidebar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Para controle mobile no futuro
 
-  // Ícone de placeholder para Font Awesome
-  const IconPlaceholder = ({ iconName, className }: { iconName: string; className?: string }) => (
-    <span className={`mr-2 text-sm ${className || 'text-blueGray-400 dark:text-gray-500'}`}>[{iconName}]</span>
-  );
-
   return (
     <nav className="block py-4 px-6 top-0 bottom-0 w-64 bg-white shadow-xl left-0 absolute flex-row flex-nowrap md:z-10 z-9999 transition-all duration-300 ease-in-out transform md:translate-x-0 -translate-x-full dark:bg-gray-800">
       {/* Botão de toggle para mobile (funcionalidade a ser implementada se necessário) */}
@@ -18,8 +13,7 @@ const DashboardSidebar: React.FC = () => {
         className="md:hidden flex items-center justify-center cursor-pointer text-blueGray-700 w-6 h-10 border-l-0 border-r border-t border-b border-solid border-blueGray-100 text-xl leading-none bg-white rounded-r border border-solid border-transparent absolute top-1/2 -right-24-px focus:outline-none z-9998"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        {/* Substituir por um ícone de menu real se desejar */}
-        <IconPlaceholder iconName="ellipsis-v" />
+        <span aria-hidden="true">≡</span>
       </button>
 
       <div className="flex-col min-h-full px-0 flex flex-wrap items-center justify-between w-full mx-auto overflow-y-auto overflow-x-hidden">
@@ -40,25 +34,20 @@ const DashboardSidebar: React.FC = () => {
           <div className="md:flex-col md:min-w-full flex flex-col list-none mt-6">
             <hr className="my-4 md:min-w-full dark:border-gray-700" />
             <h6 className="md:min-w-full text-blueGray-500 dark:text-gray-500 text-xs uppercase font-bold block pt-1 pb-4 no-underline">
-              Admin Layout Pages
+              Área do Cliente
             </h6>
             <Link href="/dashboard" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
-              <IconPlaceholder iconName="tv" />
               Dashboard
             </Link>
-            <Link href="/dashboard/settings" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
-              <IconPlaceholder iconName="tools" />
-              Configurações
+            <Link href="/dashboard/projeto" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
+              Seu Projeto (Em andamento)
             </Link>
-            <Link href="/dashboard/tables" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
-              <IconPlaceholder iconName="table" />
-              Tabelas
+            <Link href="/dashboard/planejamento" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
+              Planejamento
             </Link>
-            <Link href="/dashboard/maps" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
-              <IconPlaceholder iconName="map-marked" />
-              Mapas
+            <Link href="/dashboard/faturas" className="text-xs uppercase py-3 font-bold block text-blueGray-700 hover:text-blueGray-500 dark:text-gray-300 dark:hover:text-gray-100">
+              Faturas
             </Link>
-            {/* Adicione mais seções e links conforme o exemplo */}
           </div>
         </div>
       </div>

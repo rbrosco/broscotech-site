@@ -4,6 +4,18 @@ import { requireAuth } from "@/lib/middlewareAuth";
 
 export const runtime = "nodejs";
 
+const DEFAULT_COLUMNS = [
+  { title: "Inicio (Do Projeto)", position: 0 },
+  { title: "Discussão (Sobre o Projeto)", position: 1 },
+  { title: "Tipo de Projeto", position: 2 },
+  { title: "1 Fase (Prévia do Projeto)", position: 3 },
+  { title: "2 Fase (Segunda Prévia)", position: 4 },
+  { title: "Finalização", position: 5 },
+  { title: "Faturamento", position: 6 },
+  { title: "Concluido", position: 7 },
+  { title: "Não aceito", position: 8 },
+] as const;
+
 type KanbanCard = {
   id: number;
   column_id: number;
@@ -41,26 +53,85 @@ async function ensureDefaultProjectAndColumns(userId: number) {
   if (projectResult.rowCount && projectResult.rows[0]) {
     projectId = Number(projectResult.rows[0].id);
     projectTitle = String(projectResult.rows[0].title);
+
+    if (projectTitle === 'Demo Project') {
+      await pool.query('UPDATE projects SET title = $1 WHERE id = $2', ['Seu Projeto', projectId]);
+      projectTitle = 'Seu Projeto';
+    }
   } else {
     const created = await pool.query(
       "INSERT INTO projects (user_id, title, status, progress) VALUES ($1, $2, $3, $4) RETURNING id, title",
-      [userId, "Demo Project", "Em planejamento", 0]
+      [userId, "Seu Projeto", "Em planejamento", 0]
     );
     projectId = Number(created.rows[0].id);
     projectTitle = String(created.rows[0].title);
   }
 
-  const existingCols = await pool.query(
-    "SELECT id FROM kanban_columns WHERE project_id = $1 LIMIT 1",
+  const colsRes = await pool.query(
+    "SELECT id, title, position FROM kanban_columns WHERE project_id = $1 ORDER BY position ASC, id ASC",
     [projectId]
   );
 
-  if (!existingCols.rowCount) {
-    await pool.query(
-      "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3), ($1, $4, $5), ($1, $6, $7)",
-      [projectId, "To Do", 0, "In Progress", 1, "Done", 2]
+  const existing = colsRes.rows as Array<{ id: string | number; title: string; position: number }>;
+
+  if (existing.length === 0) {
+    for (const c of DEFAULT_COLUMNS) {
+      await pool.query(
+        "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3)",
+        [projectId, c.title, c.position]
+      );
+    }
+  } else {
+    // Se o projeto ainda estiver com o padrão antigo (To Do / In Progress / Done), renomeia as 3 primeiras
+    // para preservar cards e depois cria as demais colunas.
+    const hasLegacy = existing.some((c) => ["To Do", "In Progress", "Done"].includes(String(c.title)));
+    if (hasLegacy) {
+      const legacyMap = new Map<string, { title: string; position: number }>([
+        ["To Do", DEFAULT_COLUMNS[0]],
+        ["In Progress", DEFAULT_COLUMNS[1]],
+        ["Done", DEFAULT_COLUMNS[2]],
+      ]);
+
+      for (const col of existing) {
+        const mapped = legacyMap.get(String(col.title));
+        if (mapped) {
+          await pool.query(
+            "UPDATE kanban_columns SET title = $1, position = $2 WHERE id = $3",
+            [mapped.title, mapped.position, Number(col.id)]
+          );
+        }
+      }
+    }
+
+    // Garante que todas as colunas desejadas existam e que a posição esteja correta.
+    const refreshed = await pool.query(
+      "SELECT id, title FROM kanban_columns WHERE project_id = $1",
+      [projectId]
     );
+    const byTitle = new Map<string, number>();
+    for (const row of refreshed.rows as Array<{ id: string | number; title: string }>) {
+      byTitle.set(String(row.title), Number(row.id));
+    }
+
+    for (const c of DEFAULT_COLUMNS) {
+      const existingId = byTitle.get(c.title);
+      if (!existingId) {
+        await pool.query(
+          "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3)",
+          [projectId, c.title, c.position]
+        );
+      } else {
+        await pool.query("UPDATE kanban_columns SET position = $1 WHERE id = $2", [c.position, existingId]);
+      }
+    }
   }
+
+  // Remove colunas extras (como a coluna de teste) se não tiverem cards.
+  // Mantém apenas o fluxo padrão acima.
+  await pool.query(
+    "DELETE FROM kanban_columns c WHERE c.project_id = $1 AND NOT (c.title = ANY($2::text[])) AND NOT EXISTS (SELECT 1 FROM kanban_cards k WHERE k.column_id = c.id)",
+    [projectId, DEFAULT_COLUMNS.map((c) => c.title)]
+  );
 
   return { projectId, projectTitle };
 }
@@ -150,6 +221,19 @@ export async function POST(req: Request) {
     if (body.type === "column") {
       const title = body.title?.trim();
       if (!title) return NextResponse.json({ message: "title é obrigatório." }, { status: 400 });
+
+      // Limite para não "zuar" o Kanban: não permite criar colunas além do fluxo padrão.
+      const countRes = await getPool().query(
+        "SELECT COUNT(*)::int AS cnt FROM kanban_columns WHERE project_id = $1",
+        [projectId]
+      );
+      const cnt = Number(countRes.rows[0]?.cnt ?? 0);
+      if (cnt >= DEFAULT_COLUMNS.length) {
+        return NextResponse.json(
+          { message: "Limite de colunas atingido." },
+          { status: 400 }
+        );
+      }
 
       const posRes = await getPool().query(
         "SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM kanban_columns WHERE project_id = $1",

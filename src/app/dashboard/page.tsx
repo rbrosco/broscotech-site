@@ -25,40 +25,7 @@ type KanbanResponse = {
   columns: KanbanColumn[];
 };
 
-const DashboardPage: React.FC = () => {
-  const [data, setData] = useState<KanbanResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  'use client';
-
-  import React, { useEffect, useMemo, useState } from 'react';
-  import { FiAlertCircle, FiPlus } from 'react-icons/fi';
-  import DashboardNav from '../../component/DashboardNav';
-  import DashboardSidebar from '../../component/DashboardSidebar';
-
-  type KanbanCard = {
-    id: number;
-    column_id: number;
-    title: string;
-    description: string | null;
-    position: number;
-  };
-
-  type KanbanColumn = {
-    id: number;
-    project_id: number;
-    title: string;
-    position: number;
-    cards: KanbanCard[];
-  };
-
-  type KanbanResponse = {
-    project: { id: number; title: string };
-    columns: KanbanColumn[];
-  };
-
-  export default function DashboardPage() {
+export default function DashboardPage() {
     const [data, setData] = useState<KanbanResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -72,6 +39,9 @@ const DashboardPage: React.FC = () => {
       const totalCards = cols.reduce((acc, c) => acc + (c.cards?.length ?? 0), 0);
       return { totalCards };
     }, [data]);
+
+    const MAX_COLUMNS = 9;
+    const canCreateColumn = (data?.columns?.length ?? 0) < MAX_COLUMNS;
 
     const reload = async () => {
       setLoading(true);
@@ -182,13 +152,13 @@ const DashboardPage: React.FC = () => {
     };
 
     return (
-      <div className="w-full relative flex ct-docs-disable-sidebar-content overflow-x-hidden bg-blueGray-100 dark:bg-gray-900 min-h-screen">
+      <div className="w-full relative flex ct-docs-disable-sidebar-content bg-blueGray-100 dark:bg-gray-900 min-h-screen min-w-0">
         <DashboardSidebar />
-        <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full">
+        <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
           <DashboardNav />
 
-          <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10">
-            <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6">
+          <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10 min-w-0">
+            <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6 min-w-0">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashboard Kanban</p>
@@ -201,22 +171,24 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-                  <div className="flex gap-2">
-                    <input
-                      value={newColumnTitle}
-                      onChange={(e) => setNewColumnTitle(e.target.value)}
-                      placeholder="Nova coluna"
-                      className="w-full sm:w-56 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void createColumn()}
-                      className="inline-flex items-center gap-2 rounded-xl bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition"
-                    >
-                      <FiPlus className="h-4 w-4" aria-hidden="true" />
-                      Coluna
-                    </button>
-                  </div>
+                  {canCreateColumn ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={newColumnTitle}
+                        onChange={(e) => setNewColumnTitle(e.target.value)}
+                        placeholder="Nova coluna"
+                        className="w-full sm:w-56 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void createColumn()}
+                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:bg-blue-700 transition"
+                      >
+                        <FiPlus className="h-4 w-4" aria-hidden="true" />
+                        Coluna
+                      </button>
+                    </div>
+                  ) : null}
 
                   <button
                     type="button"
@@ -240,12 +212,12 @@ const DashboardPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="mt-6">
-                <div className="flex gap-4 overflow-x-auto pb-2">
+              <div className="mt-6 min-w-0">
+                <div className="flex gap-4 overflow-x-auto pb-2 w-full max-w-full min-w-0">
                   {(data?.columns ?? []).map((col) => (
                     <div
                       key={col.id}
-                      className="min-w-[280px] w-[280px] rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-3"
+                      className="min-w-[260px] w-[260px] sm:min-w-[280px] sm:w-[280px] rounded-2xl bg-slate-50 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-700 p-3"
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();

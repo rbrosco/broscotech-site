@@ -16,10 +16,18 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Paths that should redirect to login if not authenticated
-  const pageProtected = pathname.startsWith('/dashboard') || pathname === '/iaagent' || pathname.startsWith('/iaagent/');
+  const pageProtected =
+    pathname.startsWith('/dashboard') ||
+    pathname === '/iaagent' ||
+    pathname.startsWith('/iaagent/') ||
+    pathname === '/perfil' ||
+    pathname.startsWith('/perfil/');
 
   // API paths that should return 401 if not authenticated
-  const apiProtected = pathname.startsWith('/api/iaagent') || pathname.startsWith('/api/kanban');
+  const apiProtected =
+    pathname.startsWith('/api/iaagent') ||
+    pathname.startsWith('/api/kanban') ||
+    pathname.startsWith('/api/profile');
 
   if (!pageProtected && !apiProtected) return NextResponse.next();
 
@@ -50,5 +58,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/iaagent', '/iaagent/:path*', '/api/iaagent/:path*', '/api/kanban/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/iaagent',
+    '/iaagent/:path*',
+    '/perfil',
+    '/perfil/:path*',
+    '/api/iaagent/:path*',
+    '/api/kanban/:path*',
+    '/api/profile/:path*',
+  ],
 };
