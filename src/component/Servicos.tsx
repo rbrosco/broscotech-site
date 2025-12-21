@@ -13,9 +13,6 @@ import {
 const Servicos: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Função para abrir o modal
-  const openModal = () => setIsModalOpen(true);
-
   // Função para fechar o modal
   const closeModal = () => setIsModalOpen(false);
 
@@ -141,15 +138,7 @@ const Servicos: React.FC = () => {
           ))}
         </div>
 
-        {/* Call to Action */}
-        <div id="ContactFormModal" className="text-center mt-14 scroll-mt-[calc(var(--header-height)+1rem)]">
-          <button
-            onClick={openModal}
-            className="inline-block px-8 py-4 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all duration-300 transform hover:scale-[1.02] text-lg font-semibold dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white"
-          >
-            Solicite um Orçamento
-          </button>
-        </div>
+        {/* Call to Action removido */}
 
         {/* Modal de Contato */}
         <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />

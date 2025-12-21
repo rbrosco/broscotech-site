@@ -28,6 +28,8 @@ export default function ProjetoPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [lastSavedProject, setLastSavedProject] = useState<Project | null>(null);
+  const [adminStatus, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
 
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -59,6 +61,21 @@ export default function ProjetoPage() {
           setClientPhone(resolved.project.client_phone ?? '');
           setProjectType(resolved.project.project_type ?? '');
           setFinalDate(resolved.project.final_date ? String(resolved.project.final_date).slice(0, 10) : '');
+
+          try {
+            const resStatus = await fetch(`/api/project_admin_status?projectId=${resolved.project.id}`, {
+              credentials: 'include',
+            });
+            if (resStatus.ok) {
+              const statusPayload = (await resStatus.json()) as { admin_status?: unknown };
+              const raw = statusPayload?.admin_status;
+              setAdminStatus(raw === 'accepted' || raw === 'rejected' ? raw : null);
+            } else {
+              setAdminStatus(null);
+            }
+          } catch {
+            setAdminStatus(null);
+          }
         }
       } catch (e) {
         setData(null);
@@ -95,7 +112,42 @@ export default function ProjetoPage() {
       const payload = (await res.json()) as { project?: Project; message?: string };
       if (!res.ok) throw new Error(payload.message || 'Falha ao salvar.');
 
+      if (payload.project) {
+        setLastSavedProject(payload.project);
+
+        try {
+          const resStatus = await fetch(`/api/project_admin_status?projectId=${payload.project.id}`, {
+            credentials: 'include',
+          });
+          if (resStatus.ok) {
+            const statusPayload = (await resStatus.json()) as { admin_status?: unknown };
+            const raw = statusPayload?.admin_status;
+            setAdminStatus(raw === 'accepted' || raw === 'rejected' ? raw : null);
+          } else {
+            setAdminStatus(null);
+          }
+        } catch {
+          setAdminStatus(null);
+        }
+      }
+
       setData((prev) => (prev ? { ...prev, project: payload.project ?? prev.project } : prev));
+      // Cria atualização de planejamento com snapshot do projeto
+      if (payload.project?.id) {
+        await fetch('/api/project_updates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: payload.project.id,
+            userId,
+            kind: 'planejamento',
+            message: JSON.stringify({
+              texto: 'Informações do projeto atualizadas.',
+              projeto: payload.project
+            })
+          })
+        });
+      }
       setSaveMessage('Dados salvos com sucesso.');
     } catch (e) {
       setSaveMessage(e instanceof Error ? e.message : 'Erro ao salvar.');
@@ -112,7 +164,7 @@ export default function ProjetoPage() {
 
         <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10">
           <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Seu Projeto (Em andamento)</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Seu Projeto</h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Cadastro e informações do projeto em desenvolvimento.</p>
 
             {loading ? (
@@ -125,6 +177,19 @@ export default function ProjetoPage() {
                   <div><span className="font-semibold">Título:</span> {data.project.title}</div>
                   <div><span className="font-semibold">Status:</span> {data.project.status}</div>
                   <div><span className="font-semibold">Progresso:</span> {data.project.progress}%</div>
+                  <div>
+                    <span className="font-semibold">Resposta do administrador:</span>{' '}
+                    {adminStatus === 'accepted'
+                      ? 'Aceito'
+                      : adminStatus === 'rejected'
+                        ? 'Recusado'
+                        : 'Aguardando'}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {adminStatus === 'rejected'
+                      ? 'Seu projeto foi recusado. Você pode ajustar os dados e clicar em Salvar novamente.'
+                      : 'Quando o administrador responder, o status aparecerá aqui.'}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -158,11 +223,55 @@ export default function ProjetoPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Tipo de projeto</label>
-                    <input
+                    <select
                       value={projectType}
                       onChange={(e) => setProjectType(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                      placeholder="Ex: Site, App, Landing Page"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="Site">Site</option>
+                      <option value="App">App</option>
+                      <option value="Landing Page">Landing Page</option>
+                      <option value="E-commerce">E-commerce</option>
+                      <option value="Sistema Web">Sistema Web</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Linguagem/Código</label>
+                    <select
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="TypeScript">TypeScript</option>
+                      <option value="JavaScript">JavaScript</option>
+                      <option value="Python">Python</option>
+                      <option value="PHP">PHP</option>
+                      <option value="Java">Java</option>
+                      <option value="C#">C#</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Framework</label>
+                    <select
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="Next.js">Next.js</option>
+                      <option value="React">React</option>
+                      <option value="Vue.js">Vue.js</option>
+                      <option value="Angular">Angular</option>
+                      <option value="Laravel">Laravel</option>
+                      <option value="Django">Django</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Integrações</label>
+                    <input
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      placeholder="Ex: PagSeguro, WhatsApp, Google Analytics, etc."
                     />
                   </div>
                   <div>
@@ -196,6 +305,31 @@ export default function ProjetoPage() {
                     </p>
                   ) : null}
                 </div>
+
+                {lastSavedProject && (
+                  <div className="mt-6 rounded-2xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-5 py-4">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">Dados salvos</div>
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-slate-700 dark:text-slate-200">
+                      <div><span className="font-semibold">Título:</span> {lastSavedProject.title}</div>
+                      <div><span className="font-semibold">Status:</span> {lastSavedProject.status}</div>
+                      <div>
+                        <span className="font-semibold">Resposta do administrador:</span>{' '}
+                        {adminStatus === 'accepted'
+                          ? 'Aceito'
+                          : adminStatus === 'rejected'
+                            ? 'Recusado'
+                            : 'Aguardando'}
+                      </div>
+                      <div><span className="font-semibold">Progresso:</span> {lastSavedProject.progress}%</div>
+                      <div><span className="font-semibold">Última atualização:</span> {new Date(lastSavedProject.updated_at).toLocaleString()}</div>
+                      <div><span className="font-semibold">Nome:</span> {lastSavedProject.client_name || '-'}</div>
+                      <div><span className="font-semibold">E-mail:</span> {lastSavedProject.client_email || '-'}</div>
+                      <div><span className="font-semibold">Telefone:</span> {lastSavedProject.client_phone || '-'}</div>
+                      <div><span className="font-semibold">Tipo:</span> {lastSavedProject.project_type || '-'}</div>
+                      <div><span className="font-semibold">Data final:</span> {lastSavedProject.final_date ? String(lastSavedProject.final_date).slice(0, 10) : '-'}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Nenhum projeto encontrado.</p>

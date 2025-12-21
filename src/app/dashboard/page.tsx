@@ -9,6 +9,8 @@ type KanbanCard = {
   column_id: number;
   title: string;
   description: string | null;
+  responsavel?: string | null;
+  data?: string | null;
   position: number;
 };
 
@@ -33,6 +35,20 @@ export default function DashboardPage() {
     const [newColumnTitle, setNewColumnTitle] = useState('');
     const [newCardTitles, setNewCardTitles] = useState<Record<number, string>>({});
     const [dragging, setDragging] = useState<{ cardId: number; fromColumnId: number } | null>(null);
+
+    // Progresso: considera cards na última coluna como concluídos
+    useEffect(() => {
+      const cols = data?.columns ?? [];
+      const totalCards = cols.reduce((acc, c) => acc + (c.cards?.length ?? 0), 0);
+      if (!totalCards || cols.length === 0) {
+        localStorage.setItem('kanbanProgress', '0');
+        return;
+      }
+      const lastCol = cols[cols.length - 1];
+      const doneCards = lastCol.cards.length;
+      const percent = Math.round((doneCards / totalCards) * 100);
+      localStorage.setItem('kanbanProgress', String(percent));
+    }, [data]);
 
     const totals = useMemo(() => {
       const cols = data?.columns ?? [];
@@ -63,7 +79,6 @@ export default function DashboardPage() {
 
     useEffect(() => {
       void reload();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const createColumn = async () => {
@@ -168,6 +183,16 @@ export default function DashboardPage() {
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                     Total de cards: <span className="font-semibold">{loading ? '—' : totals.totalCards}</span>
                   </p>
+                  {/* Seção de valores e adicionais */}
+                  <div className="mt-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800">
+                    <h2 className="text-base font-bold text-blue-900 dark:text-blue-200 mb-2">Valores e Serviços Adicionais</h2>
+                    <ul className="list-disc pl-5 text-sm text-blue-900 dark:text-blue-100 space-y-1">
+                      <li>Serviços extras não previstos no escopo inicial do projeto serão orçados e cobrados à parte.</li>
+                      <li>Valores de manutenção, suporte ou integrações adicionais podem ser negociados conforme necessidade.</li>
+                      <li>Solicitações de alteração após a entrega do projeto podem gerar custos adicionais.</li>
+                      <li>Para dúvidas ou novos serviços, entre em contato com a equipe Broscotech.</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
@@ -189,7 +214,6 @@ export default function DashboardPage() {
                       </button>
                     </div>
                   ) : null}
-
                   <button
                     type="button"
                     onClick={() => void reload()}
@@ -200,7 +224,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {error && (
+              {typeof window !== 'undefined' && error && localStorage.getItem('userData') && (
                 <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-100">
                   <div className="flex items-start gap-2">
                     <FiAlertCircle className="h-5 w-5 mt-0.5" aria-hidden="true" />
@@ -258,26 +282,51 @@ export default function DashboardPage() {
                               void moveCard(payload.cardId, col.id, index);
                               setDragging(null);
                             }}
-                            className="cursor-grab active:cursor-grabbing rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 p-3 shadow-sm"
+                            className="cursor-grab active:cursor-grabbing rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 p-3 shadow-sm flex flex-col gap-1 relative"
                           >
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const res = await fetch('/api/kanban', {
+                                    method: 'DELETE',
+                                    credentials: 'include',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ cardId: card.id }),
+                                  });
+                                  if (!res.ok) {
+                                    const payload = await res.json();
+                                    throw new Error(payload.message || 'Falha ao apagar card.');
+                                  }
+                                  await reload();
+                                } catch (err) {
+                                  setError(err instanceof Error ? err.message : 'Erro ao apagar card.');
+                                }
+                              }}
+                              className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded"
+                              title="Apagar card"
+                              aria-label="Apagar card"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
                             <p className="text-sm font-semibold text-slate-900 dark:text-white">{card.title}</p>
                             {card.description && (
                               <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{card.description}</p>
+                            )}
+                            {/* Exemplo de informações adicionais, ajuste conforme necessário */}
+                            {card.responsavel && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Responsável: {card.responsavel}</p>
+                            )}
+                            {card.data && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400">Data: {card.data}</p>
                             )}
                           </div>
                         ))}
                       </div>
 
                       <div className="mt-3 flex gap-2">
-                        <input
-                          value={newCardTitles[col.id] || ''}
-                          onChange={(e) => setNewCardTitles((prev) => ({ ...prev, [col.id]: e.target.value }))}
-                          placeholder="Novo card"
-                          className="w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') void createCard(col.id);
-                          }}
-                        />
+                        {/* Campo de busca removido */}
                         <button
                           type="button"
                           onClick={() => void createCard(col.id)}

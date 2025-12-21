@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import ContactFormModal from '../component/ContactFormModal';
 import Header from "../component/Header";
 import ProfileCard from "../component/ProfileCard";
 import HeroProfileCard from "../component/HeroProfileCard";
@@ -48,6 +49,7 @@ const iconBannerData: ReadonlyArray<{ label: string; Icon: IconType }> = [
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Efeito para o spinner de carregamento inicial e verificação do modal de privacidade
   useEffect(() => {
@@ -125,12 +127,13 @@ export default function Home() {
                   >
                     Ver serviços <FiArrowRight className="h-5 w-5" aria-hidden="true" />
                   </a>
-                  <a
-                    href="#ContactFormModal"
+                  <button
+                    type="button"
+                    onClick={() => setIsContactModalOpen(true)}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-black/5 border border-black/10 px-6 py-3 font-semibold text-slate-900 hover:bg-black/10 transition dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/15"
                   >
                     Solicitar orçamento
-                  </a>
+                  </button>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-2 text-xs sm:text-sm">
@@ -223,6 +226,7 @@ export default function Home() {
 
         <Chatbot />
       </div>
+      <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
       <PrivacyModal 
         isOpen={isPrivacyModalOpen} 
         onClose={handleClosePrivacyModal} 

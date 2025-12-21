@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS projects (
   user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'Em planejamento',
+  admin_status TEXT,
   progress INTEGER NOT NULL DEFAULT 0,
   client_name TEXT,
   client_email TEXT,
@@ -49,6 +50,7 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS client_email TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS client_phone TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS project_type TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS final_date DATE;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS admin_status TEXT;
 
 -- Kanban
 CREATE TABLE IF NOT EXISTS kanban_columns (
@@ -72,6 +74,11 @@ CREATE TABLE IF NOT EXISTS kanban_cards (
 INSERT INTO users (name, login, email, password)
 SELECT 'Admin', 'admin', 'admin@local', '$2b$10$uCmk.xVaTszSteP9QXH31uo9c.Qg4oUZvNM7mUt75dwPZfeQ3S3mK'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE login = 'admin' OR email = 'admin@local');
+
+-- Seed additional admin user for broscotech
+INSERT INTO users (name, login, email, password, role)
+SELECT 'Admin Broscotech', 'admin_broscotech', 'admin@broscotech.com.br', '$2b$10$uCmk.xVaTszSteP9QXH31uo9c.Qg4oUZvNM7mUt75dwPZfeQ3S3mK', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@broscotech.com.br');
 
 -- Seed projeto + colunas
 INSERT INTO projects (user_id, title, status, progress)
