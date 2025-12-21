@@ -8,16 +8,26 @@ import { requireAuth } from '@/lib/middlewareAuth';
 
 export const runtime = 'nodejs';
 
-type ProfileRow = {
-  id: string | number;
+type Profile = {
+  id: number;
   name: string;
   login: string;
   email: string;
   phone: string | null;
-  avatar: string | null;
-  role: string;
-  created_at: string;
-  updated_at: string;
+  avatar: null;
+  role: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+type PatchBody = {
+  name?: string;
+  login?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string | null; // data URL (não persistido)
+  currentPassword?: string;
+  newPassword?: string;
 };
 
 export async function GET(req: Request) {
@@ -43,38 +53,29 @@ export async function GET(req: Request) {
       .where(eq(users.id, userId))
       .limit(1);
 
-    const row = found[0] as unknown as ProfileRow | undefined;
+    const row = found[0];
     if (!row) {
       return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
     }
 
-    const profile = {
+    const profile: Profile = {
       id: Number(row.id),
       name: String(row.name),
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
-      avatar: null, // avatar removido do banco, retorna null
-      role: String(row.role),
-      created_at: String((row as any).created_at ?? ''),
-      updated_at: String((row as any).updated_at ?? ''),
+      avatar: null,
+      role: row.role ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
     };
+
     return NextResponse.json({ profile }, { status: 200 });
   } catch (error) {
     console.error('[API/profile] profile GET error', error);
     return NextResponse.json({ message: 'Erro ao carregar perfil.' }, { status: 500 });
   }
 }
-
-type PatchBody = {
-  name?: string;
-  login?: string;
-  email?: string;
-  phone?: string;
-  avatar?: string | null; // data URL
-  currentPassword?: string;
-  newPassword?: string;
-};
 
 export async function PATCH(req: Request) {
   const user = requireAuth(req.headers);
@@ -111,39 +112,28 @@ export async function PATCH(req: Request) {
 
   try {
     const currentArr = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        login: users.login,
-        email: users.email,
-        phone: users.phone,
-        password: users.password,
-      })
+      .select({ id: users.id, password: users.password })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
 
-    const current = currentArr[0] as
-      | { id: number; name: string; login: string; email: string; phone: string | null; password: string }
-      | undefined;
-
+    const current = currentArr[0];
     if (!current) {
       return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
     }
 
-    // Uniqueness checks
     const conflict = await db
       .select({ id: users.id })
       .from(users)
-      .where(and(or(eq(users.login, login), eq(users.email, email)), ne(users.id, userId)))
+      .where(and(ne(users.id, userId), or(eq(users.login, login), eq(users.email, email))))
       .limit(1);
     if (conflict[0]) {
       return NextResponse.json({ message: 'Login ou e-mail já em uso.' }, { status: 409 });
     }
 
-    let newPasswordHash: string | null = null;
+    let newPasswordHash: string | undefined;
     if (wantsPasswordChange) {
-      const ok = await bcrypt.compare(body.currentPassword!, current.password);
+      const ok = await bcrypt.compare(body.currentPassword!, String(current.password));
       if (!ok) {
         return NextResponse.json({ message: 'Senha atual incorreta.' }, { status: 401 });
       }
@@ -157,6 +147,7 @@ export async function PATCH(req: Request) {
         login,
         email,
         phone: phone || null,
+        updated_at: new Date().toISOString(),
         ...(newPasswordHash ? { password: newPasswordHash } : {}),
       })
       .where(eq(users.id, userId))
@@ -171,24 +162,23 @@ export async function PATCH(req: Request) {
         updated_at: users.updated_at,
       });
 
-    const row = updatedArr[0] as unknown as ProfileRow | undefined;
+    const row = updatedArr[0];
     if (!row) {
       return NextResponse.json({ message: 'Erro ao atualizar perfil.' }, { status: 500 });
     }
 
-    const profile = {
+    const profile: Profile = {
       id: Number(row.id),
       name: String(row.name),
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
       avatar: null,
-      role: String(row.role),
-      created_at: String((row as any).created_at ?? ''),
-      updated_at: String((row as any).updated_at ?? ''),
+      role: row.role ?? null,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
     };
 
-    // Refresh JWT cookie so name/login/email stays in sync.
     const tokenPayload = { id: profile.id, name: profile.name, login: profile.login, email: profile.email };
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET!, { expiresIn: '7d' });
 
@@ -203,6 +193,7 @@ export async function PATCH(req: Request) {
       maxAge: 60 * 60 * 24 * 7,
     });
 
+    void body.avatar;
     return res;
   } catch (error) {
     console.error('profile PATCH error', error);

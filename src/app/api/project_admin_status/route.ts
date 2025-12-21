@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { projects, users } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
 

@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
+import type { InferSelectModel } from 'drizzle-orm';
 import { and, desc, eq } from 'drizzle-orm';
 import { kanban_cards, kanban_columns, project_updates, projects } from '@/lib/schema';
 
 export const runtime = 'nodejs';
 
 type ProjectsResponse = {
-  project: any;
-  updates: Array<{ id: number; kind: string | null; message: string | null; created_at: string | null }>;
+  project: InferSelectModel<typeof projects> | null;
+  updates: Array<{
+    id: number;
+    kind: string | null;
+    message: string | null;
+    created_at: string | null;
+  }>;
 };
 
 export async function GET(req: Request) {

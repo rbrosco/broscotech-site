@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/drizzle";
-import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { kanban_cards, kanban_columns, projects, users } from "@/lib/schema";
 import { requireAuth } from "@/lib/middlewareAuth";
 
@@ -227,7 +227,7 @@ export async function POST(req: Request) {
 
       // Limite para não "zuar" o Kanban: não permite criar colunas além do fluxo padrão.
       const countRes = await db
-        .select({ cnt: sql<number>`COUNT(*)::int` })
+        .select({ cnt: sql`COUNT(*)::int` })
         .from(kanban_columns)
         .where(eq(kanban_columns.project_id, projectId));
       const cnt = Number(countRes[0]?.cnt ?? 0);
@@ -239,7 +239,7 @@ export async function POST(req: Request) {
       }
 
       const posRes = await db
-        .select({ next_pos: sql<number>`COALESCE(MAX(position), -1) + 1` })
+        .select({ next_pos: sql`COALESCE(MAX(position), -1) + 1` })
         .from(kanban_columns)
         .where(eq(kanban_columns.project_id, projectId));
       const nextPos = Number(posRes[0]?.next_pos ?? 0);
@@ -272,7 +272,7 @@ export async function POST(req: Request) {
       }
 
       const posRes = await db
-        .select({ next_pos: sql<number>`COALESCE(MAX(position), -1) + 1` })
+        .select({ next_pos: sql`COALESCE(MAX(position), -1) + 1` })
         .from(kanban_cards)
         .where(eq(kanban_cards.column_id, columnId));
       const nextPos = Number(posRes[0]?.next_pos ?? 0);
@@ -366,7 +366,8 @@ export async function PATCH(req: Request) {
         const countRes = await tx.execute(sql`
           SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = ${fromColumnId}
         `);
-        const cnt = Number((countRes.rows as any[])[0]?.cnt ?? 0);
+        const countRow = (countRes.rows as Array<{ cnt?: number | string }>)[0];
+        const cnt = Number(countRow?.cnt ?? 0);
         const maxIndex = Math.max(0, cnt - 1);
         const targetPos = Math.max(0, Math.min(maxIndex, toPosition));
 
@@ -399,7 +400,8 @@ export async function PATCH(req: Request) {
       const destCountRes = await tx.execute(sql`
         SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = ${toColumnId}
       `);
-      const destCnt = Number((destCountRes.rows as any[])[0]?.cnt ?? 0);
+      const destCountRow = (destCountRes.rows as Array<{ cnt?: number | string }>)[0];
+      const destCnt = Number(destCountRow?.cnt ?? 0);
       const targetPos = Math.max(0, Math.min(destCnt, toPosition));
 
       await tx.execute(sql`
