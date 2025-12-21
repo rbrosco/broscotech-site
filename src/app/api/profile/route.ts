@@ -12,6 +12,7 @@ type ProfileRow = {
   login: string;
   email: string;
   phone: string | null;
+  avatar: string | null;
   role: string;
   created_at: string;
   updated_at: string;
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
 
   try {
     const result = await getPool().query(
-      'SELECT id, name, login, email, phone, role, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
+      'SELECT id, name, login, email, phone, avatar, role, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
       [userId]
     );
 
@@ -41,6 +42,7 @@ export async function GET(req: Request) {
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
+      avatar: row.avatar ?? null,
       role: String(row.role),
       created_at: String(row.created_at),
       updated_at: String(row.updated_at),
@@ -58,6 +60,7 @@ type PatchBody = {
   login?: string;
   email?: string;
   phone?: string;
+  avatar?: string | null; // data URL
   currentPassword?: string;
   newPassword?: string;
 };
@@ -129,8 +132,8 @@ export async function PATCH(req: Request) {
     }
 
     const updated = await getPool().query(
-      'UPDATE users SET name = $1, login = $2, email = $3, phone = $4, password = COALESCE($5, password), updated_at = now() WHERE id = $6 RETURNING id, name, login, email, phone, role, created_at, updated_at',
-      [name, login, email, phone || null, newPasswordHash, userId]
+      'UPDATE users SET name = $1, login = $2, email = $3, phone = $4, avatar = COALESCE($5, avatar), password = COALESCE($6, password), updated_at = now() WHERE id = $7 RETURNING id, name, login, email, phone, avatar, role, created_at, updated_at',
+      [name, login, email, phone || null, body.avatar ?? null, newPasswordHash, userId]
     );
 
     const row = updated.rows[0] as ProfileRow | undefined;
@@ -144,6 +147,7 @@ export async function PATCH(req: Request) {
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
+      avatar: row.avatar ?? null,
       role: String(row.role),
       created_at: String(row.created_at),
       updated_at: String(row.updated_at),
