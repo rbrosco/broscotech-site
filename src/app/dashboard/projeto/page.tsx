@@ -59,7 +59,7 @@ export default function ProjetoPage() {
       const list = (payload.projects ?? []) as Project[];
       setProjectsList(list);
       if (list.length > 0) setCollapsedView(true);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [userId]);
@@ -77,7 +77,7 @@ export default function ProjetoPage() {
             // no session
             return;
           }
-        } catch (e) {
+        } catch {
           return;
         }
       }
@@ -115,7 +115,7 @@ export default function ProjetoPage() {
             } else {
               setAdminStatus(null);
             }
-          } catch (e) {
+          } catch {
             setAdminStatus(null);
           }
         }
@@ -173,7 +173,7 @@ export default function ProjetoPage() {
           } else {
             setAdminStatus(null);
           }
-        } catch (e) {
+        } catch {
           setAdminStatus(null);
         }
       }
@@ -222,31 +222,27 @@ export default function ProjetoPage() {
               <p className="mt-6 text-sm text-red-600 dark:text-red-400">{error}</p>
             ) : data?.project ? (
               <div className="mt-6 space-y-6">
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome do projeto</label>
-                  <input
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
-                    placeholder="Nome do projeto"
-                  />
-                </div>
-                <div className="mb-4 col-span-1 sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Observações</label>
-                  <textarea
-                    value={observations}
-                    onChange={(e) => setObservations(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white h-24"
-                    placeholder="Observações / instruções adicionais"
-                    disabled={!editMode}
-                  />
-                </div>
-
-                
-
-              </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome do projeto</label>
+                    <input
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                      placeholder="Nome do projeto"
+                    />
+                  </div>
+                  <div className="mb-4 col-span-1 sm:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Observações</label>
+                    <textarea
+                      value={observations}
+                      onChange={(e) => setObservations(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white h-24"
+                      placeholder="Observações / instruções adicionais"
+                      disabled={!editMode}
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome</label>
                     <input
                       value={clientName}

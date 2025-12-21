@@ -37,17 +37,18 @@ export async function GET(req: Request) {
     );
 
     const project = projectResult.rows[0] as
-      | {
-          id: number;
-          title: string;
-          status: string;
-          progress: number;
-          updated_at: string;
-          client_name: string | null;
-          client_email: string | null;
-          client_phone: string | null;
-          project_type: string | null;
-          final_date: string | null;
+      try {
+        const inserted = await db.insert(projects).values({
+          user_id: userId,
+          title,
+          status: 'Em planejamento',
+          progress: 0,
+        }).returning();
+        return NextResponse.json({ project: inserted[0] }, { status: 201 });
+      } catch (error) {
+        console.error('projects POST error', error);
+        return NextResponse.json({ message: 'Erro ao criar projeto.' }, { status: 500 });
+      }
         }
       | undefined;
 
@@ -55,23 +56,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ project: null, updates: [] }, { status: 200 });
     }
 
-    const updatesResult = await getPool().query(
-      'SELECT id, kind, message, created_at FROM project_updates WHERE project_id = $1 ORDER BY created_at DESC LIMIT 20',
-      [project.id]
-    );
-
-    return NextResponse.json({ project, updates: updatesResult.rows }, { status: 200 });
-  } catch (error) {
-    console.error('projects GET error', error);
+              const allProjects = await db.select()
+                .from(projects)
+                .where(eq(projects.user_id, userId))
+                .orderBy(desc(projects.updated_at));
     return NextResponse.json(
       {
         message:
           'Erro ao consultar projetos. Verifique se o Postgres está configurado e se as tabelas existem (scripts/schema.sql).',
-      },
-      { status: 500 }
-    );
-  }
-}
+                  const lastUpdate = await db.select({ message: project_updates.message })
+                    .from(project_updates)
+                    .where(eq(project_updates.project_id, p.id))
+                    .orderBy(desc(project_updates.created_at))
+                    .limit(1);
 
 export async function POST(req: Request) {
   let body: { userId?: number; title?: string };
@@ -79,10 +76,11 @@ export async function POST(req: Request) {
     body = (await req.json()) as { userId?: number; title?: string };
   } catch {
     return NextResponse.json({ message: 'JSON inválido.' }, { status: 400 });
-  }
-
-  const userId = body.userId;
-  const title = body.title?.trim();
+            const projectArr = await db.select()
+              .from(projects)
+              .where(eq(projects.user_id, userId))
+              .orderBy(desc(projects.updated_at))
+              .limit(1);
 
   if (!userId || !Number.isFinite(userId) || !title) {
     return NextResponse.json({ message: 'userId e title são obrigatórios.' }, { status: 400 });
@@ -90,10 +88,11 @@ export async function POST(req: Request) {
 
   try {
     const result = await getPool().query(
-      'INSERT INTO projects (user_id, title, status, progress) VALUES ($1, $2, $3, $4) RETURNING id, title, status, progress, updated_at, client_name, client_email, client_phone, project_type, final_date',
-      [userId, title, 'Em planejamento', 0]
-    );
-
+            const updates = await db.select()
+              .from(project_updates)
+              .where(eq(project_updates.project_id, project.id))
+              .orderBy(desc(project_updates.created_at))
+              .limit(20);
     return NextResponse.json({ project: result.rows[0] }, { status: 201 });
   } catch (error) {
     console.error('projects POST error', error);
@@ -129,49 +128,43 @@ export async function PATCH(req: Request) {
   const finalDate = body.finalDate?.trim() || null;
 
   try {
-    const existing = await getPool().query(
-      'SELECT id FROM projects WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
-      [userId]
-    );
-
-    if (!existing.rows[0]) {
+    // Busca o projeto mais recente do usuário
+    const projectArr = await db.select({ id: projects.id }).from(projects)
+      .where(eq(projects.user_id, userId))
+      .orderBy(desc(projects.updated_at))
+      .limit(1);
+    if (!projectArr[0]) {
       return NextResponse.json({ message: 'Nenhum projeto encontrado para este usuário.' }, { status: 404 });
     }
+    const projectId = Number(projectArr[0].id);
 
-    const projectId = Number(existing.rows[0].id);
+    // Atualiza o projeto
+    const updatedArr = await db.update(projects)
+      .set({
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: clientPhone,
+        project_type: projectType,
+        final_date: finalDate,
+        updated_at: new Date().toISOString(),
+        status: 'Discussão',
+      })
+      .where(eq(projects.id, projectId))
+      .returning();
+    const project = updatedArr[0];
 
-    const result = await getPool().query(
-      `UPDATE projects
-        SET client_name = $1,
-            client_email = $2,
-            client_phone = $3,
-            project_type = $4,
-            final_date = $5,
-            updated_at = now(),
-            status = 'Discussão'
-       WHERE id = $6
-       RETURNING id, title, status, progress, updated_at, client_name, client_email, client_phone, project_type, final_date`,
-      [clientName, clientEmail, clientPhone, projectType, finalDate, projectId]
-    );
-
-    // Após atualizar o projeto, cria um card na coluna 'Discussão (Sobre o Projeto)' se não existir nenhum para o projeto
-    const project = result.rows[0];
+    // Kanban: cria card automático se necessário
     try {
-      const pool = getPool();
-      // Busca o id da coluna 'Discussão (Sobre o Projeto)' para este projeto
-      const colRes = await pool.query(
-        "SELECT id FROM kanban_columns WHERE project_id = $1 AND title = $2 LIMIT 1",
-        [projectId, 'Discussão (Sobre o Projeto)']
-      );
-      if (colRes.rowCount) {
-        const columnId = Number(colRes.rows[0].id);
-        // Verifica se já existe algum card nesta coluna
-        const cardRes = await pool.query(
-          "SELECT id FROM kanban_cards WHERE column_id = $1 LIMIT 1",
-          [columnId]
-        );
-        if (!cardRes.rowCount) {
-          // Monta dados do projeto para o card
+      const colArr = await db.select({ id: kanban_columns.id }).from(kanban_columns)
+        .where(eq(kanban_columns.project_id, projectId))
+        .where(eq(kanban_columns.title, 'Discussão (Sobre o Projeto)'))
+        .limit(1);
+      if (colArr[0]) {
+        const columnId = Number(colArr[0].id);
+        const cardArr = await db.select({ id: kanban_cards.id }).from(kanban_cards)
+          .where(eq(kanban_cards.column_id, columnId))
+          .limit(1);
+        if (!cardArr[0]) {
           const dados = [
             `Nome: ${project.client_name || '-'}`,
             `E-mail: ${project.client_email || '-'}`,
@@ -179,10 +172,12 @@ export async function PATCH(req: Request) {
             `Tipo: ${project.project_type || '-'}`,
             `Data final: ${project.final_date ? String(project.final_date).slice(0,10) : '-'}`
           ].join('\n');
-          await pool.query(
-            "INSERT INTO kanban_cards (column_id, title, description, position) VALUES ($1, $2, $3, $4)",
-            [columnId, 'Discussão do Projeto', dados, 0]
-          );
+          await db.insert(kanban_cards).values({
+            column_id: columnId,
+            title: 'Discussão do Projeto',
+            description: dados,
+            position: 0,
+          });
         }
       }
     } catch (err) {
@@ -210,8 +205,11 @@ export async function DELETE(req: Request) {
 
   try {
     // Remove projeto apenas se pertencer ao usuário
-    const res = await getPool().query('DELETE FROM projects WHERE id = $1 AND user_id = $2 RETURNING id', [projectId, userId]);
-    if (!res.rowCount) {
+    const deletedArr = await db.delete(projects)
+      .where(eq(projects.id, projectId))
+      .where(eq(projects.user_id, userId))
+      .returning();
+    if (!deletedArr[0]) {
       return NextResponse.json({ message: 'Projeto não encontrado ou sem permissão.' }, { status: 404 });
     }
     return NextResponse.json({ ok: true }, { status: 200 });
