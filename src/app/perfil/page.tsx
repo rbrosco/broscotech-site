@@ -178,12 +178,47 @@ export default function PerfilPage() {
                     <div className="mt-1 flex items-center gap-3">
                       <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
                         {avatarPreview ? (
-                          <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+                          <img
+                            src={avatarPreview}
+                            alt="avatar"
+                            className="w-full h-full object-cover"
+                            onError={() => {
+                              setAvatarPreview('');
+                              setAvatar('');
+                            }}
+                            loading="lazy"
+                          />
                         ) : (
-                          <FiUser className="text-2xl text-slate-500" />
+                          <FiUser className="text-2xl text-slate-500" aria-hidden />
                         )}
                       </div>
-                      <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f){ const reader=new FileReader(); reader.onload=()=>{ setAvatar(String(reader.result)); setAvatarPreview(String(reader.result)); }; reader.readAsDataURL(f); } }} className="mt-1 text-sm text-slate-600 dark:text-slate-300" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          const maxBytes = 2 * 1024 * 1024; // 2 MB
+                          if (f.size > maxBytes) {
+                            setError('Imagem muito grande. Tamanho máximo: 2 MB.');
+                            return;
+                          }
+                          setError(null);
+                          const reader = new FileReader();
+                          reader.onerror = () => {
+                            setError('Falha ao ler arquivo de imagem.');
+                            setAvatar('');
+                            setAvatarPreview('');
+                          };
+                          reader.onload = () => {
+                            const result = String(reader.result ?? '');
+                            setAvatar(result);
+                            setAvatarPreview(result);
+                          };
+                          reader.readAsDataURL(f);
+                        }}
+                        className="mt-1 text-sm text-slate-600 dark:text-slate-300"
+                      />
                     </div>
                   </div>
                 </div>
