@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getPool } from "@/lib/db";
+import { db } from "@/lib/drizzle";
+import { eq, or } from "drizzle-orm";
+import { projects, users } from "@/lib/schema";
 
 export const runtime = "nodejs";
 
@@ -32,12 +34,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const existsResult = await getPool().query(
-      "SELECT 1 FROM users WHERE login = $1 OR email = $2 LIMIT 1",
-      [login, email]
-    );
+    const exists = await db
+      .select({ one: users.id })
+      .from(users)
+      .where(or(eq(users.login, login), eq(users.email, email)))
+      .limit(1);
 
-    if (existsResult.rowCount && existsResult.rowCount > 0) {
+    if (exists[0]) {
       return NextResponse.json(
         { message: "Login ou e-mail já registrados." },
         { status: 400 }
@@ -46,19 +49,21 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const insertResult = await getPool().query(
-      "INSERT INTO users (name, login, password, email) VALUES ($1, $2, $3, $4) RETURNING id, name, login, email",
-      [name, login, hashedPassword, email]
-    );
+    const inserted = await db
+      .insert(users)
+      .values({ name, login, password: hashedPassword, email })
+      .returning({ id: users.id, name: users.name, login: users.login, email: users.email });
 
-    const user = insertResult.rows[0] as { id: string | number; name: string; login: string; email: string };
+    const user = inserted[0];
 
     // Projeto padrão para o cliente já visualizar no dashboard.
     try {
-      await getPool().query(
-        "INSERT INTO projects (user_id, title, status, progress) VALUES ($1, $2, $3, $4)",
-        [user.id, "Seu projeto", "Em planejamento", 0]
-      );
+      await db.insert(projects).values({
+        user_id: Number(user.id),
+        title: "Seu projeto",
+        status: "Em planejamento",
+        progress: 0,
+      });
     } catch (error) {
       // Não impede cadastro caso a tabela ainda não exista.
       console.error("register: failed to create default project", error);

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
+import { db } from '@/lib/drizzle';
+import { eq } from 'drizzle-orm';
+import { projects } from '@/lib/schema';
 
 export const runtime = 'nodejs';
 
@@ -17,11 +19,12 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const result = await getPool().query(
-      'UPDATE projects SET status = $1, updated_at = now() WHERE id = $2 RETURNING id, status',
-      [status === 'accepted' ? 'Aceito' : 'Recusado', projectId]
-    );
-    return NextResponse.json({ project: result.rows[0] }, { status: 200 });
+    const updated = await db
+      .update(projects)
+      .set({ status: status === 'accepted' ? 'Aceito' : 'Recusado', updated_at: new Date().toISOString() })
+      .where(eq(projects.id, projectId))
+      .returning({ id: projects.id, status: projects.status });
+    return NextResponse.json({ project: updated[0] }, { status: 200 });
   } catch (error) {
     console.error('project_accept PATCH error', error);
     return NextResponse.json({ message: 'Erro ao atualizar status do projeto.' }, { status: 500 });

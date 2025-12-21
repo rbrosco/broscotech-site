@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getPool } from "@/lib/db";
+import { db } from "@/lib/drizzle";
+import { and, asc, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { kanban_cards, kanban_columns, projects, users } from "@/lib/schema";
 import { requireAuth } from "@/lib/middlewareAuth";
 
 export const runtime = "nodejs";
@@ -40,46 +42,42 @@ type ColumnRow = {
 };
 
 async function ensureDefaultProjectAndColumns(userId: number) {
-  const pool = getPool();
-
-  const projectResult = await pool.query(
-    "SELECT id, title FROM projects WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1",
-    [userId]
-  );
+  const projectResult = await db
+    .select({ id: projects.id, title: projects.title })
+    .from(projects)
+    .where(eq(projects.user_id, userId))
+    .orderBy(asc(projects.created_at))
+    .limit(1);
 
   let projectId: number;
   let projectTitle: string;
 
-  if (projectResult.rowCount && projectResult.rows[0]) {
-    projectId = Number(projectResult.rows[0].id);
-    projectTitle = String(projectResult.rows[0].title);
+  if (projectResult[0]) {
+    projectId = Number(projectResult[0].id);
+    projectTitle = String(projectResult[0].title);
 
     if (projectTitle === 'Demo Project') {
-      await pool.query('UPDATE projects SET title = $1 WHERE id = $2', ['Seu Projeto', projectId]);
+      await db.update(projects).set({ title: 'Seu Projeto' }).where(eq(projects.id, projectId));
       projectTitle = 'Seu Projeto';
     }
   } else {
-    const created = await pool.query(
-      "INSERT INTO projects (user_id, title, status, progress) VALUES ($1, $2, $3, $4) RETURNING id, title",
-      [userId, "Seu Projeto", "Em planejamento", 0]
-    );
-    projectId = Number(created.rows[0].id);
-    projectTitle = String(created.rows[0].title);
+    const created = await db
+      .insert(projects)
+      .values({ user_id: userId, title: "Seu Projeto", status: "Em planejamento", progress: 0 })
+      .returning({ id: projects.id, title: projects.title });
+    projectId = Number(created[0].id);
+    projectTitle = String(created[0].title);
   }
 
-  const colsRes = await pool.query(
-    "SELECT id, title, position FROM kanban_columns WHERE project_id = $1 ORDER BY position ASC, id ASC",
-    [projectId]
-  );
-
-  const existing = colsRes.rows as Array<{ id: string | number; title: string; position: number }>;
+  const existing = await db
+    .select({ id: kanban_columns.id, title: kanban_columns.title, position: kanban_columns.position })
+    .from(kanban_columns)
+    .where(eq(kanban_columns.project_id, projectId))
+    .orderBy(asc(kanban_columns.position), asc(kanban_columns.id));
 
   if (existing.length === 0) {
     for (const c of DEFAULT_COLUMNS) {
-      await pool.query(
-        "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3)",
-        [projectId, c.title, c.position]
-      );
+      await db.insert(kanban_columns).values({ project_id: projectId, title: c.title, position: c.position });
     }
   } else {
     // Se o projeto ainda estiver com o padrão antigo (To Do / In Progress / Done), renomeia as 3 primeiras
@@ -95,43 +93,43 @@ async function ensureDefaultProjectAndColumns(userId: number) {
       for (const col of existing) {
         const mapped = legacyMap.get(String(col.title));
         if (mapped) {
-          await pool.query(
-            "UPDATE kanban_columns SET title = $1, position = $2 WHERE id = $3",
-            [mapped.title, mapped.position, Number(col.id)]
-          );
+          await db
+            .update(kanban_columns)
+            .set({ title: mapped.title, position: mapped.position })
+            .where(eq(kanban_columns.id, Number(col.id)));
         }
       }
     }
 
     // Garante que todas as colunas desejadas existam e que a posição esteja correta.
-    const refreshed = await pool.query(
-      "SELECT id, title FROM kanban_columns WHERE project_id = $1",
-      [projectId]
-    );
     const byTitle = new Map<string, number>();
-    for (const row of refreshed.rows as Array<{ id: string | number; title: string }>) {
+    const refreshed = await db
+      .select({ id: kanban_columns.id, title: kanban_columns.title })
+      .from(kanban_columns)
+      .where(eq(kanban_columns.project_id, projectId));
+    for (const row of refreshed as Array<{ id: number; title: string | null }>) {
       byTitle.set(String(row.title), Number(row.id));
     }
 
     for (const c of DEFAULT_COLUMNS) {
       const existingId = byTitle.get(c.title);
       if (!existingId) {
-        await pool.query(
-          "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3)",
-          [projectId, c.title, c.position]
-        );
+        await db.insert(kanban_columns).values({ project_id: projectId, title: c.title, position: c.position });
       } else {
-        await pool.query("UPDATE kanban_columns SET position = $1 WHERE id = $2", [c.position, existingId]);
+        await db.update(kanban_columns).set({ position: c.position }).where(eq(kanban_columns.id, existingId));
       }
     }
   }
 
   // Remove colunas extras (como a coluna de teste) se não tiverem cards.
   // Mantém apenas o fluxo padrão acima.
-  await pool.query(
-    "DELETE FROM kanban_columns c WHERE c.project_id = $1 AND NOT (c.title = ANY($2::text[])) AND NOT EXISTS (SELECT 1 FROM kanban_cards k WHERE k.column_id = c.id)",
-    [projectId, DEFAULT_COLUMNS.map((c) => c.title)]
-  );
+  // Mantém apenas colunas padrão quando não tiverem cards
+  await db.execute(sql`
+    DELETE FROM kanban_columns c
+    WHERE c.project_id = ${projectId}
+      AND NOT (c.title = ANY(${DEFAULT_COLUMNS.map((c) => c.title)}::text[]))
+      AND NOT EXISTS (SELECT 1 FROM kanban_cards k WHERE k.column_id = c.id)
+  `);
 
   return { projectId, projectTitle };
 }
@@ -146,18 +144,23 @@ export async function GET(req: Request) {
   try {
     const { projectId, projectTitle } = await ensureDefaultProjectAndColumns(userId);
 
-    const colsRes = await getPool().query(
-      "SELECT id, project_id, title, position FROM kanban_columns WHERE project_id = $1 ORDER BY position ASC, id ASC",
-      [projectId]
-    );
+    const cols = await db
+      .select({ id: kanban_columns.id, project_id: kanban_columns.project_id, title: kanban_columns.title, position: kanban_columns.position })
+      .from(kanban_columns)
+      .where(eq(kanban_columns.project_id, projectId))
+      .orderBy(asc(kanban_columns.position), asc(kanban_columns.id));
 
-    const cardsRes = await getPool().query(
-      "SELECT id, column_id, title, description, position FROM kanban_cards WHERE column_id = ANY($1::bigint[]) ORDER BY position ASC, id ASC",
-      [(colsRes.rows as Array<{ id: string | number }>).map((r) => Number(r.id))]
-    );
+    const colIds = cols.map((c) => Number(c.id));
+    const cards = colIds.length
+      ? await db
+          .select({ id: kanban_cards.id, column_id: kanban_cards.column_id, title: kanban_cards.title, description: kanban_cards.description, position: kanban_cards.position })
+          .from(kanban_cards)
+          .where(inArray(kanban_cards.column_id, colIds))
+          .orderBy(asc(kanban_cards.position), asc(kanban_cards.id))
+      : [];
 
     const cardsByColumn = new Map<number, KanbanCard[]>();
-    for (const row of cardsRes.rows as Array<KanbanCard>) {
+    for (const row of cards as Array<KanbanCard>) {
       const colId = Number(row.column_id);
       const list = cardsByColumn.get(colId) ?? [];
       list.push({
@@ -170,7 +173,7 @@ export async function GET(req: Request) {
       cardsByColumn.set(colId, list);
     }
 
-    const columns: KanbanColumn[] = (colsRes.rows as ColumnRow[]).map((c) => {
+    const columns: KanbanColumn[] = (cols as unknown as ColumnRow[]).map((c) => {
       const id = Number(c.id);
       return {
         id,
@@ -223,11 +226,11 @@ export async function POST(req: Request) {
       if (!title) return NextResponse.json({ message: "title é obrigatório." }, { status: 400 });
 
       // Limite para não "zuar" o Kanban: não permite criar colunas além do fluxo padrão.
-      const countRes = await getPool().query(
-        "SELECT COUNT(*)::int AS cnt FROM kanban_columns WHERE project_id = $1",
-        [projectId]
-      );
-      const cnt = Number(countRes.rows[0]?.cnt ?? 0);
+      const countRes = await db
+        .select({ cnt: sql<number>`COUNT(*)::int` })
+        .from(kanban_columns)
+        .where(eq(kanban_columns.project_id, projectId));
+      const cnt = Number(countRes[0]?.cnt ?? 0);
       if (cnt >= DEFAULT_COLUMNS.length) {
         return NextResponse.json(
           { message: "Limite de colunas atingido." },
@@ -235,18 +238,18 @@ export async function POST(req: Request) {
         );
       }
 
-      const posRes = await getPool().query(
-        "SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM kanban_columns WHERE project_id = $1",
-        [projectId]
-      );
-      const nextPos = Number(posRes.rows[0]?.next_pos ?? 0);
+      const posRes = await db
+        .select({ next_pos: sql<number>`COALESCE(MAX(position), -1) + 1` })
+        .from(kanban_columns)
+        .where(eq(kanban_columns.project_id, projectId));
+      const nextPos = Number(posRes[0]?.next_pos ?? 0);
 
-      const inserted = await getPool().query(
-        "INSERT INTO kanban_columns (project_id, title, position) VALUES ($1, $2, $3) RETURNING id, project_id, title, position",
-        [projectId, title, nextPos]
-      );
+      const inserted = await db
+        .insert(kanban_columns)
+        .values({ project_id: projectId, title, position: nextPos })
+        .returning({ id: kanban_columns.id, project_id: kanban_columns.project_id, title: kanban_columns.title, position: kanban_columns.position });
 
-      return NextResponse.json({ column: inserted.rows[0] }, { status: 201 });
+      return NextResponse.json({ column: inserted[0] }, { status: 201 });
     }
 
     if (body.type === "card") {
@@ -259,26 +262,27 @@ export async function POST(req: Request) {
       }
 
       // Ensure column belongs to user's project
-      const colRes = await getPool().query(
-        "SELECT id FROM kanban_columns WHERE id = $1 AND project_id = $2 LIMIT 1",
-        [columnId, projectId]
-      );
-      if (!colRes.rowCount) {
+      const colRes = await db
+        .select({ id: kanban_columns.id })
+        .from(kanban_columns)
+        .where(and(eq(kanban_columns.id, columnId), eq(kanban_columns.project_id, projectId)))
+        .limit(1);
+      if (!colRes[0]) {
         return NextResponse.json({ message: "Coluna inválida." }, { status: 400 });
       }
 
-      const posRes = await getPool().query(
-        "SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM kanban_cards WHERE column_id = $1",
-        [columnId]
-      );
-      const nextPos = Number(posRes.rows[0]?.next_pos ?? 0);
+      const posRes = await db
+        .select({ next_pos: sql<number>`COALESCE(MAX(position), -1) + 1` })
+        .from(kanban_cards)
+        .where(eq(kanban_cards.column_id, columnId));
+      const nextPos = Number(posRes[0]?.next_pos ?? 0);
 
-      const inserted = await getPool().query(
-        "INSERT INTO kanban_cards (column_id, title, description, position) VALUES ($1, $2, $3, $4) RETURNING id, column_id, title, description, position",
-        [columnId, title, description, nextPos]
-      );
+      const inserted = await db
+        .insert(kanban_cards)
+        .values({ column_id: columnId, title, description, position: nextPos })
+        .returning({ id: kanban_cards.id, column_id: kanban_cards.column_id, title: kanban_cards.title, description: kanban_cards.description, position: kanban_cards.position });
 
-      return NextResponse.json({ card: inserted.rows[0] }, { status: 201 });
+      return NextResponse.json({ card: inserted[0] }, { status: 201 });
     }
 
     return NextResponse.json({ message: "type inválido." }, { status: 400 });
@@ -316,104 +320,106 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ message: "cardId, toColumnId e toPosition são obrigatórios." }, { status: 400 });
   }
 
-  const pool = getPool();
-
   try {
     const { projectId } = await ensureDefaultProjectAndColumns(userId);
 
-    const roleRes = await pool.query('SELECT role FROM users WHERE id = $1 LIMIT 1', [userId]);
-    const role = roleRes.rows[0]?.role;
+    const roleRes = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const role = roleRes[0]?.role;
     if (role !== 'admin') {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
 
     // Validate destination column belongs to user
-    const colRes = await pool.query(
-      "SELECT id FROM kanban_columns WHERE id = $1 AND project_id = $2 LIMIT 1",
-      [toColumnId, projectId]
-    );
+    const colRes = await db
+      .select({ id: kanban_columns.id })
+      .from(kanban_columns)
+      .where(and(eq(kanban_columns.id, toColumnId), eq(kanban_columns.project_id, projectId)))
+      .limit(1);
 
-    if (!colRes.rowCount) {
+    if (!colRes[0]) {
       return NextResponse.json({ message: "Coluna de destino inválida." }, { status: 400 });
     }
 
-    await pool.query("BEGIN");
-    try {
-      const cardRes = await pool.query(
-        "SELECT k.id, k.column_id, k.position FROM kanban_cards k JOIN kanban_columns c ON c.id = k.column_id WHERE k.id = $1 AND c.project_id = $2 LIMIT 1",
-        [cardId, projectId]
-      );
+    // Reordenação com transação via Drizzle
+    await db.transaction(async (tx) => {
+      const cardRes = await tx.execute(sql`
+        SELECT k.id, k.column_id, k.position
+        FROM kanban_cards k
+        JOIN kanban_columns c ON c.id = k.column_id
+        WHERE k.id = ${cardId} AND c.project_id = ${projectId}
+        LIMIT 1
+      `);
 
-      if (!cardRes.rowCount) {
-        await pool.query("ROLLBACK");
-        return NextResponse.json({ message: "Card inválido." }, { status: 400 });
+      const cardRow = (cardRes.rows as Array<{ column_id: number; position: number }>)[0];
+      if (!cardRow) {
+        throw new Error('CARD_NOT_FOUND');
       }
 
-      const fromColumnId = Number(cardRes.rows[0].column_id);
-      const fromPosition = Number(cardRes.rows[0].position);
+      const fromColumnId = Number(cardRow.column_id);
+      const fromPosition = Number(cardRow.position);
 
       if (fromColumnId === toColumnId) {
-        const countRes = await pool.query(
-          "SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = $1",
-          [fromColumnId]
-        );
-        const cnt = Number(countRes.rows[0]?.cnt ?? 0);
+        const countRes = await tx.execute(sql`
+          SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = ${fromColumnId}
+        `);
+        const cnt = Number((countRes.rows as any[])[0]?.cnt ?? 0);
         const maxIndex = Math.max(0, cnt - 1);
         const targetPos = Math.max(0, Math.min(maxIndex, toPosition));
 
         if (targetPos !== fromPosition) {
           if (targetPos > fromPosition) {
-            await pool.query(
-              "UPDATE kanban_cards SET position = position - 1 WHERE column_id = $1 AND position > $2 AND position <= $3",
-              [fromColumnId, fromPosition, targetPos]
-            );
+            await tx.execute(sql`
+              UPDATE kanban_cards
+              SET position = position - 1
+              WHERE column_id = ${fromColumnId} AND position > ${fromPosition} AND position <= ${targetPos}
+            `);
           } else {
-            await pool.query(
-              "UPDATE kanban_cards SET position = position + 1 WHERE column_id = $1 AND position >= $2 AND position < $3",
-              [fromColumnId, targetPos, fromPosition]
-            );
+            await tx.execute(sql`
+              UPDATE kanban_cards
+              SET position = position + 1
+              WHERE column_id = ${fromColumnId} AND position >= ${targetPos} AND position < ${fromPosition}
+            `);
           }
-          await pool.query("UPDATE kanban_cards SET position = $1 WHERE id = $2", [targetPos, cardId]);
+          await tx.execute(sql`UPDATE kanban_cards SET position = ${targetPos} WHERE id = ${cardId}`);
         }
-
-        await pool.query("COMMIT");
-        return NextResponse.json({ ok: true }, { status: 200 });
+        return;
       }
 
       // Moving across columns
-      await pool.query(
-        "UPDATE kanban_cards SET position = position - 1 WHERE column_id = $1 AND position > $2",
-        [fromColumnId, fromPosition]
-      );
+      await tx.execute(sql`
+        UPDATE kanban_cards
+        SET position = position - 1
+        WHERE column_id = ${fromColumnId} AND position > ${fromPosition}
+      `);
 
-      const destCountRes = await pool.query(
-        "SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = $1",
-        [toColumnId]
-      );
-      const destCnt = Number(destCountRes.rows[0]?.cnt ?? 0);
+      const destCountRes = await tx.execute(sql`
+        SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = ${toColumnId}
+      `);
+      const destCnt = Number((destCountRes.rows as any[])[0]?.cnt ?? 0);
       const targetPos = Math.max(0, Math.min(destCnt, toPosition));
 
-      await pool.query(
-        "UPDATE kanban_cards SET position = position + 1 WHERE column_id = $1 AND position >= $2",
-        [toColumnId, targetPos]
-      );
+      await tx.execute(sql`
+        UPDATE kanban_cards
+        SET position = position + 1
+        WHERE column_id = ${toColumnId} AND position >= ${targetPos}
+      `);
 
-      await pool.query(
-        "UPDATE kanban_cards SET column_id = $1, position = $2 WHERE id = $3",
-        [toColumnId, targetPos, cardId]
-      );
+      await tx.execute(sql`
+        UPDATE kanban_cards
+        SET column_id = ${toColumnId}, position = ${targetPos}
+        WHERE id = ${cardId}
+      `);
+    });
 
-      await pool.query("COMMIT");
-      return NextResponse.json({ ok: true }, { status: 200 });
-    } catch (err) {
-      try {
-        await pool.query("ROLLBACK");
-      } catch {
-        // ignore rollback errors
-      }
-      throw err;
-    }
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
+    if (error instanceof Error && error.message === 'CARD_NOT_FOUND') {
+      return NextResponse.json({ message: "Card inválido." }, { status: 400 });
+    }
     console.error("kanban PATCH error", error);
     return NextResponse.json({ message: "Erro ao mover card." }, { status: 500 });
   }

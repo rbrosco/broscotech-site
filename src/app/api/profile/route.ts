@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getPool } from '@/lib/db';
+import { db } from '@/lib/drizzle';
+import { and, eq, ne, or } from 'drizzle-orm';
+import { users } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
 
 export const runtime = 'nodejs';
@@ -26,16 +28,23 @@ export async function GET(req: Request) {
   }
 
   try {
-    console.log('[API/profile] userId extraído do token:', userId);
-    const result = await getPool().query(
-      'SELECT id, name, login, email, phone, role, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
-      [userId]
-    );
-    console.log('[API/profile] result.rows:', result.rows);
+    const found = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        login: users.login,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        created_at: users.created_at,
+        updated_at: users.updated_at,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    const row = result.rows[0] as ProfileRow | undefined;
+    const row = found[0] as unknown as ProfileRow | undefined;
     if (!row) {
-      console.log('[API/profile] Usuário não encontrado para userId:', userId);
       return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
     }
 
@@ -47,10 +56,9 @@ export async function GET(req: Request) {
       phone: row.phone ?? null,
       avatar: null, // avatar removido do banco, retorna null
       role: String(row.role),
-      created_at: String(row.created_at),
-      updated_at: String(row.updated_at),
+      created_at: String((row as any).created_at ?? ''),
+      updated_at: String((row as any).updated_at ?? ''),
     };
-    console.log('[API/profile] profile retornado:', profile);
     return NextResponse.json({ profile }, { status: 200 });
   } catch (error) {
     console.error('[API/profile] profile GET error', error);
@@ -102,14 +110,21 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    // Load current user (for password check)
-    const currentRes = await getPool().query(
-      'SELECT id, name, login, email, phone, password FROM users WHERE id = $1 LIMIT 1',
-      [userId]
-    );
+    const currentArr = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        login: users.login,
+        email: users.email,
+        phone: users.phone,
+        password: users.password,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    const current = currentRes.rows[0] as
-      | { id: string | number; name: string; login: string; email: string; phone: string | null; password: string }
+    const current = currentArr[0] as
+      | { id: number; name: string; login: string; email: string; phone: string | null; password: string }
       | undefined;
 
     if (!current) {
@@ -117,11 +132,12 @@ export async function PATCH(req: Request) {
     }
 
     // Uniqueness checks
-    const conflict = await getPool().query(
-      'SELECT id FROM users WHERE (login = $1 OR email = $2) AND id <> $3 LIMIT 1',
-      [login, email, userId]
-    );
-    if (conflict.rowCount) {
+    const conflict = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(or(eq(users.login, login), eq(users.email, email)), ne(users.id, userId)))
+      .limit(1);
+    if (conflict[0]) {
       return NextResponse.json({ message: 'Login ou e-mail já em uso.' }, { status: 409 });
     }
 
@@ -134,12 +150,28 @@ export async function PATCH(req: Request) {
       newPasswordHash = await bcrypt.hash(body.newPassword!, 10);
     }
 
-    const updated = await getPool().query(
-      'UPDATE users SET name = $1, login = $2, email = $3, phone = $4, avatar = COALESCE($5, avatar), password = COALESCE($6, password), updated_at = now() WHERE id = $7 RETURNING id, name, login, email, phone, avatar, role, created_at, updated_at',
-      [name, login, email, phone || null, body.avatar ?? null, newPasswordHash, userId]
-    );
+    const updatedArr = await db
+      .update(users)
+      .set({
+        name,
+        login,
+        email,
+        phone: phone || null,
+        ...(newPasswordHash ? { password: newPasswordHash } : {}),
+      })
+      .where(eq(users.id, userId))
+      .returning({
+        id: users.id,
+        name: users.name,
+        login: users.login,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        created_at: users.created_at,
+        updated_at: users.updated_at,
+      });
 
-    const row = updated.rows[0] as ProfileRow | undefined;
+    const row = updatedArr[0] as unknown as ProfileRow | undefined;
     if (!row) {
       return NextResponse.json({ message: 'Erro ao atualizar perfil.' }, { status: 500 });
     }
@@ -150,10 +182,10 @@ export async function PATCH(req: Request) {
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
-      avatar: row.avatar ?? null,
+      avatar: null,
       role: String(row.role),
-      created_at: String(row.created_at),
-      updated_at: String(row.updated_at),
+      created_at: String((row as any).created_at ?? ''),
+      updated_at: String((row as any).updated_at ?? ''),
     };
 
     // Refresh JWT cookie so name/login/email stays in sync.

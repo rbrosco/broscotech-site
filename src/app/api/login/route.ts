@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { getPool } from "@/lib/db";
+import { db } from "@/lib/drizzle";
+import { or, eq } from "drizzle-orm";
+import { users } from "@/lib/schema";
 
 export const runtime = "nodejs";
 
@@ -29,14 +31,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const userResult = await getPool().query(
-      "SELECT id, name, login, email, password FROM users WHERE login = $1 OR email = $1 LIMIT 1",
-      [identifier]
-    );
-
-    const userRow = userResult.rows[0] as
-      | { id: string | number; name: string; login: string; email: string; password: string }
-      | undefined;
+    const found = await db
+      .select({ id: users.id, name: users.name, login: users.login, email: users.email, password: users.password })
+      .from(users)
+      .where(or(eq(users.login, identifier), eq(users.email, identifier)))
+      .limit(1);
+    const userRow = found[0];
 
     if (!userRow) {
       return NextResponse.json(

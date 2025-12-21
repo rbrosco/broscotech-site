@@ -1,5 +1,4 @@
-import { drizzle } from 'drizzle-orm';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { getPool } from './db';
 
 const pool = getPool();

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
+import { db } from '@/lib/drizzle';
+import { project_updates } from '@/lib/schema';
 
 export const runtime = 'nodejs';
 
@@ -17,11 +18,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await getPool().query(
-      'INSERT INTO project_updates (project_id, kind, message, created_at) VALUES ($1, $2, $3, now()) RETURNING id, kind, message, created_at',
-      [projectId, kind, message, ]
-    );
-    return NextResponse.json({ update: result.rows[0] }, { status: 201 });
+    const inserted = await db
+      .insert(project_updates)
+      .values({
+        project_id: projectId,
+        kind,
+        message,
+        created_at: new Date().toISOString(),
+      })
+      .returning();
+
+    return NextResponse.json({ update: inserted[0] }, { status: 201 });
   } catch (error) {
     console.error('project_updates POST error', error);
     return NextResponse.json({ message: 'Erro ao criar atualização.' }, { status: 500 });

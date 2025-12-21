@@ -1,13 +1,19 @@
 
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
+import { db } from '@/lib/drizzle';
+import { and, eq } from 'drizzle-orm';
+import { projects, users } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
 
 export const runtime = 'nodejs';
 
 async function getUserRole(userId: number): Promise<string | null> {
-  const res = await getPool().query('SELECT role FROM users WHERE id = $1 LIMIT 1', [userId]);
-  const role = res.rows[0]?.role;
+  const found = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const role = found[0]?.role;
   return typeof role === 'string' ? role : null;
 }
 
@@ -34,7 +40,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ message: 'projectId é obrigatório.' }, { status: 400 });
   }
   try {
-    await getPool().query('DELETE FROM projects WHERE id = $1', [projectId]);
+    await db.delete(projects).where(eq(projects.id, projectId));
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('project_admin_status DELETE error', error);
@@ -60,10 +66,12 @@ export async function GET(req: Request) {
   try {
     const role = await getUserRole(userId);
 
-    const projectRes = await getPool().query('SELECT user_id, admin_status FROM projects WHERE id = $1 LIMIT 1', [
-      projectId,
-    ]);
-    const row = projectRes.rows[0] as { user_id?: number; admin_status?: string | null } | undefined;
+    const projArr = await db
+      .select({ user_id: projects.user_id, admin_status: projects.admin_status })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+    const row = projArr[0] as { user_id?: number; admin_status?: string | null } | undefined;
     if (!row) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
@@ -107,10 +115,10 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    await getPool().query(
-      'UPDATE projects SET admin_status = $1, updated_at = now() WHERE id = $2',
-      [status, projectId]
-    );
+    await db
+      .update(projects)
+      .set({ admin_status: status, updated_at: new Date().toISOString() })
+      .where(eq(projects.id, projectId));
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error('project_accept PATCH error', error);
