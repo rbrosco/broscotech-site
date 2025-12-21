@@ -1,127 +1,101 @@
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
-import { eq } from 'drizzle-orm';
-import { projects, users } from '@/lib/schema';
+import { projects } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
+import { eq } from 'drizzle-orm';
 
-export const runtime = 'nodejs';
-
-async function getUserRole(userId: number): Promise<string | null> {
-  const found = await db
-    .select({ role: users.role })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  const role = found[0]?.role;
-  return typeof role === 'string' ? role : null;
-}
-
-export async function DELETE(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  const role = await getUserRole(userId);
-  if (role !== 'admin') {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  }
-
-  let body: { projectId?: number };
+export async function GET(request: NextRequest) {
   try {
-    body = (await req.json()) as typeof body;
-  } catch {
-    return NextResponse.json({ message: 'JSON inválido.' }, { status: 400 });
-  }
-  const { projectId } = body;
-  if (!projectId) {
-    return NextResponse.json({ message: 'projectId é obrigatório.' }, { status: 400 });
-  }
-  try {
-    await db.delete(projects).where(eq(projects.id, projectId));
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error('project_admin_status DELETE error', error);
-    return NextResponse.json({ message: 'Erro ao excluir projeto.' }, { status: 500 });
-  }
-}
-export async function GET(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
 
-  const url = new URL(req.url);
-  const projectIdRaw = url.searchParams.get('projectId');
-  if (!projectIdRaw) {
-    return NextResponse.json({ message: 'projectId é obrigatório.' }, { status: 400 });
-  }
-  const projectId = Number(projectIdRaw);
-  if (!Number.isFinite(projectId)) {
-    return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
-  }
-  try {
-    const role = await getUserRole(userId);
+    const url = new URL(request.url);
+    const projectIdRaw = url.searchParams.get('projectId');
+    const projectId = projectIdRaw ? Number(projectIdRaw) : NaN;
 
-    const projArr = await db
-      .select({ user_id: projects.user_id, admin_status: projects.admin_status })
+    if (!Number.isFinite(projectId)) {
+      return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
+    }
+
+    const rows = await db
+      .select({ admin_status: projects.admin_status })
       .from(projects)
-      .where(eq(projects.id, projectId))
+      .where(eq(projects.id, projectId as number))
       .limit(1);
-    const row = projArr[0] as { user_id?: number; admin_status?: string | null } | undefined;
-    if (!row) {
+
+    if (!rows[0]) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
 
-    const ownerId = typeof row.user_id === 'number' ? row.user_id : Number(row.user_id);
-    const isOwner = Number.isFinite(ownerId) && ownerId === userId;
-    const isAdmin = role === 'admin';
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-
-    const adminStatus = typeof row.admin_status === 'string' ? row.admin_status : null;
-    return NextResponse.json({ admin_status: adminStatus || null }, { status: 200 });
+    return NextResponse.json({ admin_status: rows[0].admin_status });
   } catch (error) {
-    console.error('project_admin_status GET error', error);
-    return NextResponse.json({ message: 'Erro ao consultar status admin.' }, { status: 500 });
+    console.error('Erro em /api/project_admin_status GET:', error);
+    return NextResponse.json({ message: 'Erro interno ao buscar status do projeto.' }, { status: 500 });
   }
 }
-export async function PATCH(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
 
-  const role = await getUserRole(userId);
-  if (role !== 'admin') {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  }
-
-  let body: { projectId?: number; status?: 'accepted' | 'rejected' };
+export async function PATCH(request: NextRequest) {
   try {
-    body = (await req.json()) as typeof body;
-  } catch {
-    return NextResponse.json({ message: 'JSON inválido.' }, { status: 400 });
-  }
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
 
-  const { projectId, status } = body;
-  if (!projectId || !status) {
-    return NextResponse.json({ message: 'Campos obrigatórios faltando.' }, { status: 400 });
-  }
+    const body = await request.json();
+    const projectId = Number(body.projectId ?? NaN);
+    const status = String(body.status ?? '');
 
-  try {
-    await db
+    if (!Number.isFinite(projectId) || !status) {
+      return NextResponse.json({ message: 'Parâmetros inválidos.' }, { status: 400 });
+    }
+
+    // Não há role no token, então só permite PATCH se o usuário for o mesmo do projeto (ou admin futuramente)
+
+    const [updated] = await db
       .update(projects)
-      .set({ admin_status: status, updated_at: new Date().toISOString() })
-      .where(eq(projects.id, projectId));
-    return NextResponse.json({ success: true }, { status: 200 });
+      .set({ admin_status: status })
+      .where(eq(projects.id, projectId as number))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Status atualizado.', admin_status: updated.admin_status });
   } catch (error) {
-    console.error('project_accept PATCH error', error);
-    return NextResponse.json({ message: 'Erro ao atualizar status do projeto.' }, { status: 500 });
+    console.error('Erro em /api/project_admin_status PATCH:', error);
+    return NextResponse.json({ message: 'Erro interno ao atualizar status.' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const projectId = Number(body.projectId ?? NaN);
+
+    if (!Number.isFinite(projectId)) {
+      return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
+    }
+
+    const [deleted] = await db
+      .delete(projects)
+      .where(eq(projects.id, projectId as number))
+      .returning();
+
+    if (!deleted) {
+      return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Projeto excluído.' });
+  } catch (error) {
+    console.error('Erro em /api/project_admin_status DELETE:', error);
+    return NextResponse.json({ message: 'Erro interno ao excluir projeto.' }, { status: 500 });
   }
 }

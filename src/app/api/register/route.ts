@@ -1,84 +1,48 @@
-import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/drizzle";
-import { eq, or } from "drizzle-orm";
-import { projects, users } from "@/lib/schema";
 
-export const runtime = "nodejs";
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { db } from '@/lib/drizzle';
+import { users } from '@/lib/schema';
+import { or, eq } from 'drizzle-orm';
 
-type RegisterBody = {
-  name?: string;
-  login?: string;
-  email?: string;
-  password?: string;
-};
-
-export async function POST(req: Request) {
-  let body: RegisterBody;
+export async function POST(request: Request) {
   try {
-    body = (await req.json()) as RegisterBody;
-  } catch {
-    return NextResponse.json({ message: "JSON inválido." }, { status: 400 });
-  }
+    const body = await request.json();
+    const { name, login, email, password, phone } = body ?? {};
 
-  const name = body.name?.trim();
-  const login = body.login?.trim();
-  const email = body.email?.trim();
-  const password = body.password;
+    if (!name || !login || !email || !password) {
+      return NextResponse.json({ message: 'Nome, login, e-mail e senha são obrigatórios.' }, { status: 400 });
+    }
 
-  if (!name || !login || !email || !password) {
-    return NextResponse.json(
-      { message: "Todos os campos são obrigatórios." },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const exists = await db
-      .select({ one: users.id })
+    const existing = await db
+      .select()
       .from(users)
       .where(or(eq(users.login, login), eq(users.email, email)))
       .limit(1);
-
-    if (exists[0]) {
-      return NextResponse.json(
-        { message: "Login ou e-mail já registrados." },
-        { status: 400 }
-      );
+    if (existing.length > 0) {
+      return NextResponse.json({ message: 'Login ou e-mail já cadastrado.' }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    const inserted = await db
+    const [created] = await db
       .insert(users)
-      .values({ name, login, password: hashedPassword, email })
-      .returning({ id: users.id, name: users.name, login: users.login, email: users.email });
+      .values({
+        name,
+        login,
+        email,
+        password: passwordHash,
+        phone: phone || null,
+        role: 'user',
+      })
+      .returning();
 
-    const user = inserted[0];
-
-    // Projeto padrão para o cliente já visualizar no dashboard.
-    try {
-      await db.insert(projects).values({
-        user_id: Number(user.id),
-        title: "Seu projeto",
-        status: "Em planejamento",
-        progress: 0,
-      });
-    } catch (error) {
-      // Não impede cadastro caso a tabela ainda não exista.
-      console.error("register: failed to create default project", error);
-    }
-
-    return NextResponse.json(user, { status: 201 });
+    return NextResponse.json({
+      message: 'Usuário criado com sucesso.',
+      user: { id: created.id, name: created.name, login: created.login, email: created.email },
+    });
   } catch (error) {
-    console.error("register error", error);
-    return NextResponse.json(
-      { message: "Erro ao criar usuário." },
-      { status: 500 }
-    );
+    console.error('Erro em /api/register:', error);
+    return NextResponse.json({ message: 'Erro interno ao registrar usuário.' }, { status: 500 });
   }
-}
-
-export function GET() {
-  return NextResponse.json({ message: "Método não permitido" }, { status: 405 });
 }

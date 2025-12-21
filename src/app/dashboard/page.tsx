@@ -28,6 +28,8 @@ type KanbanResponse = {
 };
 
 export default function DashboardPage() {
+  // Esta página já é protegida pelo middleware (/dashboard/*),
+  // então só será exibida se houver um token JWT válido no cookie.
     const [data, setData] = useState<KanbanResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

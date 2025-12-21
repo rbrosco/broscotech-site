@@ -12,6 +12,22 @@ function extractToken(request: NextRequest) {
   return parts[1];
 }
 
+function isJwtExpired(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const json = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
+    const payload = JSON.parse(json) as { exp?: number } | null;
+    if (!payload || typeof payload.exp !== 'number') return false;
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp < now;
+  } catch {
+    return true;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -32,24 +48,7 @@ export function middleware(request: NextRequest) {
   if (!pageProtected && !apiProtected) return NextResponse.next();
 
   const token = extractToken(request);
-  if (!token) {
-    if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
-    return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
-  }
-
-  // Lightweight token validation for middleware (Edge runtime): decode payload and check `exp`.
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) throw new Error('invalid');
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
-    const parsed: unknown = JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
-    const decoded = (typeof parsed === 'object' && parsed !== null) ? parsed as { exp?: number } : null;
-    if (decoded && decoded.exp && typeof decoded.exp === 'number') {
-      const now = Math.floor(Date.now() / 1000);
-      if (decoded.exp < now) throw new Error('expired');
-    }
-  } catch {
+  if (!token || isJwtExpired(token)) {
     if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   }

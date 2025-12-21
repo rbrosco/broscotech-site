@@ -1,202 +1,112 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { db } from '@/lib/drizzle';
-import { and, eq, ne, or } from 'drizzle-orm';
 import { users } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
+import { eq } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
-export const runtime = 'nodejs';
-
-type Profile = {
-  id: number;
-  name: string;
-  login: string;
-  email: string;
-  phone: string | null;
-  avatar: null;
-  role: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-};
-
-type PatchBody = {
-  name?: string;
-  login?: string;
-  email?: string;
-  phone?: string;
-  avatar?: string | null; // data URL (não persistido)
-  currentPassword?: string;
-  newPassword?: string;
-};
-
-export async function GET(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
+export async function GET(request: Request) {
   try {
-    const found = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        login: users.login,
-        email: users.email,
-        phone: users.phone,
-        role: users.role,
-        created_at: users.created_at,
-        updated_at: users.updated_at,
-      })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    const row = found[0];
-    if (!row) {
-      return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     }
 
-    const profile: Profile = {
-      id: Number(row.id),
-      name: String(row.name),
-      login: String(row.login),
-      email: String(row.email),
-      phone: row.phone ?? null,
-      avatar: null,
-      role: row.role ?? null,
-      created_at: row.created_at ?? null,
-      updated_at: row.updated_at ?? null,
-    };
+    const rows = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, Number(auth.id)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) {
+      return NextResponse.json({ message: 'Perfil não encontrado.' }, { status: 404 });
+    }
 
-    return NextResponse.json({ profile }, { status: 200 });
+    return NextResponse.json({
+      profile: {
+        id: row.id,
+        name: row.name,
+        login: row.login,
+        email: row.email,
+        phone: row.phone ?? null,
+        role: row.role ?? 'user',
+        avatar: null,
+        created_at: row.created_at ?? null,
+        updated_at: row.updated_at ?? null,
+      },
+    });
   } catch (error) {
-    console.error('[API/profile] profile GET error', error);
-    return NextResponse.json({ message: 'Erro ao carregar perfil.' }, { status: 500 });
+    console.error('Erro em /api/profile GET:', error);
+    return NextResponse.json({ message: 'Erro interno ao buscar perfil.' }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request) {
-  const user = requireAuth(req.headers);
-  const userId = user?.id ? Number(user.id) : NaN;
-  if (!Number.isFinite(userId)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
-
-  let body: PatchBody;
+export async function PATCH(request: Request) {
   try {
-    body = (await req.json()) as PatchBody;
-  } catch {
-    return NextResponse.json({ message: 'JSON inválido.' }, { status: 400 });
-  }
-
-  const name = body.name?.trim();
-  const login = body.login?.trim();
-  const email = body.email?.trim();
-  const phone = body.phone?.trim();
-
-  if (!name || !login || !email) {
-    return NextResponse.json({ message: 'Nome, login e e-mail são obrigatórios.' }, { status: 400 });
-  }
-
-  const wantsPasswordChange = Boolean(body.newPassword || body.currentPassword);
-  if (wantsPasswordChange) {
-    if (!body.currentPassword || !body.newPassword) {
-      return NextResponse.json({ message: 'Para trocar a senha, informe senha atual e nova senha.' }, { status: 400 });
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     }
-    if (body.newPassword.length < 6) {
-      return NextResponse.json({ message: 'A nova senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
-    }
-  }
 
-  try {
-    const currentArr = await db
-      .select({ id: users.id, password: users.password })
+    const userId = Number(auth.id);
+    const body = await request.json();
+    const { name, login, email, phone, currentPassword, newPassword } = body ?? {};
+
+    const rows = await db
+      .select()
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
-
-    const current = currentArr[0];
-    if (!current) {
-      return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
-    }
-
-    const conflict = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(and(ne(users.id, userId), or(eq(users.login, login), eq(users.email, email))))
-      .limit(1);
-    if (conflict[0]) {
-      return NextResponse.json({ message: 'Login ou e-mail já em uso.' }, { status: 409 });
-    }
-
-    let newPasswordHash: string | undefined;
-    if (wantsPasswordChange) {
-      const ok = await bcrypt.compare(body.currentPassword!, String(current.password));
-      if (!ok) {
-        return NextResponse.json({ message: 'Senha atual incorreta.' }, { status: 401 });
-      }
-      newPasswordHash = await bcrypt.hash(body.newPassword!, 10);
-    }
-
-    const updatedArr = await db
-      .update(users)
-      .set({
-        name,
-        login,
-        email,
-        phone: phone || null,
-        updated_at: new Date().toISOString(),
-        ...(newPasswordHash ? { password: newPasswordHash } : {}),
-      })
-      .where(eq(users.id, userId))
-      .returning({
-        id: users.id,
-        name: users.name,
-        login: users.login,
-        email: users.email,
-        phone: users.phone,
-        role: users.role,
-        created_at: users.created_at,
-        updated_at: users.updated_at,
-      });
-
-    const row = updatedArr[0];
+    const row = rows[0];
     if (!row) {
-      return NextResponse.json({ message: 'Erro ao atualizar perfil.' }, { status: 500 });
+      return NextResponse.json({ message: 'Perfil não encontrado.' }, { status: 404 });
     }
 
-    const profile: Profile = {
-      id: Number(row.id),
-      name: String(row.name),
-      login: String(row.login),
-      email: String(row.email),
-      phone: row.phone ?? null,
-      avatar: null,
-      role: row.role ?? null,
-      created_at: row.created_at ?? null,
-      updated_at: row.updated_at ?? null,
-    };
+    if (currentPassword || newPassword) {
+      if (!currentPassword || !newPassword) {
+        return NextResponse.json({ message: 'Informe a senha atual e a nova senha.' }, { status: 400 });
+      }
+      const ok = await bcrypt.compare(currentPassword, row.password);
+      if (!ok) {
+        return NextResponse.json({ message: 'Senha atual incorreta.' }, { status: 400 });
+      }
+    }
 
-    const tokenPayload = { id: profile.id, name: profile.name, login: profile.login, email: profile.email };
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET!, { expiresIn: '7d' });
+    const updateData: Partial<typeof users.$inferInsert> = {};
+    if (typeof name === 'string') updateData.name = name;
+    if (typeof login === 'string') updateData.login = login;
+    if (typeof email === 'string') updateData.email = email;
+    if (typeof phone === 'string') updateData.phone = phone;
+    if (currentPassword && newPassword) {
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
 
-    const res = NextResponse.json({ message: 'Perfil atualizado.', profile }, { status: 200 });
-    res.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ message: 'Nada para atualizar.' });
+    }
+
+    const [updated] = await db
+      .update(users)
+      .set({ ...updateData, updated_at: new Date().toISOString() })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return NextResponse.json({
+      message: 'Perfil atualizado com sucesso.',
+      profile: {
+        id: updated.id,
+        name: updated.name,
+        login: updated.login,
+        email: updated.email,
+        phone: updated.phone ?? null,
+        role: updated.role ?? 'user',
+        avatar: null,
+        created_at: updated.created_at ?? null,
+        updated_at: updated.updated_at ?? null,
+      },
     });
-
-    void body.avatar;
-    return res;
   } catch (error) {
-    console.error('profile PATCH error', error);
-    return NextResponse.json({ message: 'Erro ao atualizar perfil.' }, { status: 500 });
+    console.error('Erro em /api/profile PATCH:', error);
+    return NextResponse.json({ message: 'Erro interno ao atualizar perfil.' }, { status: 500 });
   }
 }

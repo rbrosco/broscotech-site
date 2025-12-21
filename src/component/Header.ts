@@ -17,39 +17,18 @@ const Header: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
-    // Sempre tenta sincronizar o estado de login com o backend
-    const syncAuth = async () => {
-      if (typeof window === "undefined") return;
+    // Verifica o localStorage para o estado de login quando o componente monta no cliente
+    if (typeof window !== "undefined") {
       const loggedInStatus = localStorage.getItem('isLoggedIn');
       const storedUserData = localStorage.getItem('userData');
       if (loggedInStatus === 'true' && storedUserData) {
         setIsLoggedIn(true);
         setUserData(JSON.parse(storedUserData));
-        return;
-      }
-      // Se não houver info local, tenta buscar do backend
-      try {
-        const res = await fetch('/api/me', { credentials: 'include' });
-        if (res.ok) {
-          const me = await res.json();
-          setIsLoggedIn(true);
-          setUserData(me);
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('userData', JSON.stringify(me));
-        } else {
-          setIsLoggedIn(false);
-          setUserData(null);
-          localStorage.removeItem('isLoggedIn');
-          localStorage.removeItem('userData');
-        }
-      } catch {
+      } else {
         setIsLoggedIn(false);
         setUserData(null);
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userData');
       }
-    };
-    syncAuth();
+    }
   }, []);
 
   const defaultAvatar = '/images/Perfil_Rogger.png'; // Avatar padrão

@@ -1,93 +1,70 @@
-import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { db } from "@/lib/drizzle";
-import { or, eq } from "drizzle-orm";
-import { users } from "@/lib/schema";
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { db } from '@/lib/drizzle';
+import { users } from '@/lib/schema';
+import { eq, or } from 'drizzle-orm';
 
-export const runtime = "nodejs";
-
-type LoginBody = {
-  identifier?: string;
-  password?: string;
-};
-
-export async function POST(req: Request) {
-  let body: LoginBody;
+export async function POST(request: Request) {
   try {
-    body = (await req.json()) as LoginBody;
-  } catch {
-    return NextResponse.json({ message: "JSON inválido." }, { status: 400 });
-  }
+    const body = await request.json();
+    const { identifier, password } = body ?? {};
 
-  const identifier = body.identifier?.trim();
-  const password = body.password;
+    if (!identifier || !password) {
+      return NextResponse.json({ message: 'Login ou e-mail e senha são obrigatórios.' }, { status: 400 });
+    }
 
-  if (!identifier || !password) {
-    return NextResponse.json(
-      { message: "Por favor, preencha todos os campos." },
-      { status: 400 }
-    );
-  }
 
-  try {
-    const found = await db
-      .select({ id: users.id, name: users.name, login: users.login, email: users.email, password: users.password })
+    // Busca usuário por login OU email
+    const rows = await db
+      .select()
       .from(users)
       .where(or(eq(users.login, identifier), eq(users.email, identifier)))
       .limit(1);
-    const userRow = found[0];
 
-    if (!userRow) {
-      return NextResponse.json(
-        { message: "Credenciais inválidas." },
-        { status: 401 }
-      );
+    const user = rows[0];
+    if (!user) {
+      console.log(`[LOGIN] Falha: usuário não encontrado para identifier="${identifier}"`);
+      return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 401 });
     }
 
-    const ok = await bcrypt.compare(password, userRow.password);
+    const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      return NextResponse.json(
-        { message: "Credenciais inválidas." },
-        { status: 401 }
-      );
+      console.log(`[LOGIN] Falha: senha incorreta para user id=${user.id}, login=${user.login}, email=${user.email}`);
+      return NextResponse.json({ message: 'Credenciais inválidas.' }, { status: 401 });
     }
 
-    const user = {
-      id: userRow.id,
-      name: userRow.name,
-      login: userRow.login,
-      email: userRow.email,
-    };
+    console.log(`[LOGIN] Sucesso: user id=${user.id}, login=${user.login}, email=${user.email}`);
 
-    const token = jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '7d' });
-
-    const response = NextResponse.json(
-      { message: "Login bem-sucedido.", user, token },
-      { status: 200 }
+    const secret = process.env.JWT_SECRET || 'dev-secret';
+    const token = jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        login: user.login,
+        email: user.email,
+      },
+      secret,
+      { expiresIn: '7d' }
     );
 
-    // Server-set cookie so middleware can protect /dashboard without relying on localStorage.
-    response.cookies.set({
-      name: 'token',
-      value: token,
+    const response = NextResponse.json({
+      message: 'Login realizado com sucesso.',
+      user: { id: user.id, name: user.name, login: user.login, email: user.email },
+    });
+
+    const isProd = process.env.NODE_ENV === 'production';
+    response.cookies.set('token', token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProd,
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
 
     return response;
   } catch (error) {
-    console.error("login error", error);
-    return NextResponse.json(
-      { message: "Erro ao conectar com o servidor. Tente novamente mais tarde." },
-      { status: 500 }
-    );
+    console.error('Erro em /api/login:', error);
+    return NextResponse.json({ message: 'Erro interno ao efetuar login.' }, { status: 500 });
   }
-}
-
-export function GET() {
-  return NextResponse.json({ message: "Método não permitido" }, { status: 405 });
 }

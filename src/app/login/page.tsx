@@ -36,9 +36,22 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-        if (response.ok) {
-        // Login bem-sucedido - server should set session cookie
-        console.log('Login bem-sucedido:', data.message);
+      if (response.ok) {
+        // Após login, buscar dados do usuário autenticado
+        try {
+          const meRes = await fetch('/api/me', { credentials: 'include' });
+          if (meRes.ok) {
+            const me = await meRes.json();
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userData', JSON.stringify(me));
+          } else {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userData');
+          }
+        } catch {
+          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem('userData');
+        }
         router.push('/dashboard'); // Redireciona para o dashboard
       } else {
         setError(data.message || 'Falha no login. Verifique suas credenciais.');
