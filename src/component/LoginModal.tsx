@@ -41,12 +41,13 @@ export default function LoginModal({ isOpen, onClose }: Props) {
 
       // Define cookie de token e armazena dados locais
       try {
-        document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
+        // server should set session cookie; client-side token fallback when provided
+        if (data.token) {
+          document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
+        }
       } catch {
         // ignore
       }
-      localStorage.setItem("userData", JSON.stringify(data.user));
-      localStorage.setItem("isLoggedIn", "true");
 
       onClose();
       router.push("/dashboard");

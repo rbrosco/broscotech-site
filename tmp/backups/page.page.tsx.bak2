@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardNav from '../../../component/DashboardNav';
 import DashboardSidebar from '../../../component/DashboardSidebar';
 
@@ -15,9 +15,6 @@ type Project = {
   client_phone?: string | null;
   project_type?: string | null;
   final_date?: string | null;
-  language?: string | null;
-  framework?: string | null;
-  integrations?: string | null;
 };
 
 type ProjectsResponse = {
@@ -44,51 +41,24 @@ export default function ProjetoPage() {
   const [language, setLanguage] = useState('');
   const [framework, setFramework] = useState('');
   const [integrationsField, setIntegrationsField] = useState('');
-  const [, setProjectsList] = useState<Project[]>([]);
-  const [, setCollapsedView] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
+  const [projectsList, setProjectsList] = useState<any[]>([]);
+  const [collapsedView, setCollapsedView] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  const fetchProjectsList = useCallback(async () => {
-    try {
-      const uid = userId ?? NaN;
-      if (!Number.isFinite(uid)) return;
-      const res = await fetch(`/api/projects?userId=${uid}&all=1`, { credentials: 'include' });
-      if (!res.ok) return;
-      const payload = await res.json();
-      const list = (payload.projects ?? []) as Project[];
-      setProjectsList(list);
-      if (list.length > 0) setCollapsedView(true);
-    } catch (e) {
-      // ignore
-    }
-  }, [userId]);
+  const getUserId = () => {
+    const userDataRaw = localStorage.getItem('userData');
+    return userDataRaw ? Number((JSON.parse(userDataRaw) as { id?: string | number }).id) : NaN;
+  };
 
   useEffect(() => {
-    const init = async () => {
-      // try to get user from server session
-      if (!Number.isFinite(userId ?? NaN)) {
-        try {
-          const resMe = await fetch('/api/me', { credentials: 'include' });
-          if (resMe.ok) {
-            const me = await resMe.json();
-            setUserId(Number(me.id ?? NaN));
-          } else {
-            // no session
-            return;
-          }
-        } catch (e) {
-          return;
-        }
-      }
-
+    const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        const uid = userId ?? NaN;
-        if (!Number.isFinite(uid)) throw new Error('Faça login para ver seu projeto.');
+        const userId = getUserId();
+        if (!Number.isFinite(userId)) throw new Error('Faça login para ver seu projeto.');
 
-        const res = await fetch(`/api/projects?userId=${uid}`, { credentials: 'include' });
+        const res = await fetch(`/api/projects?userId=${userId}`, { credentials: 'include' });
         const payload = (await res.json()) as Partial<ProjectsResponse> & { message?: string };
         if (!res.ok) throw new Error(payload.message || 'Falha ao carregar seu projeto.');
         const resolved = payload as ProjectsResponse;
@@ -100,9 +70,9 @@ export default function ProjetoPage() {
           setClientPhone(resolved.project.client_phone ?? '');
           setProjectType(resolved.project.project_type ?? '');
           setFinalDate(resolved.project.final_date ? String(resolved.project.final_date).slice(0, 10) : '');
-          setLanguage(resolved.project.language ?? '');
-          setFramework(resolved.project.framework ?? '');
-          setIntegrationsField(resolved.project.integrations ?? '');
+          setLanguage((resolved.project as any).language ?? '');
+          setFramework((resolved.project as any).framework ?? '');
+          setIntegrationsField((resolved.project as any).integrations ?? '');
 
           try {
             const resStatus = await fetch(`/api/project_admin_status?projectId=${resolved.project.id}`, {
@@ -115,7 +85,7 @@ export default function ProjetoPage() {
             } else {
               setAdminStatus(null);
             }
-          } catch (e) {
+          } catch {
             setAdminStatus(null);
           }
         }
@@ -127,14 +97,30 @@ export default function ProjetoPage() {
       }
     };
 
-    void init();
+    void load();
     void fetchProjectsList();
-  }, [userId, fetchProjectsList]);
+  }, []);
+
+  const fetchProjectsList = async () => {
+    try {
+      const userId = getUserId();
+      if (!Number.isFinite(userId)) return;
+      const res = await fetch(`/api/projects?userId=${userId}&all=1`, { credentials: 'include' });
+      if (!res.ok) return;
+      const payload = await res.json();
+      const list = payload.projects ?? [];
+      setProjectsList(list);
+      if (list.length > 0) setCollapsedView(true);
+    } catch {
+      // ignore
+    }
+  };
 
   const onSave = async () => {
     setSaveMessage(null);
     setSaving(true);
     try {
+      const userId = getUserId();
       if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
 
       const res = await fetch('/api/projects', {
@@ -143,15 +129,10 @@ export default function ProjetoPage() {
         credentials: 'include',
         body: JSON.stringify({
           userId,
-          title: projectName?.trim() || null,
           clientName,
           clientEmail,
           clientPhone,
           projectType,
-          language: language || null,
-          framework: framework || null,
-          integrations: integrationsField || null,
-          observations: observations || null,
           finalDate: finalDate || null,
         }),
       });
@@ -173,7 +154,7 @@ export default function ProjetoPage() {
           } else {
             setAdminStatus(null);
           }
-        } catch (e) {
+        } catch {
           setAdminStatus(null);
         }
       }
@@ -206,22 +187,105 @@ export default function ProjetoPage() {
     }
   };
 
+  const createProject = async () => {
+    setSaveMessage(null);
+    setSaving(true);
+    try {
+      const userId = getUserId();
+      if (!Number.isFinite(userId)) throw new Error('Faça login para criar projeto.');
+      if (!projectName.trim()) throw new Error('Nome do projeto é obrigatório.');
+
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ userId, title: projectName.trim() }),
+      });
+
+      const payload = (await res.json()) as { project?: any; message?: string };
+      if (!res.ok) throw new Error(payload.message || 'Falha ao criar projeto.');
+
+      if (payload.project?.id) {
+        // salva observações como update
+        await fetch('/api/project_updates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: payload.project.id, userId, kind: 'planejamento', message: JSON.stringify({ texto: 'Projeto criado.', projeto: payload.project, observacoes: observations || undefined }) }),
+        });
+      }
+
+      setSaveMessage('Projeto criado com sucesso.');
+      setLastSavedProject(payload.project ?? null);
+      setData((prev) => (prev ? { ...prev, project: payload.project } : { project: payload.project, updates: [] } as any));
+      void fetchProjectsList();
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Erro ao criar.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteProject = async (id: number) => {
+    if (!confirm('Deseja realmente excluir este projeto?')) return;
+    try {
+      const userId = getUserId();
+      const res = await fetch('/api/projects', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: id, userId }) });
+      if (!res.ok) throw new Error((await res.json()).message || 'Erro');
+      setSaveMessage('Projeto excluído.');
+      // refresh
+      void fetchProjectsList();
+      // if deleted current, clear
+      setData(null);
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Erro ao excluir.');
+    }
+  };
+
+  const loadProjectIntoForm = (p: any) => {
+    setData((prev) => (prev ? { ...prev, project: p } : prev));
+    setProjectName(p.title || '');
+    setClientName(p.client_name || '');
+    setClientEmail(p.client_email || '');
+    setClientPhone(p.client_phone || '');
+    setProjectType(p.project_type || '');
+    setFinalDate(p.final_date ? String(p.final_date).slice(0,10) : '');
+  };
+
   return (
     <div className="w-full relative flex ct-docs-disable-sidebar-content overflow-x-hidden bg-blueGray-100 dark:bg-gray-900 min-h-screen">
       <DashboardSidebar />
       <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full">
         <DashboardNav />
+
         <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10">
           <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Cadastre seu projeto</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Seu Projeto</h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Cadastro e informações do projeto em desenvolvimento.</p>
 
             {loading ? (
-              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando...</p>
+              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando…</p>
             ) : error ? (
               <p className="mt-6 text-sm text-red-600 dark:text-red-400">{error}</p>
             ) : data?.project ? (
               <div className="mt-6 space-y-6">
+                <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                  <div><span className="font-semibold">Título:</span> {data.project.title}</div>
+                  <div><span className="font-semibold">Status:</span> {data.project.status}</div>
+                  <div><span className="font-semibold">Progresso:</span> {data.project.progress}%</div>
+                  <div>
+                    <span className="font-semibold">Resposta do administrador:</span>{' '}
+                    {adminStatus === 'accepted'
+                      ? 'Aceito'
+                      : adminStatus === 'rejected'
+                        ? 'Recusado'
+                        : 'Aguardando'}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {adminStatus === 'rejected'
+                      ? 'Seu projeto foi recusado. Você pode ajustar os dados e clicar em Salvar novamente.'
+                      : 'Quando o administrador responder, o status aparecerá aqui.'}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="mb-4">
@@ -231,6 +295,7 @@ export default function ProjetoPage() {
                     onChange={(e) => setProjectName(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
                     placeholder="Nome do projeto"
+                    disabled={!editMode}
                   />
                 </div>
                 <div className="mb-4 col-span-1 sm:col-span-2">
@@ -243,10 +308,7 @@ export default function ProjetoPage() {
                     disabled={!editMode}
                   />
                 </div>
-
-                
-
-              </div>
+                  <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome</label>
                     <input
                       value={clientName}

@@ -26,13 +26,16 @@ export async function GET(req: Request) {
   }
 
   try {
+    console.log('[API/profile] userId extraído do token:', userId);
     const result = await getPool().query(
-      'SELECT id, name, login, email, phone, avatar, role, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
+      'SELECT id, name, login, email, phone, role, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
       [userId]
     );
+    console.log('[API/profile] result.rows:', result.rows);
 
     const row = result.rows[0] as ProfileRow | undefined;
     if (!row) {
+      console.log('[API/profile] Usuário não encontrado para userId:', userId);
       return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
     }
 
@@ -42,15 +45,15 @@ export async function GET(req: Request) {
       login: String(row.login),
       email: String(row.email),
       phone: row.phone ?? null,
-      avatar: row.avatar ?? null,
+      avatar: null, // avatar removido do banco, retorna null
       role: String(row.role),
       created_at: String(row.created_at),
       updated_at: String(row.updated_at),
     };
-
+    console.log('[API/profile] profile retornado:', profile);
     return NextResponse.json({ profile }, { status: 200 });
   } catch (error) {
-    console.error('profile GET error', error);
+    console.error('[API/profile] profile GET error', error);
     return NextResponse.json({ message: 'Erro ao carregar perfil.' }, { status: 500 });
   }
 }

@@ -153,7 +153,7 @@ export async function GET(req: Request) {
 
     const cardsRes = await getPool().query(
       "SELECT id, column_id, title, description, position FROM kanban_cards WHERE column_id = ANY($1::bigint[]) ORDER BY position ASC, id ASC",
-      [colsRes.rows.map((r) => Number(r.id))]
+      [(colsRes.rows as Array<{ id: string | number }>).map((r) => Number(r.id))]
     );
 
     const cardsByColumn = new Map<number, KanbanCard[]>();
@@ -321,15 +321,100 @@ export async function PATCH(req: Request) {
   try {
     const { projectId } = await ensureDefaultProjectAndColumns(userId);
 
-+    const roleRes = await getPool().query('SELECT role FROM users WHERE id = $1 LIMIT 1', [userId]);
-+    const role = roleRes.rows[0]?.role;
-+    if (role !== 'admin') {
-+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-+    }
+    const roleRes = await pool.query('SELECT role FROM users WHERE id = $1 LIMIT 1', [userId]);
+    const role = roleRes.rows[0]?.role;
+    if (role !== 'admin') {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
 
     // Validate destination column belongs to user
     const colRes = await pool.query(
       "SELECT id FROM kanban_columns WHERE id = $1 AND project_id = $2 LIMIT 1",
       [toColumnId, projectId]
     );
-*** End Patch
+
+    if (!colRes.rowCount) {
+      return NextResponse.json({ message: "Coluna de destino inválida." }, { status: 400 });
+    }
+
+    await pool.query("BEGIN");
+    try {
+      const cardRes = await pool.query(
+        "SELECT k.id, k.column_id, k.position FROM kanban_cards k JOIN kanban_columns c ON c.id = k.column_id WHERE k.id = $1 AND c.project_id = $2 LIMIT 1",
+        [cardId, projectId]
+      );
+
+      if (!cardRes.rowCount) {
+        await pool.query("ROLLBACK");
+        return NextResponse.json({ message: "Card inválido." }, { status: 400 });
+      }
+
+      const fromColumnId = Number(cardRes.rows[0].column_id);
+      const fromPosition = Number(cardRes.rows[0].position);
+
+      if (fromColumnId === toColumnId) {
+        const countRes = await pool.query(
+          "SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = $1",
+          [fromColumnId]
+        );
+        const cnt = Number(countRes.rows[0]?.cnt ?? 0);
+        const maxIndex = Math.max(0, cnt - 1);
+        const targetPos = Math.max(0, Math.min(maxIndex, toPosition));
+
+        if (targetPos !== fromPosition) {
+          if (targetPos > fromPosition) {
+            await pool.query(
+              "UPDATE kanban_cards SET position = position - 1 WHERE column_id = $1 AND position > $2 AND position <= $3",
+              [fromColumnId, fromPosition, targetPos]
+            );
+          } else {
+            await pool.query(
+              "UPDATE kanban_cards SET position = position + 1 WHERE column_id = $1 AND position >= $2 AND position < $3",
+              [fromColumnId, targetPos, fromPosition]
+            );
+          }
+          await pool.query("UPDATE kanban_cards SET position = $1 WHERE id = $2", [targetPos, cardId]);
+        }
+
+        await pool.query("COMMIT");
+        return NextResponse.json({ ok: true }, { status: 200 });
+      }
+
+      // Moving across columns
+      await pool.query(
+        "UPDATE kanban_cards SET position = position - 1 WHERE column_id = $1 AND position > $2",
+        [fromColumnId, fromPosition]
+      );
+
+      const destCountRes = await pool.query(
+        "SELECT COUNT(*)::int AS cnt FROM kanban_cards WHERE column_id = $1",
+        [toColumnId]
+      );
+      const destCnt = Number(destCountRes.rows[0]?.cnt ?? 0);
+      const targetPos = Math.max(0, Math.min(destCnt, toPosition));
+
+      await pool.query(
+        "UPDATE kanban_cards SET position = position + 1 WHERE column_id = $1 AND position >= $2",
+        [toColumnId, targetPos]
+      );
+
+      await pool.query(
+        "UPDATE kanban_cards SET column_id = $1, position = $2 WHERE id = $3",
+        [toColumnId, targetPos, cardId]
+      );
+
+      await pool.query("COMMIT");
+      return NextResponse.json({ ok: true }, { status: 200 });
+    } catch (err) {
+      try {
+        await pool.query("ROLLBACK");
+      } catch {
+        // ignore rollback errors
+      }
+      throw err;
+    }
+  } catch (error) {
+    console.error("kanban PATCH error", error);
+    return NextResponse.json({ message: "Erro ao mover card." }, { status: 500 });
+  }
+}

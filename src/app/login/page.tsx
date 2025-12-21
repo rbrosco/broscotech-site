@@ -36,12 +36,9 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Login bem-sucedido
+        if (response.ok) {
+        // Login bem-sucedido - server should set session cookie
         console.log('Login bem-sucedido:', data.message);
-        localStorage.setItem('userData', JSON.stringify(data.user));
-        localStorage.setItem('isLoggedIn', 'true');
-        
         router.push('/dashboard'); // Redireciona para o dashboard
       } else {
         setError(data.message || 'Falha no login. Verifique suas credenciais.');

@@ -46,49 +46,37 @@ export default function ProjetoPage() {
   const [integrationsField, setIntegrationsField] = useState('');
   const [, setProjectsList] = useState<Project[]>([]);
   const [, setCollapsedView] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
   const [editMode, setEditMode] = useState(false);
+
+  const getUserId = () => {
+    const userDataRaw = localStorage.getItem('userData');
+    return userDataRaw ? Number((JSON.parse(userDataRaw) as { id?: string | number }).id) : NaN;
+  };
 
   const fetchProjectsList = useCallback(async () => {
     try {
-      const uid = userId ?? NaN;
-      if (!Number.isFinite(uid)) return;
-      const res = await fetch(`/api/projects?userId=${uid}&all=1`, { credentials: 'include' });
+      const userId = getUserId();
+      if (!Number.isFinite(userId)) return;
+      const res = await fetch(`/api/projects?userId=${userId}&all=1`, { credentials: 'include' });
       if (!res.ok) return;
       const payload = await res.json();
       const list = (payload.projects ?? []) as Project[];
       setProjectsList(list);
       if (list.length > 0) setCollapsedView(true);
-    } catch (e) {
+    } catch {
       // ignore
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
-    const init = async () => {
-      // try to get user from server session
-      if (!Number.isFinite(userId ?? NaN)) {
-        try {
-          const resMe = await fetch('/api/me', { credentials: 'include' });
-          if (resMe.ok) {
-            const me = await resMe.json();
-            setUserId(Number(me.id ?? NaN));
-          } else {
-            // no session
-            return;
-          }
-        } catch (e) {
-          return;
-        }
-      }
-
+    const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        const uid = userId ?? NaN;
-        if (!Number.isFinite(uid)) throw new Error('Faça login para ver seu projeto.');
+        const userId = getUserId();
+        if (!Number.isFinite(userId)) throw new Error('Faça login para ver seu projeto.');
 
-        const res = await fetch(`/api/projects?userId=${uid}`, { credentials: 'include' });
+        const res = await fetch(`/api/projects?userId=${userId}`, { credentials: 'include' });
         const payload = (await res.json()) as Partial<ProjectsResponse> & { message?: string };
         if (!res.ok) throw new Error(payload.message || 'Falha ao carregar seu projeto.');
         const resolved = payload as ProjectsResponse;
@@ -115,7 +103,7 @@ export default function ProjetoPage() {
             } else {
               setAdminStatus(null);
             }
-          } catch (e) {
+          } catch {
             setAdminStatus(null);
           }
         }
@@ -127,14 +115,30 @@ export default function ProjetoPage() {
       }
     };
 
-    void init();
+    void load();
     void fetchProjectsList();
-  }, [userId, fetchProjectsList]);
+  }, []);
+
+  const fetchProjectsList = async () => {
+    try {
+      const userId = getUserId();
+      if (!Number.isFinite(userId)) return;
+      const res = await fetch(`/api/projects?userId=${userId}&all=1`, { credentials: 'include' });
+      if (!res.ok) return;
+      const payload = await res.json();
+      const list = payload.projects ?? [];
+      setProjectsList(list);
+      if (list.length > 0) setCollapsedView(true);
+    } catch {
+      // ignore
+    }
+  };
 
   const onSave = async () => {
     setSaveMessage(null);
     setSaving(true);
     try {
+      const userId = getUserId();
       if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
 
       const res = await fetch('/api/projects', {
@@ -173,7 +177,7 @@ export default function ProjetoPage() {
           } else {
             setAdminStatus(null);
           }
-        } catch (e) {
+        } catch {
           setAdminStatus(null);
         }
       }
@@ -211,17 +215,36 @@ export default function ProjetoPage() {
       <DashboardSidebar />
       <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full">
         <DashboardNav />
+
         <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10">
           <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Cadastre seu projeto</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Seu Projeto</h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Cadastro e informações do projeto em desenvolvimento.</p>
 
             {loading ? (
-              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando...</p>
+              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando…</p>
             ) : error ? (
               <p className="mt-6 text-sm text-red-600 dark:text-red-400">{error}</p>
             ) : data?.project ? (
               <div className="mt-6 space-y-6">
+                <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                  <div><span className="font-semibold">Título:</span> {data.project.title}</div>
+                  <div><span className="font-semibold">Status:</span> {data.project.status}</div>
+                  <div><span className="font-semibold">Progresso:</span> {data.project.progress}%</div>
+                  <div>
+                    <span className="font-semibold">Resposta do administrador:</span>{' '}
+                    {adminStatus === 'accepted'
+                      ? 'Aceito'
+                      : adminStatus === 'rejected'
+                        ? 'Recusado'
+                        : 'Aguardando'}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {adminStatus === 'rejected'
+                      ? 'Seu projeto foi recusado. Você pode ajustar os dados e clicar em Salvar novamente.'
+                      : 'Quando o administrador responder, o status aparecerá aqui.'}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="mb-4">
@@ -243,10 +266,7 @@ export default function ProjetoPage() {
                     disabled={!editMode}
                   />
                 </div>
-
-                
-
-              </div>
+                  <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome</label>
                     <input
                       value={clientName}
