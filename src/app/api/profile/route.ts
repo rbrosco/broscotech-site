@@ -12,10 +12,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     }
 
+    const userId = Number(auth.id);
     const rows = await db
       .select()
       .from(users)
-      .where(eq(users.id, Number(auth.id)))
+      .where(eq(users.id, userId))
       .limit(1);
     const row = rows[0];
     if (!row) {

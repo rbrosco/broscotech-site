@@ -1,7 +1,9 @@
-import { pgTable, serial, integer, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+
+
+import { pgTable, serial, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   login: varchar('login', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull(),
@@ -13,8 +15,8 @@ export const users = pgTable('users', {
 });
 
 export const projects = pgTable('projects', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').notNull(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  user_id: bigint('user_id', { mode: 'number' }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   status: varchar('status', { length: 100 }),
   progress: integer('progress'),
@@ -25,31 +27,39 @@ export const projects = pgTable('projects', {
   client_phone: varchar('client_phone', { length: 50 }),
   project_type: varchar('project_type', { length: 100 }),
   final_date: varchar('final_date', { length: 20 }),
-  language: varchar('language', { length: 50 }),
-  framework: varchar('framework', { length: 50 }),
-  integrations: text('integrations'),
+  // language: varchar('language', { length: 50 }),
+  // framework: varchar('framework', { length: 50 }),
+  // integrations: text('integrations'),
   admin_status: varchar('admin_status', { length: 20 }),
 });
 
 export const project_updates = pgTable('project_updates', {
-  id: serial('id').primaryKey(),
-  project_id: integer('project_id').notNull(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  project_id: bigint('project_id', { mode: 'number' }).notNull(),
   kind: varchar('kind', { length: 50 }),
   message: text('message'),
   created_at: timestamp('created_at', { mode: 'string' }),
 });
 
 export const kanban_columns = pgTable('kanban_columns', {
-  id: serial('id').primaryKey(),
-  project_id: integer('project_id').notNull(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  project_id: bigint('project_id', { mode: 'number' }).notNull(),
   title: varchar('title', { length: 255 }),
   position: integer('position'),
 });
 
 export const kanban_cards = pgTable('kanban_cards', {
-  id: serial('id').primaryKey(),
-  column_id: integer('column_id').notNull(),
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  column_id: bigint('column_id', { mode: 'number' }).notNull(),
   title: varchar('title', { length: 255 }),
   description: text('description'),
   position: integer('position'),
 });
+
+export {
+  users,
+  projects,
+  project_updates,
+  kanban_columns,
+  kanban_cards,
+};

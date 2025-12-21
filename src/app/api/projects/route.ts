@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
 import { projects, project_updates } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { and, desc, eq } from 'drizzle-orm';
+// IMPORTANT: eq must be imported from drizzle-orm. Renamed to drizzleEq to avoid shadowing.
+import { and, desc, eq as drizzleEq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       const list = await db
         .select()
         .from(projects)
-        .where(eq(projects.user_id, userId))
+        .where(drizzleEq(projects.user_id, userId))
         .orderBy(desc(projects.updated_at));
       return NextResponse.json({ projects: list });
     }
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const list = await db
       .select()
       .from(projects)
-      .where(eq(projects.user_id, userId))
+      .where(drizzleEq(projects.user_id, userId))
       .orderBy(desc(projects.updated_at))
       .limit(1);
 
@@ -39,10 +40,10 @@ export async function GET(request: NextRequest) {
       const rawUpdates = await db
         .select()
         .from(project_updates)
-        .where(eq(project_updates.project_id, project.id))
+        .where(drizzleEq(project_updates.project_id, project.id))
         .orderBy(desc(project_updates.created_at));
       updates = rawUpdates.map(u => ({
-        id: u.id,
+        id: Number(u.id),
         kind: u.kind ?? 'update',
         message: u.message ?? '',
         created_at: u.created_at ?? ''
@@ -71,15 +72,13 @@ export async function PATCH(request: NextRequest) {
     const clientEmail = (body.clientEmail ?? null) as string | null;
     const clientPhone = (body.clientPhone ?? null) as string | null;
     const projectType = (body.projectType ?? null) as string | null;
-    const language = (body.language ?? null) as string | null;
-    const framework = (body.framework ?? null) as string | null;
-    const integrations = (body.integrations ?? null) as string | null;
+    // language, framework, integrations removed from schema
     const finalDate = (body.finalDate ?? null) as string | null;
 
     const existingList = await db
       .select()
       .from(projects)
-      .where(eq(projects.user_id, userId))
+      .where(drizzleEq(projects.user_id, userId))
       .orderBy(desc(projects.updated_at))
       .limit(1);
 
@@ -113,12 +112,9 @@ export async function PATCH(request: NextRequest) {
         client_phone: clientPhone ?? existing.client_phone,
         project_type: projectType ?? existing.project_type,
         final_date: finalDate ?? existing.final_date,
-        language: language ?? existing.language,
-        framework: framework ?? existing.framework,
-        integrations: integrations ?? existing.integrations,
         updated_at: new Date().toISOString(),
       })
-      .where(and(eq(projects.id, existing.id as number), eq(projects.user_id, userId as number)))
+      .where(and(drizzleEq(projects.id, existing.id), drizzleEq(projects.user_id, userId)))
       .returning();
 
     return NextResponse.json({ project: updated, message: 'Projeto atualizado.' });

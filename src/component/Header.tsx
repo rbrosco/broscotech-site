@@ -153,7 +153,7 @@ const Header: React.FC = () => {
                 <span className="sr-only">Open user menu</span>
                 <Image
                   className="w-8 h-8 rounded-full"
-                  src={userData?.avatar || defaultAvatar}
+                  src={userData?.avatar && userData.avatar !== 'null' ? userData.avatar : defaultAvatar}
                   alt="user photo"
                   width={32}
                   height={32}

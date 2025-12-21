@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const rows = await db
       .select({ admin_status: projects.admin_status })
       .from(projects)
-      .where(eq(projects.id, projectId as number))
+      .where(eq(projects.id, projectId))
       .limit(1);
 
     if (!rows[0]) {
@@ -56,7 +56,7 @@ export async function PATCH(request: NextRequest) {
     const [updated] = await db
       .update(projects)
       .set({ admin_status: status })
-      .where(eq(projects.id, projectId as number))
+      .where(eq(projects.id, projectId))
       .returning();
 
     if (!updated) {
@@ -86,7 +86,7 @@ export async function DELETE(request: NextRequest) {
 
     const [deleted] = await db
       .delete(projects)
-      .where(eq(projects.id, projectId as number))
+      .where(eq(projects.id, projectId))
       .returning();
 
     if (!deleted) {
