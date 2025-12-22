@@ -21,13 +21,13 @@ type ProjectDetails = {
   [key: string]: unknown;
 };
 
-type ProjectsResponse = {
-  project: { id: number; title: string; status: string; progress: number; updated_at: string } | null;
+type ProjectWithUpdates = {
+  project: { id: number; title: string; status: string; progress: number; updated_at: string };
   updates: Update[];
 };
 
 export default function PlanejamentoPage() {
-  const [data, setData] = useState<ProjectsResponse | null>(null);
+  const [projectsData, setProjectsData] = useState<ProjectWithUpdates[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [popupOpen, setPopupOpen] = useState(false);
@@ -66,40 +66,30 @@ export default function PlanejamentoPage() {
   useEffect(() => {
     const load = async () => {
       if (!authChecked) return;
-      if (!isAdmin) {
-        setData(null);
-        setError(null);
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       setError(null);
       try {
-        const userId = profileId;
-        if (!userId) throw new Error('Faça login para ver o planejamento.');
-
-        const res = await fetch(`/api/projects?userId=${userId}`, { credentials: 'include' });
-        const payload = (await res.json()) as Partial<ProjectsResponse> & { message?: string };
-        if (!res.ok) throw new Error(payload.message || 'Falha ao carregar planejamento.');
-        setData(payload as ProjectsResponse);
-        // Busca status admin do projeto
-        if (payload.project?.id) {
-          const resStatus = await fetch(`/api/project_admin_status?projectId=${payload.project.id}`);
-          if (resStatus.ok) {
-            const statusPayload = await resStatus.json();
-            const raw = statusPayload?.admin_status;
-            setAcceptedStatus(raw === 'accepted' || raw === 'rejected' ? raw : null);
-          }
+        if (isAdmin) {
+          const res = await fetch('/api/projects', { credentials: 'include' });
+          const payload = await res.json();
+          if (!res.ok) throw new Error(payload.message || 'Falha ao carregar planejamento.');
+          setProjectsData(Array.isArray(payload.projects) ? payload.projects : []);
+        } else {
+          // Cliente: mantém comportamento antigo
+          const userId = profileId;
+          if (!userId) throw new Error('Faça login para ver o planejamento.');
+          const res = await fetch(`/api/projects?userId=${userId}`, { credentials: 'include' });
+          const payload = await res.json();
+          if (!res.ok) throw new Error(payload.message || 'Falha ao carregar planejamento.');
+          setProjectsData(payload.project ? [{ project: payload.project, updates: payload.updates }] : []);
         }
       } catch (e) {
-        setData(null);
+        setProjectsData([]);
         setError(e instanceof Error ? e.message : 'Erro desconhecido.');
       } finally {
         setLoading(false);
       }
     };
-
     void load();
   }, [authChecked, isAdmin, profileId]);
 
@@ -127,100 +117,82 @@ export default function PlanejamentoPage() {
               <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando…</p>
             ) : error ? (
               <p className="mt-6 text-sm text-red-600 dark:text-red-400">{error}</p>
-            ) : !data?.project ? (
+            ) : projectsData.length === 0 ? (
               <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Nenhum projeto encontrado.</p>
-            ) : data.updates?.length ? (
-              <div className="mt-6 space-y-3">
-                {data.updates.map((u) => {
-                  let parsed: { texto?: string; projeto?: ProjectDetails } | null = null;
-                  try {
-                    if (typeof u.message === 'string' && u.message.startsWith('{')) {
-                      const obj: unknown = JSON.parse(u.message);
-                      if (obj && typeof obj === 'object') {
-                        const rec = obj as Record<string, unknown>;
-                        const texto = typeof rec.texto === 'string' ? rec.texto : undefined;
-                        const projeto =
-                          rec.projeto && typeof rec.projeto === 'object'
-                            ? (rec.projeto as ProjectDetails)
-                            : undefined;
-                        parsed = { texto, projeto };
-                      }
-                    }
-                  } catch {}
-                  const projeto = parsed?.projeto;
-                  return (
-                    <div
-                      key={u.id}
-                      className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-5 py-4 cursor-pointer transition hover:bg-blue-50/80 dark:hover:bg-blue-900/40 shadow-sm"
-                      onClick={async () => {
-                        setSelectedUpdate(u);
-                        setPopupOpen(true);
-                        if (profileId) {
-                          try {
-                            const res = await fetch(`/api/projects?userId=${profileId}`, { credentials: 'include' });
-                            const payload = (await res.json()) as { project?: ProjectDetails | null };
-                            setProjectDetails(payload.project || null);
-                          } catch {
-                            setProjectDetails(null);
-                          }
-                        }
-                      }}
-                    >
-                      <div className="flex flex-wrap items-center gap-2 justify-between">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{new Date(u.created_at).toLocaleString()}</span>
-                        {projeto?.status && (
-                          <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">{projeto.status}</span>
-                        )}
-                      </div>
-                      <div className="mt-1 text-base text-slate-900 dark:text-slate-100 font-semibold truncate">
-                        {projeto?.title || parsed?.texto || u.message}
-                      </div>
-                      <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-xs text-slate-700 dark:text-slate-200">
-                        {projeto && (
-                          <>
-                            <div><b>Progresso:</b> {projeto.progress}%</div>
-                            <div><b>Nome:</b> {projeto.client_name || '-'}</div>
-                            <div><b>E-mail:</b> {projeto.client_email || '-'}</div>
-                            <div><b>Tipo:</b> {projeto.project_type || '-'}</div>
-                            <div><b>Data final:</b> {projeto.final_date ? String(projeto.final_date).slice(0,10) : '-'}</div>
-                          </>
-                        )}
-                      </div>
+            ) : (
+              <div className="mt-6 space-y-8">
+                {projectsData.map(({ project, updates }) => (
+                  <div key={project.id} className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-5 py-4 shadow-sm">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 justify-between">
+                      <span className="text-base font-bold text-blue-800 dark:text-blue-200">{project.title}</span>
+                      <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">{project.status}</span>
                     </div>
-                  );
-                })}
+                    <div className="mb-2 text-xs text-slate-700 dark:text-slate-200">
+                      <b>Progresso:</b> {project.progress}%
+                    </div>
+                    {updates.length === 0 ? (
+                      <div className="text-xs text-slate-500 dark:text-slate-400">Nenhum registro de planejamento.</div>
+                    ) : (
+                      <div className="space-y-3">
+                        {updates.map((u) => {
+                          let parsed: { texto?: string; projeto?: ProjectDetails } | null = null;
+                          try {
+                            if (typeof u.message === 'string' && u.message.startsWith('{')) {
+                              const obj: unknown = JSON.parse(u.message);
+                              if (obj && typeof obj === 'object') {
+                                const rec = obj as Record<string, unknown>;
+                                const texto = typeof rec.texto === 'string' ? rec.texto : undefined;
+                                const projeto =
+                                  rec.projeto && typeof rec.projeto === 'object'
+                                    ? (rec.projeto as ProjectDetails)
+                                    : undefined;
+                                parsed = { texto, projeto };
+                              }
+                            }
+                          } catch {}
+                          const projeto = parsed?.projeto;
+                          return (
+                            <div
+                              key={u.id}
+                              className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-4 py-3 cursor-pointer transition hover:bg-blue-50/80 dark:hover:bg-blue-900/40"
+                              onClick={async () => {
+                                setSelectedUpdate(u);
+                                setPopupOpen(true);
+                                setProjectDetails(projeto || null);
+                              }}
+                            >
+                              <div className="flex flex-wrap items-center gap-2 justify-between">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{new Date(u.created_at).toLocaleString()}</span>
+                                {projeto?.status && (
+                                  <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">{projeto.status}</span>
+                                )}
+                              </div>
+                              <div className="mt-1 text-base text-slate-900 dark:text-slate-100 font-semibold truncate">
+                                {projeto?.title || parsed?.texto || u.message}
+                              </div>
+                              <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 text-xs text-slate-700 dark:text-slate-200">
+                                {projeto && (
+                                  <>
+                                    <div><b>Progresso:</b> {projeto.progress}%</div>
+                                    <div><b>Nome:</b> {projeto.client_name || '-'}</div>
+                                    <div><b>E-mail:</b> {projeto.client_email || '-'}</div>
+                                    <div><b>Tipo:</b> {projeto.project_type || '-'}</div>
+                                    <div><b>Data final:</b> {projeto.final_date ? String(projeto.final_date).slice(0,10) : '-'}</div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
                 <PopupPlanejamento
                   open={popupOpen}
                   onClose={() => setPopupOpen(false)}
-                  project={selectedUpdate?.message
-                    ? (() => {
-                        try {
-                          const obj: unknown = JSON.parse(selectedUpdate.message);
-                          if (obj && typeof obj === 'object') {
-                            const rec = obj as Record<string, unknown>;
-                            const projeto =
-                              rec.projeto && typeof rec.projeto === 'object'
-                                ? (rec.projeto as ProjectDetails)
-                                : undefined;
-                            return projeto ?? projectDetails;
-                          }
-                        } catch {}
-                        return projectDetails;
-                      })()
-                    : projectDetails}
-                  update={selectedUpdate?.message
-                    ? (() => {
-                        try {
-                          const obj: unknown = JSON.parse(selectedUpdate.message);
-                          if (obj && typeof obj === 'object') {
-                            const rec = obj as Record<string, unknown>;
-                            const texto = typeof rec.texto === 'string' ? rec.texto : undefined;
-                            return { ...selectedUpdate, message: texto ?? selectedUpdate.message };
-                          }
-                        } catch {}
-                        return selectedUpdate;
-                      })()
-                    : selectedUpdate}
+                  project={projectDetails}
+                  update={selectedUpdate}
                   isAdmin={isAdmin}
                   acceptedStatus={acceptedStatus}
                   onDelete={async () => {
@@ -296,8 +268,6 @@ export default function PlanejamentoPage() {
                   }}
                 />
               </div>
-            ) : (
-              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Ainda não há registros de planejamento.</p>
             )}
           </div>
         </div>

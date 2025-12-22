@@ -17,6 +17,31 @@ export async function GET(request: NextRequest) {
 
     const userId = Number(auth.id);
 
+    // Se for admin, retorna todos os projetos e todos os updates
+    const isAdmin = (auth.role === 'admin');
+    if (isAdmin) {
+      const list = await db
+        .select()
+        .from(projects)
+        .orderBy(desc(projects.updated_at));
+      // Para cada projeto, busca os updates
+      const projectsWithUpdates = await Promise.all(list.map(async (project) => {
+        const rawUpdates = await db
+          .select()
+          .from(project_updates)
+          .where(drizzleEq(project_updates.project_id, project.id))
+          .orderBy(desc(project_updates.created_at));
+        const updates = rawUpdates.map(u => ({
+          id: Number(u.id),
+          kind: u.kind ?? 'update',
+          message: u.message ?? '',
+          created_at: u.created_at ?? ''
+        }));
+        return { project, updates };
+      }));
+      return NextResponse.json({ projects: projectsWithUpdates });
+    }
+
     if (all === '1') {
       const list = await db
         .select()

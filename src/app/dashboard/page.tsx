@@ -239,7 +239,7 @@ export default function DashboardPage() {
               )}
 
               <div className="mt-6 min-w-0">
-                <div className="flex gap-4 overflow-x-auto pb-2 w-full max-w-full min-w-0">
+                <div className="flex gap-4 overflow-x-auto pb-2 w-full max-w-full min-w-0 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800">
                   {(data?.columns ?? []).map((col) => (
                     <div
                       key={col.id}
@@ -314,7 +314,11 @@ export default function DashboardPage() {
                             </button>
                             <p className="text-sm font-semibold text-slate-900 dark:text-white">{card.title}</p>
                             {card.description && (
-                              <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{card.description}</p>
+                              <div className="mt-1 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+                                {card.description.split('\n').map((line, idx) => (
+                                  <div key={idx}>{line}</div>
+                                ))}
+                              </div>
                             )}
                             {/* Exemplo de informações adicionais, ajuste conforme necessário */}
                             {card.responsavel && (

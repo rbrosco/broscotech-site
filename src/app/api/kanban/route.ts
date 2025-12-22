@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
     if (type === 'card') {
       const columnId = Number(body.columnId ?? NaN);
       const title = String(body.title ?? '').trim();
+      const description = typeof body.description === 'string' ? body.description : null;
       if (!Number.isFinite(columnId) || !title) {
         return NextResponse.json({ message: 'Dados do card inválidos.' }, { status: 400 });
       }
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
       const position = existingCards.length;
       const [created] = await db
         .insert(kanban_cards)
-        .values({ column_id: Number(columnId), title, position })
+        .values({ column_id: Number(columnId), title, description, position })
         .returning();
 
       return NextResponse.json({ card: created, message: 'Card criado.' });
