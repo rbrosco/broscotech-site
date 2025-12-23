@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ContactFormModal from '../component/ContactFormModal';
 import Header from "../component/Header";
 import ProfileCard from "../component/ProfileCard";
+import VCard from "../component/VCard";
 import HeroProfileCard from "../component/HeroProfileCard";
 import IAHomeBanner from "../component/IAHomeBanner";
 import Chatbot from "../component/ChatBot";
@@ -196,7 +197,27 @@ export default function Home() {
 
         {/* SOBRE + PERFIL (mais abaixo, como reforço) */}
         <Sobre />
-        <ProfileCard />
+        {/* VCARD dupla: Rogger Brosco e Adriano Neco */}
+        <div className="container mx-auto px-4 sm:px-6 py-10">
+          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+            <VCard
+              name="Adriano Neco"
+              image="/images/Perfil_Adriano.png"
+              title="Full Stack • Banco de Dados • Automação"
+              skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
+              bio="Foto de Adriano Neco\nAdriano Neco\nFull Stack • Banco de Dados • Automação\n\nEasyDev\nWeb Apps\nAPIs\nPostgreSQL\nMongoDB\nn8n\nVer serviços"
+              email="adriano@easydev.com.br"
+            />
+            <VCard
+              name="Rogger Brosco"
+              image="/images/Perfil_Rogger.png"
+              title="Full Stack • Banco de Dados • Automação"
+              skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
+              bio={"Foto de Rogger Brosco\nRogger Brosco\nFull Stack • Banco de Dados • Automação\n\nEasyDev\nWeb Apps\nAPIs\nPostgreSQL\nMongoDB\nn8n\nVer serviços"}
+              email="contato@easydev.com.br"
+            />
+          </div>
+        </div>
 
         {/* DEMO (fecha com impacto) */}
         <section aria-labelledby="home-demo" className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)]">
