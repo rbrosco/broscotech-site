@@ -83,8 +83,8 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-2"> {/* Reduzido espaço para economizar em telas pequenas */}
           <Link href="/">
             <Image
-              src="/images/BROSCOTECHLOGO.png"
-              alt="BROSCOTECH Logo"
+              src="/images/EASYDEVLOGO.png"
+              alt="EASYDEV Logo"
               width={50} // Reduzido para melhor ajuste em mobile
               height={50} // Reduzido para melhor ajuste em mobile
               className="cursor-pointer"
@@ -94,7 +94,7 @@ const Header: React.FC = () => {
             <span
               className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white"
             >
-              BROSCOTECH
+              EASYDEV
             </span>
           </Link>
         </div>

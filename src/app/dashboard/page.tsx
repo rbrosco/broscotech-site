@@ -192,7 +192,8 @@ export default function DashboardPage() {
                       <li>Serviços extras não previstos no escopo inicial do projeto serão orçados e cobrados à parte.</li>
                       <li>Valores de manutenção, suporte ou integrações adicionais podem ser negociados conforme necessidade.</li>
                       <li>Solicitações de alteração após a entrega do projeto podem gerar custos adicionais.</li>
-                      <li>Para dúvidas ou novos serviços, entre em contato com a equipe Broscotech.</li>
+                      <li>Para dúvidas ou novos serviços, entre em contato com a equipe.</li>
+                                          <li>Para dúvidas ou novos serviços, entre em contato com a equipe EasyDev.</li>
                     </ul>
                   </div>
                 </div>

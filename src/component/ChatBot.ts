@@ -22,7 +22,7 @@ const Chatbot: React.FC = () => {
     }
 
     (function(d: Document, t: string) {
-      const BASE_URL = "https://chatwoot.broscotech.com.br";
+      const BASE_URL = "https://chatwoot.easydev.com.br";
       const g = d.createElement(t) as HTMLScriptElement;
       const s = d.getElementsByTagName(t)[0] as HTMLScriptElement | undefined; // Pode ser undefined se não houver scripts
 

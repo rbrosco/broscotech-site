@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Broscotech",
+  title: "EasyDev",
   description: "Criado por Rogger",
 };
 

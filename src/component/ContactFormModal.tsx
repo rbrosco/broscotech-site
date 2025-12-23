@@ -19,7 +19,7 @@ const ContactFormModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       >
         <h3 className="text-2xl font-semibold text-center mb-6 text-blue-600 dark:text-blue-400">Contato</h3>
         <form
-          action="mailto:rogger@broscotech.com.br"
+          action="mailto:contato@easydev.com.br"
           method="post"
           encType="text/plain"
         >

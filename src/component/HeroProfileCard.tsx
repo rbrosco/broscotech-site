@@ -22,7 +22,8 @@ const HeroProfileCard: React.FC = () => {
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rogger Brosco</h3>
               <p className="text-xs text-slate-600 dark:text-white/75">Full Stack • Banco de Dados • Automação</p>
             </div>
-            <span className="text-xs text-slate-500 dark:text-white/60">Broscotech</span>
+            <span className="text-xs text-slate-500 dark:text-white/60"></span>
+                      <span className="text-xs text-slate-500 dark:text-white/60">EasyDev</span>
           </div>
 
           <div className="mt-2 flex flex-wrap gap-2">

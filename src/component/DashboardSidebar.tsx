@@ -22,13 +22,13 @@ const DashboardSidebar: React.FC = () => {
           {/* Logo e Nome */}
           <Link href="/dashboard" className="md:flex items-center flex-col text-center md:pb-2 text-white dark:text-white mr-0 inline-flex whitespace-nowrap text-sm uppercase font-bold p-4 px-0 hover:scale-105 transition-transform">
             <Image
-              src="/images/BROSCOTECHLOGO.png"
-              alt="BROSCOTECH Logo"
+              src="/images/EASYDEVLOGO.png"
+              alt="Logo"
               width={56}
               height={56}
               className="max-w-full rounded-full shadow-lg border-4 border-white dark:border-gray-700 bg-white dark:bg-gray-900"
             />
-            <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">BROSCOTECH</span>
+            <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg"></span>
           </Link>
 
           {/* Links de Navegação */}

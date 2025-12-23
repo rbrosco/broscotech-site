@@ -62,7 +62,7 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }
           {/* Modal body */}
           <div className="p-4 md:p-5 space-y-4 max-h-[60vh] overflow-y-auto">
             <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Sua privacidade é importante para nós. É política da BROSCOTECH respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar no site BROSCOTECH, e outros sites que possuímos e operamos.
+              Sua privacidade é importante para nós. É política da EASYDEV respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar no site EASYDEV, e outros sites que possuímos e operamos.
             </p>
             <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
               Solicitamos informações pessoais apenas quando realmente precisamos delas para lhe fornecer um serviço. Fazemo-lo por meios justos e legais, com o seu conhecimento e consentimento. Também informamos por que estamos coletando e como será usado.

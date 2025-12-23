@@ -118,7 +118,7 @@ const ProfileCard: React.FC = () => {
         {/* Contact and CV Download Buttons */}
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
           <a
-            href="mailto:rogger@broscotech.com.br" // Substitua com seu e-mail
+            href="#" // Email removido
             className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
           >
             <FiMail className="h-5 w-5 mr-2" />

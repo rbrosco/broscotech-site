@@ -40,14 +40,14 @@ const Sobre: React.FC = () => {
                 <p className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/50 px-4 py-2 text-xs font-semibold text-slate-900 dark:border-white/15 dark:bg-black/20 dark:text-white">
                   <span className="opacity-80">Manifesto</span>
                   <span className="opacity-40">•</span>
-                  <span className="opacity-80">BROSCOTECH</span>
+                  <span className="opacity-80"></span>
                 </p>
 
                 <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Sobre a Broscotech
+                  Sobre
                 </h1>
                 <p className="mt-4 text-base sm:text-lg text-slate-700 dark:text-white/85">
-                  A Broscotech transforma ideias em produto: site, sistema, automação e integração — com uma experiência moderna,
+                  Transformamos ideias em produto: site, sistema, automação e integração — com uma experiência moderna,
                   multi-dispositivo e um fluxo claro do briefing até o acompanhamento no dashboard.
                 </p>
               </div>

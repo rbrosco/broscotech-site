@@ -41,13 +41,14 @@ const Sobre: React.FC = () => {
                   <span className="opacity-80">Manifesto</span>
                   <span className="opacity-40">•</span>
                   <span className="opacity-80">BROSCOTECH</span>
+                                  <span className="opacity-80">EASYDEV</span>
                 </p>
 
                 <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Sobre a Broscotech
+                  Sobre a EasyDev
                 </h1>
                 <p className="mt-4 text-base sm:text-lg text-slate-700 dark:text-white/85">
-                  A Broscotech transforma ideias em produto: site, sistema, automação e integração — com uma experiência moderna,
+                  A EasyDev transforma ideias em produto: site, sistema, automação e integração — com uma experiência moderna,
                   multi-dispositivo e um fluxo claro do briefing até o acompanhamento no dashboard.
                 </p>
               </div>

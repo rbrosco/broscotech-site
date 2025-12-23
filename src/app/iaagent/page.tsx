@@ -35,7 +35,7 @@ export default function IAAAgentPage() {
     {
       role: 'assistant',
       content:
-        'Sou o IA Agent da BROSCOTECH. Me diga o que você quer construir e eu organizo o briefing + próximos passos.',
+        'Sou o IA Agent da EASYDEV. Me diga o que você quer construir e eu organizo o briefing + próximos passos.',
     },
   ]);
   const [input, setInput] = useState('');

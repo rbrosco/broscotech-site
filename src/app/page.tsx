@@ -96,7 +96,8 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
               <div className="text-slate-900 dark:text-white">
                 <p className="inline-flex items-center gap-2 rounded-full bg-black/5 border border-black/10 px-4 py-2 text-xs sm:text-sm backdrop-blur-md dark:bg-white/10 dark:border-white/15">
-                  <span className="font-semibold">BROSCOTECH</span>
+                  <span className="font-semibold"></span>
+                                    <span className="font-semibold">EASYDEV</span>
                   <span className="text-slate-500 dark:text-white/80">•</span>
                   <span className="text-slate-600 dark:text-white/80">Soluções digitais que realmente entregam</span>
                 </p>
