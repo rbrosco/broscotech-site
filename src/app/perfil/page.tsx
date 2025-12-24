@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import Image from 'next/image';
 import { FiUser } from 'react-icons/fi';
 import DashboardNav from '../../component/DashboardNav';
 import DashboardSidebar from '../../component/DashboardSidebar';
@@ -34,6 +35,7 @@ export default function PerfilPage() {
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState<string>('');
   const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const messageTimer = useRef<number | null>(null);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -68,17 +70,53 @@ export default function PerfilPage() {
     void load();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      try {
+        if (messageTimer.current) window.clearTimeout(messageTimer.current);
+      } catch {}
+    };
+  }, []);
+
+  const validateEmail = (em: string) => {
+    try {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+    } catch { return false; }
+  };
+
+  const isDirty = useMemo(() => {
+    if (!profile) return false;
+    return (
+      profile.name !== name ||
+      profile.login !== login ||
+      profile.email !== email ||
+      (profile.phone ?? '') !== (phone ?? '') ||
+      (profile.avatar ?? '') !== (avatar ?? '') ||
+      !!currentPassword || !!newPassword
+    );
+  }, [profile, name, login, email, phone, avatar, currentPassword, newPassword]);
+
   const onSave = async () => {
     setSaving(true);
     setError(null);
     setMessage(null);
-
+    // basic client-side validation
+    if (!name.trim()) {
+      setError('Nome é obrigatório.');
+      setSaving(false);
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('E-mail inválido.');
+      setSaving(false);
+      return;
+    }
     try {
       const body: Record<string, unknown> = {
-        name,
-        login,
-        email,
-        phone,
+        name: name.trim(),
+        login: (login ?? '').trim(),
+        email: (email ?? '').trim(),
+        phone: (phone ?? '').trim() || null,
         avatar: avatar || null,
       };
 
@@ -108,11 +146,21 @@ export default function PerfilPage() {
       setCurrentPassword('');
       setNewPassword('');
       setMessage(payload.message || 'Salvo.');
+      try {
+        if (messageTimer.current) window.clearTimeout(messageTimer.current);
+      } catch {}
+      // auto-clear message after 3.5s
+      messageTimer.current = window.setTimeout(() => setMessage(null), 3500);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao salvar.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const removeAvatar = () => {
+    setAvatar('');
+    setAvatarPreview('');
   };
 
   return (
@@ -187,23 +235,24 @@ export default function PerfilPage() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Foto</label>
                     <div className="mt-1 flex items-center gap-3">
-                      <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+                      <div className="relative w-16 h-16 rounded-full bg-slate-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
                         {avatarPreview ? (
-                          <img
+                          <Image
                             src={avatarPreview}
                             alt="avatar"
-                            className="w-full h-full object-cover"
+                            className="object-cover"
+                            fill
                             onError={() => {
                               setAvatarPreview('');
                               setAvatar('');
                             }}
-                            loading="lazy"
                           />
                         ) : (
                           <FiUser className="text-2xl text-slate-500" aria-hidden />
                         )}
                       </div>
-                      <input
+                      <div className="flex flex-col">
+                        <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => {
@@ -229,7 +278,25 @@ export default function PerfilPage() {
                           reader.readAsDataURL(f);
                         }}
                         className="mt-1 text-sm text-slate-600 dark:text-slate-300"
-                      />
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => removeAvatar()}
+                            className="text-sm px-3 py-1 rounded-md border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 text-slate-700 dark:text-white hover:bg-slate-100"
+                          >
+                            Remover foto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void onSave()}
+                            disabled={saving || !isDirty}
+                            className={`rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60 ${!isDirty && !saving ? 'opacity-60 cursor-not-allowed' : ''} bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition-colors duration-150`}
+                          >
+                            {saving ? 'Salvando…' : 'Salvar alterações'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -259,11 +326,12 @@ export default function PerfilPage() {
                   <button
                     type="button"
                     onClick={() => void onSave()}
-                    disabled={saving}
-                    className="rounded-xl bg-slate-900 dark:bg-white text-slate-900 dark:text-white dark:text-slate-900 px-4 py-2 text-sm font-medium disabled:opacity-60"
+                    disabled={saving || !isDirty}
+                    className={`rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60 ${!isDirty && !saving ? 'opacity-60 cursor-not-allowed' : ''} bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90 transition-colors duration-150`}
                   >
                     {saving ? 'Salvando…' : 'Salvar alterações'}
                   </button>
+                  {!isDirty && !saving ? <p className="text-sm text-slate-500">Nenhuma alteração</p> : null}
                   {message ? <p className="text-sm text-emerald-700 dark:text-emerald-400">{message}</p> : null}
                   {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
                 </div>

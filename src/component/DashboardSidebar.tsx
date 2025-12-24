@@ -28,7 +28,7 @@ const DashboardSidebar: React.FC = () => {
               height={56}
               className="max-w-full rounded-full shadow-lg border-4 border-white dark:border-gray-700 bg-white dark:bg-gray-900"
             />
-            <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">BROSCOTECH</span>
+            <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">EASYDEV</span>
                       <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">EASYDEV</span>
           </Link>
 

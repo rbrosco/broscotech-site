@@ -124,6 +124,15 @@ export default function DashboardPage() {
     };
 
     const moveCard = async (cardId: number, toColumnId: number, toPosition: number) => {
+      // tentar obter título do card antes da mutação para notificação
+      const cardTitle = (() => {
+        const cols = data?.columns ?? [];
+        for (const c of cols) {
+          const found = c.cards.find((x) => x.id === cardId);
+          if (found) return found.title;
+        }
+        return null;
+      })();
       setData((prev) => {
         if (!prev) return prev;
         const columns = prev.columns.map((c) => ({ ...c, cards: [...c.cards] }));
@@ -160,6 +169,38 @@ export default function DashboardPage() {
         });
         const payload = (await res.json()) as { message?: string };
         if (!res.ok) throw new Error(payload.message || 'Falha ao mover card.');
+        try {
+          // sinaliza para outras abas/componente que um card foi movido
+            if (typeof window !== 'undefined') {
+              try {
+                const toColumnTitle = data?.columns?.find((c) => c.id === toColumnId)?.title ?? undefined;
+                localStorage.setItem('kanban:cardMoved', JSON.stringify({ timestamp: Date.now(), cardId, toColumnId, toColumnTitle, cardTitle, projectTitle: data?.project?.title ?? undefined }));
+              } catch {
+                  // ignore localStorage errors
+                }
+              // BroadcastChannel para notificar na mesma aba/contexts
+              try {
+                const toColumnTitle = data?.columns?.find((c) => c.id === toColumnId)?.title ?? undefined;
+                const bc = new BroadcastChannel('kanban');
+                bc.postMessage({ type: 'cardMoved', cardId, toColumnId, toColumnTitle, cardTitle, projectTitle: data?.project?.title ?? undefined, timestamp: Date.now() });
+                bc.close();
+              } catch {
+                // ignore if BroadcastChannel not available
+              }
+              // Persistir notificação no backend
+              try {
+                void fetch('/api/notifications', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ message: `Card movido: ${cardTitle ?? cardId} → coluna ${toColumnId}`, cardId, toColumnId, toColumnTitle: data?.columns?.find((c) => c.id === toColumnId)?.title ?? undefined, projectTitle: data?.project?.title ?? undefined, timestamp: Date.now() }),
+                });
+              } catch {
+                // ignore
+              }
+          }
+        } catch {
+          // ignore outer
+        }
         await reload();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Erro desconhecido.';

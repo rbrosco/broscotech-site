@@ -20,21 +20,28 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!identifier || !password) {
+    const idRaw = identifier ?? '';
+    const pwRaw = password ?? '';
+    const idTrim = idRaw.trim();
+    const pwTrim = pwRaw.trim();
+    if (!idTrim || !pwTrim) {
       setError("Preencha todos os campos.");
       return;
     }
+    const identifierToSend = idTrim.includes('@') ? idTrim.toLowerCase() : idTrim;
     setIsLoading(true);
     try {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        credentials: 'include',
+        body: JSON.stringify({ identifier: identifierToSend, password: pwTrim }),
       });
 
       const data = await res.json();
+      console.debug('[login] response', res.status, data);
       if (!res.ok) {
-        setError(data.message || "Erro ao autenticar.");
+        setError(data?.message || "Usuário ou senha inválidos.");
         setIsLoading(false);
         return;
       }
@@ -44,6 +51,10 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         // server should set session cookie; client-side token fallback when provided
         if (data.token) {
           document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
+        }
+        if (data.user) {
+          try { localStorage.setItem('isLoggedIn', 'true'); } catch {}
+          try { localStorage.setItem('userData', JSON.stringify(data.user)); } catch {}
         }
       } catch {
         // ignore

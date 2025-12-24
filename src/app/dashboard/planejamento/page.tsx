@@ -48,10 +48,17 @@ export default function PlanejamentoPage() {
           setProfileId(null);
           return;
         }
-        const payload = (await res.json()) as { profile?: { id: number; role: string } };
-        const role = payload.profile?.role;
-        setProfileId(typeof payload.profile?.id === 'number' ? payload.profile.id : null);
-        setIsAdmin(role === 'admin');
+        const payload = await res.json();
+        // tolerate different payload shapes and role casing
+        const profile = payload?.profile ?? payload?.user ?? null;
+        const rawRole = profile?.role ?? profile?.type ?? (profile && profile.roles ? profile.roles : null);
+        const roleStr = rawRole != null ? String(rawRole).toLowerCase() : '';
+        const isAdminFlag = typeof roleStr === 'string' && (
+          roleStr.includes('admin') || roleStr.includes('administrator') || roleStr === 'superuser' || roleStr === 'super-admin' || roleStr === '1' || roleStr === 'true'
+        );
+        const idCandidate = typeof profile?.id === 'number' ? profile.id : (typeof profile?.userId === 'number' ? profile.userId : null);
+        setProfileId(idCandidate ?? null);
+        setIsAdmin(Boolean(isAdminFlag));
       } catch {
         setIsAdmin(false);
         setProfileId(null);

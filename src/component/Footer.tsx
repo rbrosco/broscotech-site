@@ -13,22 +13,18 @@ const Footer: React.FC = () => {
           <Link href="/" passHref>
             <span className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse cursor-pointer">
               <Image
-                src="/images/BROSCOTECHLOGO.png" // Certifique-se que o caminho está correto
-                alt="BROSCOTECH Logo"
-                width={32} // Corresponde a h-8 do exemplo
+                src="/images/EASYDEVLOGO.png" // Usar logotipo EASYDEV (se existir)
+                alt="EASYDEV Logo"
+                width={32}
                 height={32}
               />
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-slate-900 dark:text-white">
-                BROSCOTECH
+                EASYDEV
               </span>
             </span>
           </Link>
           <ul className="flex flex-wrap items-center mb-6 text-sm font-semibold text-slate-600 sm:mb-0 dark:text-white/70">
-            <li>
-              <Link href="/sobre" className="hover:underline me-4 md:me-6">
-                Sobre
-              </Link>
-            </li>
+            
             <li>
               <Link href="/privacidade" className="hover:underline me-4 md:me-6">
                 Política de Privacidade
@@ -47,10 +43,10 @@ const Footer: React.FC = () => {
           </ul>
         </div>
         <hr className="my-6 border-black/10 sm:mx-auto dark:border-white/10" />
-        <span className="block text-sm text-slate-600 sm:text-center dark:text-white/60">
+          <span className="block text-sm text-slate-600 sm:text-center dark:text-white/60">
           © 2025{" "}
           <Link href="/" passHref>
-            <span className="hover:underline cursor-pointer">BROSCOTECH™</span>
+            <span className="hover:underline cursor-pointer">EASYDEV™</span>
           </Link>
           . Todos os direitos reservados.
         </span>
