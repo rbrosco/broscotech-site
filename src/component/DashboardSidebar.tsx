@@ -1,11 +1,22 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiHome, FiFolder, FiCalendar, FiFileText } from 'react-icons/fi';
 
 const DashboardSidebar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Para controle mobile no futuro
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.role && String(parsed.role).toLowerCase() === 'admin') setIsAdmin(true);
+      }
+    } catch {}
+  }, []);
 
   return (
     <nav className="block py-6 px-4 top-0 bottom-0 w-64 bg-gradient-to-b from-blue-600 via-blue-700 to-blue-900 shadow-2xl left-0 absolute flex-row flex-nowrap md:z-10 z-50 transition-all duration-300 ease-in-out transform md:translate-x-0 -translate-x-full dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-r-3xl">
@@ -29,7 +40,6 @@ const DashboardSidebar: React.FC = () => {
               className="max-w-full rounded-full shadow-lg border-4 border-white dark:border-gray-700 bg-white dark:bg-gray-900"
             />
             <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">EASYDEV</span>
-                      <span className="mt-3 text-xl tracking-widest font-extrabold drop-shadow-lg">EASYDEV</span>
           </Link>
 
           {/* Links de Navegação */}
@@ -54,6 +64,18 @@ const DashboardSidebar: React.FC = () => {
               <FiFileText className="w-5 h-5" />
               Faturas
             </Link>
+            {isAdmin && (
+              <>
+                <Link href="/dashboard/iaagent" className="flex items-center gap-3 text-sm uppercase py-3 px-4 font-bold rounded-xl transition-all duration-200 text-slate-900 dark:text-white hover:bg-blue-800/80 dark:hover:bg-gray-700">
+                  <FiFolder className="w-5 h-5" />
+                  IA Agent
+                </Link>
+                <Link href="/dashboard/configuracoes" className="flex items-center gap-3 text-sm uppercase py-3 px-4 font-bold rounded-xl transition-all duration-200 text-slate-900 dark:text-white hover:bg-indigo-700/80 dark:hover:bg-gray-700">
+                  <FiFolder className="w-5 h-5" />
+                  Configurações
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

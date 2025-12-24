@@ -26,36 +26,105 @@ export default function IAAAgentPage() {
                 const [messages, setMessages] = useState<ChatMessage[]>([
                   { role: 'system', content: 'Você é um assistente de IA que ajuda a criar escopos de projetos de desenvolvimento web com base nas entradas do usuário.' },
                 ]);
+                const [sessionId, setSessionId] = useState<string | null>(null);
                 const [input, setInput] = useState('');
                 const [isSending, setIsSending] = useState(false);
                 const [error, setError] = useState<string | null>(null);
                 const bottomRef = useRef<HTMLDivElement | null>(null);  
                 const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending]);
 
+                const createSession = async (title?: string) => {
+                  try {
+                    const res = await fetch('/api/iaagent/sessions', {
+                      method: 'POST',
+                      credentials: 'include',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ title: title ?? `Sessão - ${new Date().toLocaleString()}` }),
+                    });
+                    if (!res.ok) return null;
+                    const payload = await res.json();
+                    return payload?.session?.id || null;
+                  } catch (err) {
+                    return null;
+                  }
+                };
+
                 const send = async (messageContent: string) => {
                   setIsSending(true);
-                  setError(null); 
-                  const newMessages = [...messages, { role: 'user', content: messageContent }];
-                  setMessages(newMessages);
-                  setInput(''); 
+                  setError(null);
+                  // optimistic UI add user message and capture new messages snapshot
+                  let newMessagesSnapshot: ChatMessage[] = [];
+                  setMessages((prev) => {
+                    newMessagesSnapshot = [...prev, { role: 'user', content: messageContent }];
+                    return newMessagesSnapshot;
+                  });
+                  setInput('');
+
                   try {
+                    // ensure we have a persisted session
+                    let sid = sessionId;
+                    if (!sid) {
+                      sid = await createSession(messageContent?.slice(0, 60));
+                      if (sid) setSessionId(sid);
+                    }
+
+                    // persist user message to session if we have one
+                    if (sid) {
+                      try {
+                        await fetch(`/api/iaagent/sessions/${sid}/messages`, {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: messageContent, from: 'client' }),
+                        });
+                      } catch (e) {
+                        // ignore session write failures
+                        console.warn('Não foi possível salvar mensagem na sessão', e);
+                      }
+                    }
+
+                    // call IA endpoint to generate reply
                     const response = await fetch('/api/iaagent', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ messages: newMessages }),
-                    });     
+                      body: JSON.stringify({ messages: newMessagesSnapshot }),
+                    });
+
                     if (!response.ok) {
-                      throw new Error(`Erro na resposta: ${response.statusText}`);
-                    } 
+                      // try to parse provider error details, but don't throw — show friendly assistant message
+                      let detail: any = null;
+                      try { detail = await response.json(); } catch { /* ignore */ }
+                      const detailText = detail?.message || (detail && JSON.stringify(detail)) || (await response.text().catch(() => response.statusText || 'Erro'));
+                      const assistantText = `Erro ao obter resposta do provedor: ${String(detailText).slice(0, 400)}`;
+                      setMessages((prev) => [...prev, { role: 'assistant', content: assistantText }]);
+                      setError('Erro ao obter resposta do provedor. Veja detalhes no servidor.');
+                      return;
+                    }
+
                     const data = await response.json();
+                    // append assistant message
                     setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
+
+                    // persist assistant reply to session as agent
+                    if (sid) {
+                      try {
+                        await fetch(`/api/iaagent/sessions/${sid}/messages`, {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: data.reply, from: 'agent' }),
+                        });
+                      } catch (e) {
+                        console.warn('Não foi possível salvar resposta na sessão', e);
+                      }
+                    }
                   } catch (err) {
                     console.error('Erro ao enviar mensagem:', err);
                     setError('Houve um erro ao enviar sua mensagem. Por favor, tente novamente.');
                   } finally {
                     setIsSending(false);
-                  }     
-                };  
+                  }
+                };
   return (
     <div className="relative">
       <Header />  
@@ -109,7 +178,7 @@ export default function IAAAgentPage() {
                   </a>
                   <button
                     type="button"
-                    onClick={() => setMessages(messages.slice(0, 1))}
+                    onClick={() => setMessages((prev) => prev.slice(0, 1))}
                     className="inline-flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/20 px-3 py-2.5 font-semibold text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/15 transition"
                     aria-label="Limpar conversa"
                   >
