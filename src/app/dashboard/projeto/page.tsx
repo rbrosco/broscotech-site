@@ -29,7 +29,7 @@ type ProjectsResponse = {
 
 
 export default function ProjetoPage() {
-  const [, setEditProjectId] = useState<number | null>(null);
+  // Removido: definição duplicada de setEditProjectId
   // router removed (unused)
   const [, setData] = useState<ProjectsResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -55,6 +55,7 @@ export default function ProjetoPage() {
   const [, setCollapsedView] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [editProjectId, setEditProjectId] = useState<number | null>(null);
 
   const fetchProjectsList = useCallback(async () => {
     try {
@@ -126,32 +127,58 @@ export default function ProjetoPage() {
     void init();
   }, [userId]);
 
+
   const onSave = async () => {
     setSaveMessage(null);
     setSaving(true);
     try {
       if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
 
-      const res = await fetch('/api/projects', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId,
-          title: projectName?.trim() || null,
-          clientName,
-          clientEmail,
-          clientPhone,
-          projectType,
-          language: language || null,
-          framework: framework || null,
-          integrations: integrationsField || null,
-          observations: observations || null,
-          finalDate: finalDate || null,
-        }),
-      });
+      let res, payload;
+      if (editProjectId) {
+        // Atualizar projeto existente
+        res = await fetch('/api/projects', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            projectId: editProjectId,
+            userId,
+            title: projectName?.trim() || null,
+            clientName,
+            clientEmail,
+            clientPhone,
+            projectType,
+            language: language || null,
+            framework: framework || null,
+            integrations: integrationsField || null,
+            observations: observations || null,
+            finalDate: finalDate || null,
+          }),
+        });
+      } else {
+        // Criar novo projeto
+        res = await fetch('/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userId,
+            title: projectName?.trim() || null,
+            clientName,
+            clientEmail,
+            clientPhone,
+            projectType,
+            language: language || null,
+            framework: framework || null,
+            integrations: integrationsField || null,
+            observations: observations || null,
+            finalDate: finalDate || null,
+          }),
+        });
+      }
 
-      const payload = (await res.json()) as { project?: Project; message?: string };
+      payload = (await res.json()) as { project?: Project; message?: string };
       if (!res.ok) throw new Error(payload.message || 'Falha ao salvar.');
 
       if (payload.project) {
@@ -191,9 +218,14 @@ export default function ProjetoPage() {
           }),
         });
       }
-      void fetchProjectsList();
-        setCollapsedView(true);
+
+      // Aguarda atualização da lista antes de fechar o modal
+      await fetchProjectsList();
+      setCollapsedView(true);
       setSaveMessage('Dados salvos com sucesso.');
+      setShowModal(false);
+      setEditMode(false);
+      setEditProjectId(null);
     } catch (e) {
       setSaveMessage(e instanceof Error ? e.message : 'Erro ao salvar.');
     } finally {
@@ -352,6 +384,7 @@ export default function ProjetoPage() {
                       setIntegrationsField('');
                       setObservations('');
                       setEditMode(true);
+                      setEditProjectId(null);
                       setShowModal(true);
                     }}
                     className="rounded-xl bg-blue-600 text-slate-900 dark:text-white px-6 py-3 text-lg font-bold shadow-lg hover:bg-blue-700 transition"
@@ -510,7 +543,7 @@ export default function ProjetoPage() {
                       <div className="flex items-center gap-3 mt-6 justify-center">
                         {editMode ? (
                           <button
-                            onClick={() => { void onSave(); setEditMode(false); setShowModal(false); }}
+                            onClick={() => { void onSave(); }}
                             disabled={saving}
                             className="rounded-xl bg-slate-900 dark:bg-white text-slate-900 dark:text-white dark:text-slate-900 px-6 py-2 text-lg font-bold disabled:opacity-60"
                           >

@@ -49,8 +49,10 @@ const Header: React.FC = () => {
           (async () => {
             let toColTitle: string | undefined = payload?.toColumnTitle ?? undefined;
             let projectTitle: string | undefined = payload?.projectTitle ?? undefined;
-              try {
-              const resCols = await fetch('/api/kanban', { credentials: 'include' });
+            try {
+              // If payload contains projectId, fetch that project's kanban to resolve titles reliably
+              const q = payload?.projectId ? `?projectId=${encodeURIComponent(String(payload.projectId))}` : '';
+              const resCols = await fetch(`/api/kanban${q}`, { credentials: 'include' });
               if (resCols.ok) {
                 const dataCols = await resCols.json();
                 const col = (dataCols?.columns || []).find((x: { id?: string | number; title?: string }) => String(x.id) === String(payload?.toColumnId));
@@ -119,7 +121,9 @@ const Header: React.FC = () => {
             let projectTitle: string | undefined = payload?.projectTitle ?? undefined;
             let cardTitle: string | undefined = payload?.cardTitle ?? undefined;
             try {
-              const resCols = await fetch('/api/kanban', { credentials: 'include' });
+              // Prefer fetching the specific project's kanban when projectId is present
+              const q = payload?.projectId ? `?projectId=${encodeURIComponent(String(payload.projectId))}` : '';
+              const resCols = await fetch(`/api/kanban${q}`, { credentials: 'include' });
               if (resCols.ok) {
                 const dataCols = await resCols.json();
                 const col = (dataCols?.columns || []).find((x: { id?: string | number; title?: string }) => String(x.id) === String(payload?.toColumnId));
@@ -232,7 +236,8 @@ const Header: React.FC = () => {
       for (const n of reversed) {
         if (!n) continue;
         if (seenIds.has(n.id)) continue;
-        const key = `${n.cardId ?? ''}_${n.toColumnId ?? ''}_${String(n.message ?? '')}`;
+        // Include projectId in the deduplication key to ensure per-project uniqueness
+        const key = `${n.projectId ?? ''}_${n.cardId ?? ''}_${n.toColumnId ?? ''}_${String(n.message ?? '')}`;
         if (seenKeys.has(key)) continue;
         seenIds.add(n.id);
         seenKeys.add(key);
@@ -268,20 +273,47 @@ const Header: React.FC = () => {
   // Resolve column/project/card titles for an array of notifications (mutates shallow copies)
   async function resolveTitlesForNotifications(list: Array<{ id: string; message: string; cardId?: number; toColumnId?: number; toColumnTitle?: string; projectTitle?: string; timestamp?: number; read?: boolean }>) {
     try {
-      const res = await fetch('/api/kanban', { credentials: 'include' });
-      if (!res.ok) return list;
-      const data = await res.json();
-      const cols = data?.columns ?? [];
-      const projectTitle = data?.project?.title ?? undefined;
-      const colMap = new Map<string, string>();
-      for (const c of cols) {
-        if (c?.id != null && c?.title) colMap.set(String(c.id), c.title);
-      }
-      return list.map((n) => {
+      // Collect notifications that include projectId to fetch specific kanbans
+      const byProject = new Map<string, { columns: any[]; projectTitle?: string }>();
+      const projectIds = Array.from(new Set(list.map((n: any) => n.projectId).filter(Boolean)));
+      // Fetch each project's kanban separately
+      await Promise.all(projectIds.map(async (pid) => {
+        try {
+          const res = await fetch(`/api/kanban?projectId=${encodeURIComponent(String(pid))}`, { credentials: 'include' });
+          if (!res.ok) return;
+          const data = await res.json();
+          byProject.set(String(pid), { columns: data?.columns ?? [], projectTitle: data?.project?.title });
+        } catch {}
+      }));
+      // Also fetch a default kanban to resolve any notifications without projectId
+      let defaultCols: any[] = [];
+      let defaultProjectTitle: string | undefined = undefined;
+      try {
+        const res = await fetch('/api/kanban', { credentials: 'include' });
+        if (res.ok) {
+          const d = await res.json();
+          defaultCols = d?.columns ?? [];
+          defaultProjectTitle = d?.project?.title ?? undefined;
+        }
+      } catch {}
+
+      return list.map((n: any) => {
         const copy = { ...n };
-        if (!copy.projectTitle && projectTitle) copy.projectTitle = projectTitle;
+        // If no projectId, try to extract project title from message like: Card movido em "PROJECT": ...
+        if (!copy.projectId && typeof copy.message === 'string') {
+          try {
+            const m = copy.message.match(/Card movido(?: em\s+"([^"]+)")?\s*[:|-]?\s*(.*)$/i);
+            if (m && m[1]) {
+              copy.projectTitle = copy.projectTitle || m[1];
+            }
+          } catch {}
+        }
+        const pid = n.projectId != null ? String(n.projectId) : null;
+        const source = pid && byProject.has(pid) ? byProject.get(pid)! : { columns: defaultCols, projectTitle: defaultProjectTitle };
+        const cols = source.columns || [];
+        if (!copy.projectTitle && source.projectTitle) copy.projectTitle = source.projectTitle;
         if ((!copy.toColumnTitle || copy.toColumnTitle === '') && copy.toColumnId != null) {
-          const t = colMap.get(String(copy.toColumnId));
+          const t = cols.find((c: any) => String(c.id) === String(copy.toColumnId))?.title;
           copy.toColumnTitle = t ?? `Coluna ${copy.toColumnId}`;
         }
         // try resolve card title if missing

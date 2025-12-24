@@ -12,14 +12,44 @@ async function getOrCreateProjectForUser(userId: number) {
     .orderBy(projects.id)
     .limit(1);
 
-  if (existing[0]) return existing[0];
+  let project = existing[0];
+  if (!project) {
+    const [created] = await db
+      .insert(projects)
+      .values({ user_id: userId, title: 'Seu Projeto', status: 'Em planejamento', progress: 0 })
+      .returning();
+    project = created;
+  }
 
-  const [created] = await db
-    .insert(projects)
-    .values({ user_id: userId, title: 'Seu Projeto', status: 'Em planejamento', progress: 0 })
-    .returning();
-
-  return created;
+  // Pipeline padrão único para todos os projetos
+  const pipeline = [
+    'Backlog',
+    'Levantamento de Requisitos',
+    'Planejamento',
+    'Design UI/UX',
+    'Desenvolvimento',
+    'Code Review',
+    'Testes',
+    'Homologação',
+    'Deploy',
+    'Aguardando Cliente',
+    'Concluído',
+  ];
+  const existingCols = await db
+    .select()
+    .from(kanban_columns)
+    .where(eq(kanban_columns.project_id, project.id));
+  if (existingCols.length !== pipeline.length || existingCols.some((col, idx) => col.title !== pipeline[idx])) {
+    // Remove todas as colunas antigas se não baterem com o padrão
+    if (existingCols.length > 0) {
+      await db.delete(kanban_columns).where(eq(kanban_columns.project_id, project.id));
+    }
+    // Cria as colunas padrão
+    for (let i = 0; i < pipeline.length; i++) {
+      await db.insert(kanban_columns).values({ project_id: project.id, title: pipeline[i], position: i });
+    }
+  }
+  return project;
 }
 
 export async function GET(request: NextRequest) {
@@ -30,7 +60,26 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = Number(auth.id);
-    const project = await getOrCreateProjectForUser(userId);
+    const url = new URL(request.url);
+    const projectIdParam = url.searchParams.get('projectId');
+    let project = null;
+    if (projectIdParam) {
+      // Buscar o projeto do usuário pelo projectId informado
+      const found = await db
+        .select()
+        .from(projects)
+        .where(eq(projects.id, Number(projectIdParam)))
+        .limit(1);
+      if (found[0] && found[0].user_id === userId) {
+        project = found[0];
+      } else {
+        // projectId inválido ou não pertence ao usuário
+        return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
+      }
+    } else {
+      // Fallback: retorna o primeiro projeto do usuário
+      project = await getOrCreateProjectForUser(userId);
+    }
 
     const columns = await db
       .select()
