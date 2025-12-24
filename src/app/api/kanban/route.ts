@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Buscar apenas os cards das colunas deste projeto
     const columnIds = columns.map((col) => Number(col.id));
-    let cards: any[] = [];
+    let cards: Array<Record<string, unknown>> = [];
     if (columnIds.length > 0) {
       cards = await db
         .select()
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Garantir que card.column_id e col.id são number
-    const cardsByColumn = new Map<number, typeof cards>();
+    const cardsByColumn = new Map<number, Array<Record<string, unknown>>>();
     for (const card of cards) {
       const colId = Number(card.column_id);
       if (!cardsByColumn.has(colId)) cardsByColumn.set(colId, []);

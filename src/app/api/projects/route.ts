@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const userId = Number(auth.id);
 
     // Se for admin, retorna todos os projetos e todos os updates
-    const isAdmin = (auth.role === 'admin');
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
     if (isAdmin) {
       const list = await db
         .select()

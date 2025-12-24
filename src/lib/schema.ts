@@ -1,6 +1,6 @@
 
 
-import { pgTable, serial, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
@@ -56,10 +56,4 @@ export const kanban_cards = pgTable('kanban_cards', {
   position: integer('position'),
 });
 
-export {
-  users,
-  projects,
-  project_updates,
-  kanban_columns,
-  kanban_cards,
-};
+

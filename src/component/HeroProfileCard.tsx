@@ -1,48 +1,65 @@
-import Image from 'next/image';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiUser } from 'react-icons/fi';
 
-const HeroProfileCard: React.FC = () => {
+
+export default function HeroProfileCard() {
   return (
-    <article className="max-w-md mx-auto md:mx-0 bg-gradient-to-r from-white/60 to-white/30 dark:from-black/30 dark:to-black/20 border border-black/10 dark:border-white/10 rounded-2xl p-3 shadow-xl backdrop-blur-lg">
-      <div className="flex items-center gap-3">
-        <div className="relative w-16 h-16 rounded-full flex-shrink-0">
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 blur-md opacity-60" />
-          <Image
-            src="/images/Perfil_Rogger.png"
-            alt="Foto de Rogger Brosco"
-            width={64}
-            height={64}
-            className="relative rounded-full border-2 border-white/60 dark:border-white/70 shadow-lg"
-          />
+    <div className="flex flex-col md:flex-row gap-6 justify-center items-stretch">
+      {/* Card Adriano Neco */}
+      <div className="rounded-2xl bg-white border border-slate-200 p-2 flex items-center gap-3 shadow min-w-[340px] dark:bg-black/30 dark:border-white/10">
+        <div className="flex-shrink-0">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-slate-100 shadow-lg dark:border-white/20">
+            <div className="flex items-center justify-center w-full h-full">
+              <FiUser className="w-16 h-16 text-slate-700 dark:text-white/80" />
+            </div>
+          </div>
         </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rogger Brosco</h3>
-              <p className="text-xs text-slate-600 dark:text-white/75">Full Stack • Banco de Dados • Automação</p>
-            </div>
-            <span className="text-xs text-slate-500 dark:text-white/60"></span>
-                      <span className="text-xs text-slate-500 dark:text-white/60">EasyDev</span>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Adriano Neco</h3>
+            <span className="text-xs text-slate-600 font-semibold dark:text-slate-300">EasyDev</span>
           </div>
-
-          <div className="mt-2 flex flex-wrap gap-2">
-            {['Web Apps','APIs','PostgreSQL','MongoDB','n8n'].map(tag => (
-              <span key={tag} className="text-[11px] px-2 py-1 rounded-full bg-black/5 border border-black/10 dark:bg-white/5 dark:border-white/10 text-slate-700 dark:text-white/80">
+          <div className="text-slate-700 text-sm font-medium mt-1 dark:text-slate-200">Full Stack • Banco de Dados • Automação</div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['Web Apps', 'APIs', 'PostgreSQL', 'MongoDB', 'n8n'].map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-xs text-slate-700 dark:bg-black/40 dark:border-white/10 dark:text-white/80"
+              >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="mt-3">
-            <a href="#Servicos" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-              Ver serviços <FiArrowRight className="w-4 h-4" />
-            </a>
+        </div>
+      </div>
+      {/* Card Rogger Brosco */}
+      <div className="rounded-2xl bg-white border border-slate-200 p-2 flex items-center gap-3 shadow min-w-[340px] dark:bg-black/30 dark:border-white/10">
+        <div className="flex-shrink-0">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-slate-100 shadow-lg dark:border-white/20">
+            <div className="flex items-center justify-center w-full h-full">
+              <FiUser className="w-16 h-16 text-slate-700 dark:text-white/80" />
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Rogger Brosco</h3>
+            <span className="text-xs text-slate-600 font-semibold dark:text-slate-300">EasyDev</span>
+          </div>
+          <div className="text-slate-700 text-sm font-medium mt-1 dark:text-slate-200">Full Stack • Banco de Dados • Automação</div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['Web Apps', 'APIs', 'PostgreSQL', 'MongoDB', 'n8n'].map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-xs text-slate-700 dark:bg-black/40 dark:border-white/10 dark:text-white/80"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
       </div>
-    </article>
+    </div>
   );
-};
+}
 
-export default HeroProfileCard;

@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
 import DashboardNav from '../../../component/DashboardNav';
 import DashboardSidebar from '../../../component/DashboardSidebar';
 
@@ -30,17 +29,17 @@ type ProjectsResponse = {
 
 
 export default function ProjetoPage() {
-  const [editProjectId, setEditProjectId] = useState<number | null>(null);
-  const router = useRouter();
-  const [data, setData] = useState<ProjectsResponse | null>(null);
+  const [, setEditProjectId] = useState<number | null>(null);
+  // router removed (unused)
+  const [, setData] = useState<ProjectsResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [lastSavedProject, setLastSavedProject] = useState<Project | null>(null);
-  const [adminStatus, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
+  const [, setLastSavedProject] = useState<Project | null>(null);
+  const [, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
 
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -221,7 +220,7 @@ export default function ProjetoPage() {
       return;
     }
     // Busca detalhes do projeto para usar no card do Kanban
-    let projectData: any = {};
+    let projectData: Record<string, unknown> = {}; ;
     try {
       const res = await fetch(`/api/projects?projectId=${projectId}`, { credentials: 'include' });
       if (res.ok) {
@@ -251,7 +250,7 @@ export default function ProjetoPage() {
               projectData.integrations && `Integrações: ${projectData.integrations}`,
             ].filter(Boolean).join('\n');
             // Verifica se já existe um card com o mesmo título e descrição
-            const alreadyExists = firstColumn.cards.some((card: any) => card.title === projectData.title && card.description === description);
+            const alreadyExists = firstColumn.cards.some((card: Record<string, unknown>) => card.title === projectData.title && card.description === description);
             if (!alreadyExists) {
               await fetch('/api/kanban', {
                 method: 'POST',
@@ -355,7 +354,7 @@ export default function ProjetoPage() {
                       setEditMode(true);
                       setShowModal(true);
                     }}
-                    className="rounded-xl bg-blue-600 text-white px-6 py-3 text-lg font-bold shadow-lg hover:bg-blue-700 transition"
+                    className="rounded-xl bg-blue-600 text-slate-900 dark:text-white px-6 py-3 text-lg font-bold shadow-lg hover:bg-blue-700 transition"
                   >
                     + Criar novo projeto
                   </button>
@@ -513,14 +512,14 @@ export default function ProjetoPage() {
                           <button
                             onClick={() => { void onSave(); setEditMode(false); setShowModal(false); }}
                             disabled={saving}
-                            className="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-2 text-lg font-bold disabled:opacity-60"
+                            className="rounded-xl bg-slate-900 dark:bg-white text-slate-900 dark:text-white dark:text-slate-900 px-6 py-2 text-lg font-bold disabled:opacity-60"
                           >
                             {saving ? 'Salvando…' : 'Salvar Projeto'}
                           </button>
                         ) : (
                           <button
                             onClick={() => setEditMode(true)}
-                            className="rounded-xl bg-blue-600 text-white px-6 py-2 text-lg font-bold"
+                            className="rounded-xl bg-blue-600 text-slate-900 dark:text-white px-6 py-2 text-lg font-bold"
                           >
                             Solicitar projeto
                           </button>
@@ -543,7 +542,7 @@ export default function ProjetoPage() {
 
                 {/* Popup de sucesso ao enviar para desenvolvedor */}
                 {showSuccessPopup && (
-                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80">
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center border border-blue-400 dark:border-blue-600">
                       <span className="text-4xl mb-2">✅</span>
                       <span className="text-lg font-semibold text-blue-700 dark:text-blue-300 mb-1">Projeto enviado com sucesso!</span>
@@ -576,7 +575,7 @@ export default function ProjetoPage() {
                           <div className="flex gap-3 mt-2 items-center justify-between">
                             <div className="flex items-center gap-2">
                               {project.status === 'enviado' && (
-                                <span className="inline-flex items-center bg-gradient-to-r from-green-500 to-green-700 text-white text-xs px-3 py-1 rounded-full animate-pulse shadow-lg border border-white/20">
+                                <span className="inline-flex items-center bg-gradient-to-r from-green-500 to-green-700 text-slate-900 dark:text-white text-xs px-3 py-1 rounded-full animate-pulse shadow-lg border border-white/20">
                                   <svg className="inline w-4 h-4 mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                                   Enviado ao Desenvolvedor
                                 </span>
@@ -586,8 +585,8 @@ export default function ProjetoPage() {
                                 onClick={() => handleSendToDev(project.id, project.status)}
                                 className={`rounded-xl px-4 py-2 text-sm font-medium transition font-semibold ${
                                   project.status === 'enviado'
-                                    ? 'bg-gray-400 cursor-not-allowed text-white'
-                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                                    ? 'bg-gray-400 cursor-not-allowed text-slate-900 dark:text-white'
+                                    : 'bg-green-600 hover:bg-green-700 text-slate-900 dark:text-white'
                                 }`}
                               >
                                 Enviar para desenvolvedor

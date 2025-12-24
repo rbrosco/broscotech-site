@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiUser } from 'react-icons/fi';
 import DashboardNav from '../../component/DashboardNav';
 import DashboardSidebar from '../../component/DashboardSidebar';
@@ -123,8 +123,19 @@ export default function PerfilPage() {
 
         <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10 min-w-0">
           <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6 min-w-0">
+
             <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Perfil</h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Altere seus dados quando quiser.</p>
+
+            <div className="mt-6 mb-8 p-6 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur-sm dark:from-black/20 dark:to-black/10 dark:border-white/10 shadow-lg">
+              <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center">
+                <FiUser className="h-6 w-6 mr-2 text-purple-500" />
+                Sobre o Desenvolvedor
+              </h2>
+              <p className="text-slate-700 dark:text-white/80 text-sm sm:text-base leading-relaxed mt-2">
+                Sou apaixonado por desenvolvimento de software, especialmente por criar soluções que facilitam a vida das pessoas e das empresas. Trabalho com aplicações web, APIs, bancos de dados e automações, sempre buscando clareza, eficiência e inovação. Gosto de aprender novas tecnologias, colaborar em equipe e transformar ideias em produtos digitais de verdade.
+              </p>
+            </div>
 
             {loading ? (
               <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando…</p>
@@ -139,7 +150,7 @@ export default function PerfilPage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome</label>
                     <input
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
                     />
                   </div>
@@ -148,7 +159,7 @@ export default function PerfilPage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Login</label>
                     <input
                       value={login}
-                      onChange={(e) => setLogin(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLogin(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
                     />
                   </div>
@@ -157,7 +168,7 @@ export default function PerfilPage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">E-mail</label>
                     <input
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                       type="email"
                       className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
                     />
@@ -167,7 +178,7 @@ export default function PerfilPage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Telefone</label>
                     <input
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
                       placeholder="(00) 00000-0000"
                       className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
                     />
@@ -249,7 +260,7 @@ export default function PerfilPage() {
                     type="button"
                     onClick={() => void onSave()}
                     disabled={saving}
-                    className="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 text-sm font-medium disabled:opacity-60"
+                    className="rounded-xl bg-slate-900 dark:bg-white text-slate-900 dark:text-white dark:text-slate-900 px-4 py-2 text-sm font-medium disabled:opacity-60"
                   >
                     {saving ? 'Salvando…' : 'Salvar alterações'}
                   </button>

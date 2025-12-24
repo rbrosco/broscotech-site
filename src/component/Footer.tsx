@@ -13,13 +13,13 @@ const Footer: React.FC = () => {
           <Link href="/" passHref>
             <span className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse cursor-pointer">
               <Image
-                src="/images/EASYDEVLOGO.png" // Certifique-se que o caminho está correto
-                alt="EASYDEV Logo"
+                src="/images/BROSCOTECHLOGO.png" // Certifique-se que o caminho está correto
+                alt="BROSCOTECH Logo"
                 width={32} // Corresponde a h-8 do exemplo
                 height={32}
               />
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-slate-900 dark:text-white">
-                EASYDEV
+                BROSCOTECH
               </span>
             </span>
           </Link>
@@ -50,8 +50,7 @@ const Footer: React.FC = () => {
         <span className="block text-sm text-slate-600 sm:text-center dark:text-white/60">
           © 2025{" "}
           <Link href="/" passHref>
-            <span className="hover:underline cursor-pointer"></span>
-                      <span className="hover:underline cursor-pointer">EASYDEV™</span>
+            <span className="hover:underline cursor-pointer">BROSCOTECH™</span>
           </Link>
           . Todos os direitos reservados.
         </span>

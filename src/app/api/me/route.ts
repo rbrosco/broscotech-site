@@ -13,6 +13,6 @@ export async function GET(request: Request) {
     name: user.name,
     login: user.login,
     email: user.email,
-    avatar: user.avatar ?? null,
+    avatar: (user as { avatar?: string | null }).avatar ?? null,
   });
 }

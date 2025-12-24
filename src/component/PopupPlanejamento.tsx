@@ -45,9 +45,9 @@ const PopupPlanejamento: React.FC<PopupPlanejamentoProps> = ({
   const handleDelete = onDelete || (() => {});
   if (!open || !update) return null;
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-50 flex items-start justify-center bg-black/40 animate-fade-in">
+    <div className="fixed top-0 left-0 w-full h-full z-50 flex items-start justify-center bg-white/80 animate-fade-in">
       <div className="mt-10 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 w-full max-w-2xl relative animate-fade-in-up border border-blue-100 dark:border-gray-800" style={{ fontSize: '1.1em' }}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-blue-700 dark:hover:text-white transition">×</button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-blue-700 dark:hover:text-slate-900 dark:text-white transition">×</button>
         <h2 className="text-3xl font-extrabold mb-2 flex items-center gap-2 text-blue-900 dark:text-blue-200">
           <FiFileText className="inline-block text-blue-400" /> Detalhes do Planejamento
         </h2>
@@ -78,14 +78,14 @@ const PopupPlanejamento: React.FC<PopupPlanejamentoProps> = ({
                 <span className="flex items-center gap-1 text-red-600 font-bold"><FiXCircle /> RECUSADO</span>
               ) : (
                 <>
-                  <button onClick={onAccept} className="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-1 text-xs font-semibold shadow transition flex items-center gap-1"><FiCheckCircle /> Aceitar</button>
-                  <button onClick={onReject} className="bg-red-600 hover:bg-red-700 text-white rounded px-4 py-1 text-xs font-semibold shadow transition flex items-center gap-1"><FiXCircle /> Recusar</button>
+                  <button onClick={onAccept} className="bg-green-600 hover:bg-green-700 text-slate-900 dark:text-white rounded px-4 py-1 text-xs font-semibold shadow transition flex items-center gap-1"><FiCheckCircle /> Aceitar</button>
+                  <button onClick={onReject} className="bg-red-600 hover:bg-red-700 text-slate-900 dark:text-white rounded px-4 py-1 text-xs font-semibold shadow transition flex items-center gap-1"><FiXCircle /> Recusar</button>
                 </>
               )}
             </div>
             <button
               onClick={handleDelete}
-              className="flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white rounded px-4 py-1 text-xs font-semibold shadow transition w-fit mt-2"
+              className="flex items-center gap-2 bg-red-700 hover:bg-red-800 text-slate-900 dark:text-white rounded px-4 py-1 text-xs font-semibold shadow transition w-fit mt-2"
               title="Excluir projeto"
             >
               <FiTrash2 /> Excluir projeto

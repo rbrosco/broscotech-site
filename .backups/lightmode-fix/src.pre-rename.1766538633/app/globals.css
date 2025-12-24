@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+/* Tailwind v4: faz o variant `dark:` responder à classe `.dark` no HTML */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --header-height: 50px;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --color-accent: #0ea5a4; /* accent (teal) light */
+  --color-accent-600: #0d9488;
+  --color-accent-500: #14b8a6;
+  --ia-bubble-contrast: #ffffff;
+}
+
+.light {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --color-accent: #0ea5a4;
+  --color-accent-600: #0d9488;
+  --color-accent-500: #14b8a6;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #071026; /* deep navy for dark mode */
+  --foreground: #e6eef8;
+  --color-accent: #06b6d4; /* brighter accent in dark */
+  --color-accent-600: #0891b2;
+  --color-accent-500: #06b6d4;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Novo gradiente substituindo o anterior */
+.gradient {
+  background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
+}
+
+
+/* Oculta a marca d'água do Chatwoot */
+iframe[src*="chatwoot"] {
+  opacity: 0.99; /* Tenta forçar uma re-renderização */
+}
+
+iframe[src*="chatwoot"] ~ div {
+  display: none !important;
+}
+
+/* Esconde links de branding */
+a[href*="chatwoot"], div[title="Chatwoot"] {
+  display: none !important;
+}
+
+/* Animação para o IconBanner */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Move metade da largura total, pois os ícones são duplicados para o efeito de loop */
+    transform: translateX(-50%); 
+  }
+}
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) linear infinite;
+}
+.animate-scroll-reverse {
+  animation: scroll-reverse var(--animation-duration, 40s) linear infinite;
+}
+
+/* Animações gerais */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* IA Agent bubble styles */
+.iaagent-bubble {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  color: var(--ia-bubble-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.24);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.iaagent-bubble:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 30px rgba(2,6,23,0.28);
+}
+
+@keyframes ia-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16,24,40,0.08); }
+  70% { box-shadow: 0 0 0 10px rgba(16,24,40,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,24,40,0); }
+}
+.iaagent-bubble.pulse {
+  animation: ia-pulse 2.6s infinite;
+}
+
+/* make sure bubble adapts when dark class applied on html */
+.dark .iaagent-bubble {
+  background: var(--color-accent);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+}
+
+
+/* Modal styles for IA Agent */
+.iaagent-modal-overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
+.iaagent-modal-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,0.6); border: 0; }
+.iaagent-modal-panel { position: relative; width: 92vw; max-width: 1100px; height: 84vh; background: var(--background); color: var(--foreground); border-radius: 12px; overflow: hidden; z-index: 72; box-shadow: 0 20px 60px rgba(2,6,23,0.6); display: flex; flex-direction: column; }
+.iaagent-iframe { border: 0; width: 100%; height: 100%; flex: 1 1 auto; }
+
+/* Tooltip hint for the bubble */
+.iaagent-bubble[title]:hover::after { content: attr(title); position: absolute; right: calc(100% + 0.5rem); bottom: 50%; transform: translateY(50%); background: var(--foreground); color: var(--background); padding: 6px 8px; border-radius: 6px; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(2,6,23,0.3); }
+
+/* ===== Immediate readability fixes for light mode =====
+   These rules ensure the site is easy to read in light mode by:
+   - forcing text that was set to white to use a dark color
+   - removing backdrop blur in light mode
+   - making translucent card backgrounds solid white in light mode
+   They apply only when `.dark` is NOT present on <html> so dark theme remains unchanged. */
+html:not(.dark) [class*="text-white"] {
+  color: #0b1220 !important;
+}
+
+html:not(.dark) [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+html:not(.dark) [class*="bg-white/"] {
+  background-color: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+/* Ensure specific translucent dark backgrounds become white in light mode */
+html:not(.dark) [class*="bg-black/"] {
+  background-color: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+/* Inputs, placeholders and buttons inside card-like elements should be dark in light mode */
+html:not(.dark) input, html:not(.dark) textarea, html:not(.dark) button {
+  color: #0b1220 !important;
+}
+
+/* keep dark mode intact */
+.dark [class*="backdrop-blur"],
+.dark [class*="bg-white/"] {
+  /* no-op: dark mode rules continue to apply */
+}
+
+/* Background overlay handled via Tailwind classes on the layout element */

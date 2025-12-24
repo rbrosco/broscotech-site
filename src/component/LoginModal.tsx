@@ -61,12 +61,12 @@ export default function LoginModal({ isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-white/600" onClick={onClose} />
 
       <div className="relative w-full max-w-md mx-4 bg-white/95 dark:bg-gray-900/95 rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 p-6">
         <button
           aria-label="Fechar"
-          className="absolute right-3 top-3 p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5"
+          className="absolute right-3 top-3 p-2 rounded-md hover:bg-white/60 dark:hover:bg-white/5"
           onClick={onClose}
         >
           <FiX className="w-5 h-5 text-slate-700 dark:text-white/80" />
@@ -103,7 +103,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-slate-900 dark:text-white font-semibold hover:bg-slate-800 disabled:opacity-60"
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </button>

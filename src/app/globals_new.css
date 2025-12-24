@@ -5,7 +5,7 @@
 
 :root {
   --header-height: 50px;
-  --background: #ffffff;
+  --background: #ffffffea;
   --foreground: #0f172a;
   --color-accent: #0ea5a4; /* accent (teal) light */
   --color-accent-600: #0d9488;
@@ -15,7 +15,7 @@
 
 .light {
   color-scheme: light;
-  --background: #ffffff;
+  --background: #ffffffec;
   --foreground: #0f172a;
   --color-accent: #0ea5a4;
   --color-accent-600: #0d9488;

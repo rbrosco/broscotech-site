@@ -36,16 +36,16 @@ const ProfileCard: React.FC = () => {
             </div>
 
             <div className="text-center md:text-left">
-              <p className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-semibold text-slate-900 dark:border-white/15 dark:bg-black/20 dark:text-white">
+              <p className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-semibold text-slate-900 dark:border-white/15 dark:bg-black/20 dark:text-slate-900 dark:text-white">
                 <span className="opacity-80">Foto de</span>
                 <span className="opacity-40">•</span>
                 <span className="opacity-80">Rogger Brosco</span>
               </p>
 
-              <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-white/80 bg-clip-text text-transparent">
+              <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-900 dark:text-white bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-white/80 bg-clip-text text-transparent">
                 Rogger Brosco
               </h1>
-              <p className="mt-2 text-md sm:text-lg font-medium text-slate-700 dark:text-white/70">
+              <p className="mt-2 text-md sm:text-lg font-medium text-slate-700 dark:text-slate-900 dark:text-white/70">
                 Full Stack • Banco de Dados • Automação
               </p>
 
@@ -53,7 +53,7 @@ const ProfileCard: React.FC = () => {
                 {['Web Apps', 'APIs', 'PostgreSQL', 'MongoDB', 'n8n'].map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-white/60 border border-black/10 px-3 py-1 text-slate-700 dark:bg-black/20 dark:border-white/10 dark:text-white/80"
+                    className="rounded-full bg-white/60 border border-black/10 px-3 py-1 text-slate-700 dark:bg-black/20 dark:border-white/10 dark:text-slate-900 dark:text-white/80"
                   >
                     {tag}
                   </span>
@@ -64,11 +64,11 @@ const ProfileCard: React.FC = () => {
 
         {/* Skills Section */}
         <div className="space-y-4 mb-8 p-6 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur-sm dark:from-black/20 dark:to-black/10 dark:border-white/10 shadow-lg">
-          <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center">
+          <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-900 dark:text-white flex items-center">
             <FiCode className="h-6 w-6 mr-2 text-blue-500" />
             Minhas Habilidades
           </h2>
-          <ul className="list-none pl-2 text-slate-700 dark:text-white/80 space-y-2 text-sm sm:text-base">
+          <ul className="list-none pl-2 text-slate-700 dark:text-slate-900 dark:text-white/80 space-y-2 text-sm sm:text-base">
             {/* React, Next.js, Tailwind CSS */}
             <li className="flex items-center p-2 rounded-lg bg-white/20 dark:bg-black/20 backdrop-blur-sm border border-white/10 dark:border-white/5">
               {/* Ícone para Front-End (Monitor) */}
@@ -104,11 +104,11 @@ const ProfileCard: React.FC = () => {
 
         {/* Bio Section */}
         <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur-sm dark:from-black/20 dark:to-black/10 dark:border-white/10 shadow-lg">
-          <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center">
+          <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-900 dark:text-white flex items-center">
             <FiUser className="h-6 w-6 mr-2 text-purple-500" />
             Sobre Mim
           </h2>
-          <p className="text-slate-700 dark:text-white/80 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-900 dark:text-white/80 text-sm sm:text-base leading-relaxed">
             Eu ajudo empresas a transformar processos e ideias em produtos digitais — com foco em clareza, velocidade e manutenção.
             Na prática, isso significa: construir interfaces consistentes, APIs bem definidas, bancos de dados confiáveis e automações
             que tiram trabalho manual do caminho.
@@ -118,9 +118,8 @@ const ProfileCard: React.FC = () => {
         {/* Contact and CV Download Buttons */}
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
           <a
-            href="#" // Email removido
                         href="mailto:contato@easydev.com.br" // Substitua com seu e-mail
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-slate-900 dark:text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
           >
             <FiMail className="h-5 w-5 mr-2" />
             Entre em Contato

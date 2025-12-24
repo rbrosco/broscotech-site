@@ -156,3 +156,44 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
 
 /* Tooltip hint for the bubble */
 .iaagent-bubble[title]:hover::after { content: attr(title); position: absolute; right: calc(100% + 0.5rem); bottom: 50%; transform: translateY(50%); background: var(--foreground); color: var(--background); padding: 6px 8px; border-radius: 6px; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(2,6,23,0.3); }
+
+/* ===== Immediate readability fixes for light mode =====
+   These rules ensure the site is easy to read in light mode by:
+   - forcing text that was set to white to use a dark color
+   - removing backdrop blur in light mode
+   - making translucent card backgrounds solid white in light mode
+   They apply only when `.dark` is NOT present on <html> so dark theme remains unchanged. */
+html:not(.dark) [class*="text-white"] {
+  color: #0b1220 !important;
+}
+
+html:not(.dark) [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+html:not(.dark) [class*="bg-white/"] {
+  background-color: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+/* Ensure specific translucent dark backgrounds become white in light mode */
+html:not(.dark) [class*="bg-black/"] {
+  background-color: #ffffff !important;
+  color: #0b1220 !important;
+}
+
+/* Inputs, placeholders and buttons inside card-like elements should be dark in light mode */
+html:not(.dark) input, html:not(.dark) textarea, html:not(.dark) button {
+  color: #0b1220 !important;
+}
+
+/* keep dark mode intact */
+.dark [class*="backdrop-blur"],
+.dark [class*="bg-white/"] {
+  /* no-op: dark mode rules continue to apply */
+}
+
+/* Background overlay handled via Tailwind classes on the layout element */
