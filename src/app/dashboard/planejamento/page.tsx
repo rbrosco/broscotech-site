@@ -128,20 +128,35 @@ export default function PlanejamentoPage() {
               <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Nenhum projeto encontrado.</p>
             ) : (
               <div className="mt-6 space-y-8">
-                {projectsData.map(({ project, updates }) => (
-                  <div key={project.id} className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-5 py-4 shadow-sm">
-                    <div className="mb-2 flex flex-wrap items-center gap-2 justify-between">
-                      <span className="text-base font-bold text-blue-800 dark:text-blue-200">{project.title}</span>
-                      <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">{project.status}</span>
-                    </div>
-                    <div className="mb-2 text-xs text-slate-700 dark:text-slate-200">
-                      <b>Progresso:</b> {project.progress}%
-                    </div>
-                    {updates.length === 0 ? (
-                      <div className="text-xs text-slate-500 dark:text-slate-400">Nenhum registro de planejamento.</div>
-                    ) : (
-                      <div className="space-y-3">
-                        {updates.map((u) => {
+                {projectsData.map(({ project, updates }) => {
+                  // Filtra updates para mostrar apenas os do projeto correto (por ID)
+                  const filteredUpdates = updates.filter((u) => {
+                    try {
+                      if (typeof u.message === 'string' && u.message.startsWith('{')) {
+                        const obj = JSON.parse(u.message);
+                        if (obj && typeof obj === 'object') {
+                          // projectId pode estar no root ou em obj.projeto.id
+                          if (typeof obj.projectId === 'number') return obj.projectId === project.id;
+                          if (obj.projeto && typeof obj.projeto === 'object' && typeof obj.projeto.id === 'number') return obj.projeto.id === project.id;
+                        }
+                      }
+                    } catch {}
+                    return true; // fallback: mostra se não conseguir identificar
+                  });
+                  return (
+                    <div key={project.id} className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 px-5 py-4 shadow-sm">
+                      <div className="mb-2 flex flex-wrap items-center gap-2 justify-between">
+                        <span className="text-base font-bold text-blue-800 dark:text-blue-200">{project.title}</span>
+                        <span className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold">{project.status}</span>
+                      </div>
+                      <div className="mb-2 text-xs text-slate-700 dark:text-slate-200">
+                        <b>Progresso:</b> {project.progress}%
+                      </div>
+                      {filteredUpdates.length === 0 ? (
+                        <div className="text-xs text-slate-500 dark:text-slate-400">Nenhum registro de planejamento.</div>
+                      ) : (
+                        <div className="space-y-3">
+                          {filteredUpdates.map((u) => {
                           let parsed: { texto?: string; projeto?: ProjectDetails } | null = null;
                           try {
                             if (typeof u.message === 'string' && u.message.startsWith('{')) {
@@ -194,7 +209,7 @@ export default function PlanejamentoPage() {
                       </div>
                     )}
                   </div>
-                ))}
+                );  })} 
                 <PopupPlanejamento
                   open={popupOpen}
                   onClose={() => setPopupOpen(false)}

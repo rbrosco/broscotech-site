@@ -1,3 +1,41 @@
+export async function POST(request: NextRequest) {
+  try {
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) {
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const userId = Number(auth.id);
+    const body = await request.json();
+
+    const title = (body.title ?? 'Seu Projeto') as string;
+    const clientName = (body.clientName ?? null) as string | null;
+    const clientEmail = (body.clientEmail ?? null) as string | null;
+    const clientPhone = (body.clientPhone ?? null) as string | null;
+    const projectType = (body.projectType ?? null) as string | null;
+    const finalDate = (body.finalDate ?? null) as string | null;
+
+    const [created] = await db
+      .insert(projects)
+      .values({
+        user_id: userId,
+        title,
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: clientPhone,
+        project_type: projectType,
+        final_date: finalDate,
+        progress: 0,
+        status: 'Em planejamento',
+      })
+      .returning();
+
+    return NextResponse.json({ project: created, message: 'Projeto criado.' });
+  } catch (error) {
+    console.error('Erro em /api/projects POST:', error);
+    return NextResponse.json({ message: 'Erro interno ao criar projeto.' }, { status: 500 });
+  }
+}
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
 import { projects, project_updates } from '@/lib/schema';
@@ -91,56 +129,35 @@ export async function PATCH(request: NextRequest) {
 
     const userId = Number(auth.id);
     const body = await request.json();
+    const projectId = Number(body.id);
+    if (!projectId) {
+      return NextResponse.json({ message: 'ID do projeto é obrigatório para atualizar.' }, { status: 400 });
+    }
 
     const title = (body.title ?? null) as string | null;
     const clientName = (body.clientName ?? null) as string | null;
     const clientEmail = (body.clientEmail ?? null) as string | null;
     const clientPhone = (body.clientPhone ?? null) as string | null;
     const projectType = (body.projectType ?? null) as string | null;
-    // language, framework, integrations removed from schema
     const finalDate = (body.finalDate ?? null) as string | null;
-
-    const existingList = await db
-      .select()
-      .from(projects)
-      .where(drizzleEq(projects.user_id, userId))
-      .orderBy(desc(projects.updated_at))
-      .limit(1);
-
-    const existing = existingList[0];
-
-    if (!existing) {
-      const [created] = await db
-        .insert(projects)
-        .values({
-          user_id: userId,
-          title: title || 'Seu Projeto',
-          client_name: clientName,
-          client_email: clientEmail,
-          client_phone: clientPhone,
-          project_type: projectType,
-          final_date: finalDate,
-          progress: 0,
-          status: 'Em planejamento',
-        })
-        .returning();
-
-      return NextResponse.json({ project: created, message: 'Projeto criado.' });
-    }
 
     const [updated] = await db
       .update(projects)
       .set({
-        title: title ?? existing.title,
-        client_name: clientName ?? existing.client_name,
-        client_email: clientEmail ?? existing.client_email,
-        client_phone: clientPhone ?? existing.client_phone,
-        project_type: projectType ?? existing.project_type,
-        final_date: finalDate ?? existing.final_date,
+        title: title ?? undefined,
+        client_name: clientName ?? undefined,
+        client_email: clientEmail ?? undefined,
+        client_phone: clientPhone ?? undefined,
+        project_type: projectType ?? undefined,
+        final_date: finalDate ?? undefined,
         updated_at: new Date().toISOString(),
       })
-      .where(and(drizzleEq(projects.id, existing.id), drizzleEq(projects.user_id, userId)))
+      .where(and(drizzleEq(projects.id, projectId), drizzleEq(projects.user_id, userId)))
       .returning();
+
+    if (!updated) {
+      return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
+    }
 
     return NextResponse.json({ project: updated, message: 'Projeto atualizado.' });
   } catch (error) {

@@ -30,6 +30,81 @@ type ProjectsResponse = {
 
 
 export default function ProjetoPage() {
+    // Função para salvar projeto
+    const onSave = async () => {
+      setSaveMessage(null);
+      setSaving(true);
+      try {
+        if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
+
+        const res = await fetch('/api/projects', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userId,
+            title: projectName?.trim() || null,
+            clientName,
+            clientEmail,
+            clientPhone,
+            projectType,
+            language: language || null,
+            framework: framework || null,
+            integrations: integrationsField || null,
+            observations: observations || null,
+            finalDate: finalDate || null,
+          }),
+        });
+
+        const payload = (await res.json()) as { project?: Project; message?: string };
+        if (!res.ok) throw new Error(payload.message || 'Falha ao salvar.');
+
+        if (payload.project) {
+          setLastSavedProject(payload.project);
+
+          try {
+            const resStatus = await fetch(`/api/project_admin_status?projectId=${payload.project.id}`, {
+              credentials: 'include',
+            });
+            if (resStatus.ok) {
+              const statusPayload = (await resStatus.json()) as { admin_status?: unknown };
+              const raw = statusPayload?.admin_status;
+              setAdminStatus(raw === 'accepted' || raw === 'rejected' ? raw : null);
+            } else {
+              setAdminStatus(null);
+            }
+          } catch {
+            setAdminStatus(null);
+          }
+        }
+
+        setData((prev) => (prev ? { ...prev, project: payload.project ?? prev.project } : prev));
+        // Cria atualização de planejamento com snapshot do projeto e observações
+        if (payload.project?.id) {
+          await fetch('/api/project_updates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              projectId: payload.project.id,
+              userId,
+              kind: 'planejamento',
+              message: JSON.stringify({
+                texto: 'Informações do projeto atualizadas.',
+                projeto: payload.project,
+                observacoes: observations || undefined,
+              }),
+            }),
+          });
+        }
+        void fetchProjectsList();
+        setCollapsedView(true);
+        setSaveMessage('Dados salvos com sucesso.');
+      } catch (e) {
+        setSaveMessage(e instanceof Error ? e.message : 'Erro ao salvar.');
+      } finally {
+        setSaving(false);
+      }
+    };
   const [, setEditProjectId] = useState<number | null>(null);
   const [, setData] = useState<ProjectsResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -146,81 +221,6 @@ export default function ProjetoPage() {
 
     void init();
   }, [userId]);
-
-  const onSave = async () => {
-    setSaveMessage(null);
-    setSaving(true);
-    try {
-      if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
-
-      const res = await fetch('/api/projects', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId,
-          title: projectName?.trim() || null,
-          clientName,
-          clientEmail,
-          clientPhone,
-          projectType,
-          language: language || null,
-          framework: framework || null,
-          integrations: integrationsField || null,
-          observations: observations || null,
-          finalDate: finalDate || null,
-        }),
-      });
-
-      const payload = (await res.json()) as { project?: Project; message?: string };
-      if (!res.ok) throw new Error(payload.message || 'Falha ao salvar.');
-
-      if (payload.project) {
-        setLastSavedProject(payload.project);
-
-        try {
-          const resStatus = await fetch(`/api/project_admin_status?projectId=${payload.project.id}`, {
-            credentials: 'include',
-          });
-          if (resStatus.ok) {
-            const statusPayload = (await resStatus.json()) as { admin_status?: unknown };
-            const raw = statusPayload?.admin_status;
-            setAdminStatus(raw === 'accepted' || raw === 'rejected' ? raw : null);
-          } else {
-            setAdminStatus(null);
-          }
-        } catch {
-          setAdminStatus(null);
-        }
-      }
-
-      setData((prev) => (prev ? { ...prev, project: payload.project ?? prev.project } : prev));
-      // Cria atualização de planejamento com snapshot do projeto e observações
-      if (payload.project?.id) {
-        await fetch('/api/project_updates', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            projectId: payload.project.id,
-            userId,
-            kind: 'planejamento',
-            message: JSON.stringify({
-              texto: 'Informações do projeto atualizadas.',
-              projeto: payload.project,
-              observacoes: observations || undefined,
-            }),
-          }),
-        });
-      }
-      void fetchProjectsList();
-        setCollapsedView(true);
-      setSaveMessage('Dados salvos com sucesso.');
-    } catch (e) {
-      setSaveMessage(e instanceof Error ? e.message : 'Erro ao salvar.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   // Funções para apagar e enviar projeto
   const handleDeleteProject = async (projectId: number) => {
