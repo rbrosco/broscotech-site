@@ -4,6 +4,32 @@ import DashboardNav from '../../../component/DashboardNav';
 import DashboardSidebar from '../../../component/DashboardSidebar';
 
 export default function FaturasPage() {
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(true);
+
+  useEffect(() => {
+    // Proteção: só admin acessa
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { credentials: "include" });
+        if (!res.ok) {
+          router.replace("/login");
+          return;
+        }
+        const user = await res.json();
+        if (user.role !== "admin") {
+          router.replace("/dashboard");
+          return;
+        }
+        setIsAdmin(true);
+      } catch {
+        router.replace("/login");
+      }
+    })();
+  }, [router]);
+
+  if (!isAdmin) return null;
+
   return (
     <div className="w-full relative flex ct-docs-disable-sidebar-content overflow-x-hidden bg-blueGray-100 dark:bg-gray-900 min-h-screen">
       <DashboardSidebar />

@@ -31,6 +31,13 @@ function isJwtExpired(token: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Rotas protegidas para admin
+  const adminRoutes = [
+    '/dashboard/iaagent',
+    '/dashboard/configuracoes',
+    // adicione outras rotas admin aqui
+  ];
+
   // Paths that should redirect to login if not authenticated
   const pageProtected =
     pathname.startsWith('/dashboard') ||
@@ -51,6 +58,21 @@ export function middleware(request: NextRequest) {
   if (!token || isJwtExpired(token)) {
     if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
+  }
+
+  // Protege rotas admin: exige que o token contenha 'admin' (ajuste para JWT real)
+  if (adminRoutes.some(route => pathname.startsWith(route))) {
+    // Aqui você deveria consultar o banco/session para validar o papel do usuário
+    // Exemplo: decodificar token JWT e checar role === 'admin'
+    // (pseudocódigo)
+    // const user = decodeToken(token);
+    // if (user.role !== 'admin') {
+    //   return NextResponse.redirect(new URL('/dashboard', request.url));
+    // }
+    // Para demo, só permite se token contém 'admin'
+    if (!token.includes('admin')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   return NextResponse.next();

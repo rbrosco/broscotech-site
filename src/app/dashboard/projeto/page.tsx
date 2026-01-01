@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import DashboardNav from '../../../component/DashboardNav';
 import DashboardSidebar from '../../../component/DashboardSidebar';
@@ -30,7 +31,6 @@ type ProjectsResponse = {
 
 export default function ProjetoPage() {
   const [, setEditProjectId] = useState<number | null>(null);
-  // router removed (unused)
   const [, setData] = useState<ProjectsResponse | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,6 +38,27 @@ export default function ProjetoPage() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Proteção: só admin acessa
+    (async () => {
+      try {
+        const res = await fetch("/api/me", { credentials: "include" });
+        if (!res.ok) {
+          router.replace("/login");
+          return;
+        }
+        const user = await res.json();
+        if (user.role !== "admin") {
+          router.replace("/dashboard");
+          return;
+        }
+      } catch {
+        router.replace("/login");
+      }
+    })();
+  }, [router]);
   const [, setLastSavedProject] = useState<Project | null>(null);
   const [, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
 

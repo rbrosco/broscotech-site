@@ -22,10 +22,12 @@ export default function IAAgentPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // placeholder: load sessions
+    setLoading(true);
     void (async () => {
       try {
         const res = await fetch('/api/iaagent/sessions', { credentials: 'include' });
@@ -38,6 +40,8 @@ export default function IAAgentPage() {
         setSessions(payload.sessions || []);
       } catch {
         setSessions([{ id: 'demo-1', title: 'Sessão Cliente A', updatedAt: new Date().toISOString() }]);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -146,5 +150,6 @@ export default function IAAgentPage() {
           </div>
         </div>
       </div>
-  );          
-}   
+    
+  );
+}
