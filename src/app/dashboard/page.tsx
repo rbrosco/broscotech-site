@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardSidebar from '../../component/DashboardSidebar';
 import DashboardNav from '../../component/DashboardNav';
 import KanbanBoard from '../../component/KanbanBoard';
@@ -61,4 +61,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-      
+}

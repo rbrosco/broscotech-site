@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   }
 
   // Garante que Rogger Brosco sempre é admin
-  let role = (user as any).role ?? null;
+  const rawRole = (user as { role?: unknown }).role;
+  let role = typeof rawRole === 'string' ? rawRole : null;
   if (user.email === "rogger.brosco@easydev.com.br") {
     role = "admin";
   }

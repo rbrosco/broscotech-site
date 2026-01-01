@@ -32,9 +32,8 @@ export default function RootLayout({
   try {
     const storageKey = 'theme';
     const stored = localStorage.getItem(storageKey);
-    const theme = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
-    const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+    const theme = stored === 'dark' ? 'dark' : 'light';
+    const isDark = theme === 'dark';
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(isDark ? 'dark' : 'light');

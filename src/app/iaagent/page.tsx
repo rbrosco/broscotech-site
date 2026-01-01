@@ -44,7 +44,7 @@ export default function IAAAgentPage() {
                     if (!res.ok) return null;
                     const payload = await res.json();
                     return payload?.session?.id || null;
-                  } catch (err) {
+                  } catch {
                     return null;
                   }
                 };
@@ -92,9 +92,13 @@ export default function IAAAgentPage() {
 
                     if (!response.ok) {
                       // try to parse provider error details, but don't throw — show friendly assistant message
-                      let detail: any = null;
+                      let detail: unknown = null;
                       try { detail = await response.json(); } catch { /* ignore */ }
-                      const detailText = detail?.message || (detail && JSON.stringify(detail)) || (await response.text().catch(() => response.statusText || 'Erro'));
+                      const detailRec = (typeof detail === 'object' && detail !== null) ? (detail as Record<string, unknown>) : null;
+                      const detailText =
+                        (detailRec && typeof detailRec.message === 'string' ? detailRec.message : null) ||
+                        (detail ? JSON.stringify(detail) : null) ||
+                        (await response.text().catch(() => response.statusText || 'Erro'));
                       const assistantText = `Erro ao obter resposta do provedor: ${String(detailText).slice(0, 400)}`;
                       setMessages((prev) => [...prev, { role: 'assistant', content: assistantText }]);
                       setError('Erro ao obter resposta do provedor. Veja detalhes no servidor.');

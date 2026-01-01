@@ -7,28 +7,56 @@ const APIGROQ_KEY = process.env.APIGROQ_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
-function extractReplyFromProvider(json: any) {
+type AnyRecord = Record<string, unknown>;
+type ChatMessage = { role?: string; content?: string };
+
+function isRecord(value: unknown): value is AnyRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function isChatMessage(value: unknown): value is ChatMessage {
+  if (!isRecord(value)) return false;
+  const role = value.role;
+  const content = value.content;
+  const roleOk = role == null || typeof role === 'string';
+  const contentOk = content == null || typeof content === 'string';
+  return roleOk && contentOk;
+}
+
+function lastUserPrompt(messages: ChatMessage[]) {
+  const lastUser = [...messages]
+    .reverse()
+    .find((m) => m?.role === 'user' || m?.role === 'client');
+  return lastUser?.content ?? '';
+}
+
+function extractReplyFromProvider(json: unknown) {
   if (!json) return null;
-  if (typeof json.reply === 'string') return json.reply;
-  if (json.choices && Array.isArray(json.choices) && json.choices.length) {
-    const c = json.choices[0];
-    return c.text || (c.message && c.message.content) || null;
+  if (isRecord(json) && typeof json.reply === 'string') return json.reply;
+  if (isRecord(json) && Array.isArray(json.choices) && json.choices.length) {
+    const first = json.choices[0];
+    if (isRecord(first) && typeof first.text === 'string') return first.text;
+    if (isRecord(first) && isRecord(first.message) && typeof first.message.content === 'string') return first.message.content;
   }
-  if (typeof json.output === 'string') return json.output;
-  if (typeof json.result === 'string') return json.result;
-  // last resort: stringify a small part
-  try { return JSON.stringify(json).slice(0, 200); } catch { return null; }
+  if (isRecord(json) && typeof json.output === 'string') return json.output;
+  if (isRecord(json) && typeof json.result === 'string') return json.result;
+  try {
+    return JSON.stringify(json).slice(0, 200);
+  } catch {
+    return null;
+  }
 }
 
 const DEBUG_PATH = path.join(process.cwd(), 'tmp', 'iaagent-groq-debug.json');
 
-async function appendDebugEntry(entry: any) {
+async function appendDebugEntry(entry: unknown) {
   try {
     await fs.mkdir(path.dirname(DEBUG_PATH), { recursive: true });
-    let arr = [] as any[];
+    let arr: unknown[] = [];
     try {
       const raw = await fs.readFile(DEBUG_PATH, 'utf-8');
-      arr = JSON.parse(raw);
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) arr = parsed;
     } catch {}
     arr.push({ ts: new Date().toISOString(), entry });
     await fs.writeFile(DEBUG_PATH, JSON.stringify(arr, null, 2), 'utf-8');
@@ -39,8 +67,10 @@ async function appendDebugEntry(entry: any) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const msgs = Array.isArray(body?.messages) ? body.messages : [];
+    const body = (await request.json()) as unknown;
+    const msgs: ChatMessage[] = isRecord(body) && Array.isArray(body.messages)
+      ? (body.messages as unknown[]).filter(isChatMessage)
+      : [];
 
     // If an external APIGROQ provider is configured, forward the request
     if (APIGROQ_URL) {
@@ -49,15 +79,10 @@ export async function POST(request: Request) {
         if (APIGROQ_KEY) headers['Authorization'] = `Bearer ${APIGROQ_KEY}`;
 
         // Try several payload shapes to be compatible with different providers
-        const attempts = [
-          { messages: msgs },
-          // send only last user prompt as `prompt`
-          { prompt: (msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '') },
-          { input: (msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '') },
-          { text: (msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '') },
-        ];
+        const prompt = lastUserPrompt(msgs);
+        const attempts = [{ messages: msgs }, { prompt }, { input: prompt }, { text: prompt }];
 
-        let lastJson: any = null;
+        let lastJson: unknown = null;
         for (const payload of attempts) {
           try {
             const resp = await fetch(APIGROQ_URL, {
@@ -65,7 +90,7 @@ export async function POST(request: Request) {
               headers,
               body: JSON.stringify(payload),
             });
-            const json = await resp.json().catch(() => null);
+            const json = (await resp.json().catch(() => null)) as unknown;
             lastJson = json || await resp.text().catch(()=>null);
             if (!resp.ok) {
               // try next payload shape
@@ -104,24 +129,20 @@ export async function POST(request: Request) {
           `https://api.groq.ai/v1/models/${encodeURIComponent(GROQ_MODEL)}/generate`,
         ];
 
-        let lastJson: any = null;
-        let lastPayload: any = null;
+        let lastJson: unknown = null;
+        let lastPayload: unknown = null;
         let lastUrl: string | null = null;
         for (const url of candidateUrls) {
           // try a few payload shapes
-          const payloads = [
-            { input: msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '' },
-            { prompt: msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '' },
-            { messages: msgs },
-            { text: msgs.length ? msgs.slice().reverse().find((m:any)=>m?.role==='user'||m?.role==='client')?.content : '' },
-          ];
+          const prompt = lastUserPrompt(msgs);
+          const payloads = [{ input: prompt }, { prompt }, { messages: msgs }, { text: prompt }];
 
           for (const payload of payloads) {
             try {
               const resp = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
               lastUrl = url;
               lastPayload = payload;
-              const json = await resp.json().catch(() => null);
+              const json = (await resp.json().catch(() => null)) as unknown;
               lastJson = json || await resp.text().catch(()=>null);
               if (!resp.ok) continue;
               const reply = extractReplyFromProvider(json);
@@ -141,7 +162,9 @@ export async function POST(request: Request) {
 
         if (process.env.APIGROQ_DEBUG === 'true') return NextResponse.json({ message: 'Groq responded but no reply extracted', details: lastJson }, { status: 502 });
         // fallback: return readable fragment so UI shows something
-        const fallbackText = lastJson?.message || (typeof lastJson === 'string' ? lastJson : JSON.stringify(lastJson || {}).slice(0, 300));
+        const fallbackText =
+          (isRecord(lastJson) && typeof lastJson.message === 'string' ? lastJson.message : null) ||
+          (typeof lastJson === 'string' ? lastJson : JSON.stringify(lastJson || {}).slice(0, 300));
         return NextResponse.json({ reply: `Erro do provedor Groq: ${String(fallbackText).slice(0,400)}` }, { status: 200 });
       } catch (err) {
         return NextResponse.json({ message: 'Erro ao conectar ao Groq provider', error: String(err) }, { status: 502 });
@@ -149,7 +172,7 @@ export async function POST(request: Request) {
     }
 
     // Fallback: no external provider configured — return informative message
-    const lastUser = [...msgs].reverse().find((m: any) => m?.role === 'user' || m?.role === 'client');
+    const lastUser = [...msgs].reverse().find((m) => m?.role === 'user' || m?.role === 'client');
     const prompt = lastUser?.content || (msgs.length ? String(msgs[msgs.length - 1]?.content ?? '') : '');
     const reply = prompt
       ? `Placeholder: recebi sua solicitação: "${String(prompt).slice(0, 400)}". Configure APIGROQ_URL/APIGROQ_KEY para respostas reais.`

@@ -1,8 +1,11 @@
 "use client";
-function getInitials(name) {
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
+
+function getInitials(name: string) {
   return name
     .split(' ')
-    .map((n) => n[0])
+    .map((n: string) => (n[0] ?? ''))
     .join('')
     .toUpperCase();
 }
@@ -44,11 +47,12 @@ function DepoimentosBlock() {
               </p>
               <div className="flex items-center mt-auto pt-4 border-t border-slate-200 dark:border-slate-600 gap-3">
                 <div className={`flex-shrink-0 w-12 h-12 rounded-full ${avatarBg} flex items-center justify-center ${avatarText} font-bold text-lg shadow relative overflow-hidden`}>
-                  <img
+                  <Image
                     src={`/images/ia-avatar-${idx + 1}.png`}
                     alt={dep.autor}
-                    className="absolute inset-0 w-full h-full object-cover rounded-full"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    fill
+                    sizes="48px"
+                    className="absolute inset-0 object-cover rounded-full"
                   />
                   <span className="relative z-10 text-xl font-extrabold tracking-wide">
                     {getInitials(dep.autor)}
@@ -66,7 +70,6 @@ function DepoimentosBlock() {
     </div>
   );
 }
-import React, { useState, useEffect } from 'react';
 function Banner50Off() {
   // 30 dias a partir de agora
   const [timeLeft, setTimeLeft] = useState(30 * 24 * 60 * 60); // segundos
@@ -85,7 +88,7 @@ function Banner50Off() {
     return () => clearInterval(interval);
   }, [visible]);
 
-  function formatTime(secs) {
+  function formatTime(secs: number) {
     const days = Math.floor(secs / (24 * 60 * 60));
     const hours = Math.floor((secs % (24 * 60 * 60)) / 3600);
     const minutes = Math.floor((secs % 3600) / 60);

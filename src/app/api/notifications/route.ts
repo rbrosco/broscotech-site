@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     list.push(item);
     await writeFileSafe(list);
     return NextResponse.json({ ok: true, item });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

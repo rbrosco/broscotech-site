@@ -40,16 +40,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId, apiBase = '/api/ka
           body: JSON.stringify({ cardId, toColumnId }),
         });
         reload();
-      } catch (e) {
+      } catch {
         setError('Erro ao mover card');
       }
     };
   const [data, setData] = useState<KanbanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newColumnTitle, setNewColumnTitle] = useState('');
-  const [newCardTitles, setNewCardTitles] = useState<Record<number, string>>({});
-  const [dragging, setDragging] = useState<{ cardId: number; fromColumnId: number } | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);

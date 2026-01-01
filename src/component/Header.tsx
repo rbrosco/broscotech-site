@@ -4,6 +4,22 @@ import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle"; // Importar o ThemeToggle
+
+type KanbanCardRef = { id?: string | number; title?: string; name?: string };
+type KanbanColumnRef = { id: string | number; title?: string; cards?: KanbanCardRef[] };
+
+type NotificationItem = {
+  id: string;
+  message: string;
+  projectId?: number;
+  cardId?: number;
+  toColumnId?: number;
+  toColumnTitle?: string;
+  fromColumnTitle?: string;
+  projectTitle?: string;
+  timestamp?: number;
+  read?: boolean;
+};
 import { FiBell } from "react-icons/fi";
 import { motion } from "framer-motion";
 import LoginModal from "./LoginModal";
@@ -16,7 +32,7 @@ const Header: React.FC = () => {
   const [userData, setUserData] = useState<{ name: string; email: string; avatar: string } | null>(null); // Inicializa como null
   // Estado para controlar a bolinha de notificação — inicialmente sem notificações até receber evento do Kanban
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; cardId?: number; toColumnId?: number; toColumnTitle?: string; fromColumnTitle?: string; projectTitle?: string; timestamp?: number; read?: boolean }>>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const router = useRouter();
   const [selectedNotification, setSelectedNotification] = useState<null | { id: string; message: string; cardId?: number; toColumnId?: number; toColumnTitle?: string; fromColumnTitle?: string; projectTitle?: string; timestamp?: number; read?: boolean }>(null);
@@ -250,7 +266,7 @@ const Header: React.FC = () => {
   }, [notifications]);
 
   // Push notification sem duplicatas: verifica id, mensagem igual, ou cardId+toColumnId recente
-  const pushNotification = (notif: { id: string; message: string; cardId?: number; toColumnId?: number; toColumnTitle?: string; projectTitle?: string; timestamp?: number; read?: boolean }) => {
+  const pushNotification = (notif: NotificationItem) => {
     setNotifications((prev) => {
       try {
         // mesma id exata
@@ -271,33 +287,47 @@ const Header: React.FC = () => {
   };
 
   // Resolve column/project/card titles for an array of notifications (mutates shallow copies)
-  async function resolveTitlesForNotifications(list: Array<{ id: string; message: string; cardId?: number; toColumnId?: number; toColumnTitle?: string; projectTitle?: string; timestamp?: number; read?: boolean }>) {
+  async function resolveTitlesForNotifications(list: NotificationItem[]) {
     try {
       // Collect notifications that include projectId to fetch specific kanbans
-      const byProject = new Map<string, { columns: any[]; projectTitle?: string }>();
-      const projectIds = Array.from(new Set(list.map((n: any) => n.projectId).filter(Boolean)));
+      const byProject = new Map<string, { columns: KanbanColumnRef[]; projectTitle?: string }>();
+      const projectIds = Array.from(
+        new Set(
+          list
+            .map((n) => n.projectId)
+            .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+        )
+      );
       // Fetch each project's kanban separately
       await Promise.all(projectIds.map(async (pid) => {
         try {
           const res = await fetch(`/api/kanban?projectId=${encodeURIComponent(String(pid))}`, { credentials: 'include' });
           if (!res.ok) return;
-          const data = await res.json();
-          byProject.set(String(pid), { columns: data?.columns ?? [], projectTitle: data?.project?.title });
+          const data = (await res.json()) as unknown;
+          const rec = (typeof data === 'object' && data !== null) ? (data as Record<string, unknown>) : null;
+          const columnsRaw = rec?.columns;
+          const cols = Array.isArray(columnsRaw) ? (columnsRaw as KanbanColumnRef[]) : [];
+          const project = (typeof rec?.project === 'object' && rec?.project !== null) ? (rec.project as Record<string, unknown>) : null;
+          const title = typeof project?.title === 'string' ? project.title : undefined;
+          byProject.set(String(pid), { columns: cols, projectTitle: title });
         } catch {}
       }));
       // Also fetch a default kanban to resolve any notifications without projectId
-      let defaultCols: any[] = [];
+      let defaultCols: KanbanColumnRef[] = [];
       let defaultProjectTitle: string | undefined = undefined;
       try {
         const res = await fetch('/api/kanban', { credentials: 'include' });
         if (res.ok) {
-          const d = await res.json();
-          defaultCols = d?.columns ?? [];
-          defaultProjectTitle = d?.project?.title ?? undefined;
+          const d = (await res.json()) as unknown;
+          const rec = (typeof d === 'object' && d !== null) ? (d as Record<string, unknown>) : null;
+          const columnsRaw = rec?.columns;
+          defaultCols = Array.isArray(columnsRaw) ? (columnsRaw as KanbanColumnRef[]) : [];
+          const project = (typeof rec?.project === 'object' && rec?.project !== null) ? (rec.project as Record<string, unknown>) : null;
+          defaultProjectTitle = typeof project?.title === 'string' ? project.title : undefined;
         }
       } catch {}
 
-      return list.map((n: any) => {
+      return list.map((n) => {
         const copy = { ...n };
         // If no projectId, try to extract project title from message like: Card movido em "PROJECT": ...
         if (!copy.projectId && typeof copy.message === 'string') {
@@ -313,14 +343,14 @@ const Header: React.FC = () => {
         const cols = source.columns || [];
         if (!copy.projectTitle && source.projectTitle) copy.projectTitle = source.projectTitle;
         if ((!copy.toColumnTitle || copy.toColumnTitle === '') && copy.toColumnId != null) {
-          const t = cols.find((c: any) => String(c.id) === String(copy.toColumnId))?.title;
+          const t = cols.find((c) => String(c.id) === String(copy.toColumnId))?.title;
           copy.toColumnTitle = t ?? `Coluna ${copy.toColumnId}`;
         }
         // try resolve card title if missing
         let cardTitle: string | undefined = undefined;
         if (copy.cardId != null) {
           for (const c of cols) {
-            const found = (c.cards || []).find((card: { id?: string | number; title?: string; name?: string }) => String(card.id) === String(copy.cardId));
+            const found = (c.cards || []).find((card) => String(card.id) === String(copy.cardId));
             if (found) { cardTitle = found.title ?? found.name; break; }
           }
         }
