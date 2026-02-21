@@ -1,22 +1,26 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FiHome, FiFolder, FiCalendar, FiFileText } from 'react-icons/fi';
 
+const getIsAdminFromStorage = () => {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    const raw = localStorage.getItem('userData');
+    if (!raw) return false;
+
+    const parsed = JSON.parse(raw);
+    return !!(parsed && parsed.role && String(parsed.role).toLowerCase() === 'admin');
+  } catch {
+    return false;
+  }
+};
+
 const DashboardSidebar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Para controle mobile no futuro
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.role && String(parsed.role).toLowerCase() === 'admin') setIsAdmin(true);
-      }
-    } catch {}
-  }, []);
+  const [isAdmin] = useState(getIsAdminFromStorage);
 
   return (
     <nav className="block py-6 px-4 top-0 bottom-0 w-64 bg-gradient-to-b from-blue-600 via-blue-700 to-blue-900 shadow-2xl left-0 absolute flex-row flex-nowrap md:z-10 z-50 transition-all duration-300 ease-in-out transform md:translate-x-0 -translate-x-full dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-r-3xl">

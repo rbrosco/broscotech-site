@@ -15,27 +15,27 @@ const applyThemeToRoot = (selectedTheme: Theme) => {
   root.classList.add(isDark ? 'dark' : 'light');
 };
 
+const getInitialTheme = (): Theme => {
+  return 'light';
+};
+
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    setMounted(true);
-
     const stored = localStorage.getItem(STORAGE_KEY);
-    const initialTheme: Theme = isValidTheme(stored) ? stored : 'light';
-    setTheme(initialTheme);
+    const initialTheme = isValidTheme(stored) ? stored : 'light';
+
     applyThemeToRoot(initialTheme);
+    setTimeout(() => setTheme(initialTheme), 0);
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-
     applyThemeToRoot(theme);
     localStorage.setItem(STORAGE_KEY, theme);
 
     // Não há mais modo sistema
-  }, [theme, mounted]);
+  }, [theme]);
 
   const nextThemeLabel = useMemo(() => {
     if (theme === 'light') return 'escuro';
@@ -44,11 +44,10 @@ export default function ThemeToggle() {
 
   const iconClass = 'h-5 w-5';
   const icon = useMemo(() => {
-    if (!mounted) return <FiSun className={iconClass} />;
     if (theme === 'light') return <FiSun className={iconClass} />;
     if (theme === 'dark') return <FiMoon className={iconClass} />;
     return <FiSun className={iconClass} />;
-  }, [mounted, theme]);
+  }, [theme]);
 
   return (
     <button

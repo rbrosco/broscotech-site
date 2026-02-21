@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { FiMessageCircle } from "react-icons/fi";
-import { useEffect, useState } from "react";
 
 type Props = {
   pulse?: boolean;
@@ -10,9 +9,6 @@ type Props = {
 
 export default function IAAgentButton({ pulse = true, badge = 0 }: Props) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   function openAgent() {
     router.push('/iaagent');
@@ -25,7 +21,7 @@ export default function IAAgentButton({ pulse = true, badge = 0 }: Props) {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAgent(); } }}
         aria-label="Abrir IA Agent"
         title="Conversar com a IA"
-        className={`iaagent-bubble ${pulse && mounted ? 'pulse' : ''}`}
+        className={`iaagent-bubble ${pulse ? 'pulse' : ''}`}
       >
         <span className="sr-only">Abrir IA Agent</span>
         <FiMessageCircle className="w-6 h-6" aria-hidden />

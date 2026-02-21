@@ -1,37 +1,38 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardNav from "@/component/DashboardNav";
 import DashboardSidebar from "@/component/DashboardSidebar";
 
+const getStoredValue = (key: string) => {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(key) || "";
+  } catch {
+    return "";
+  }
+};
+
+const getIsAdminFromStorage = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem("userData");
+    if (!raw) return false;
+
+    const parsed = JSON.parse(raw);
+    return !!(parsed && parsed.role && String(parsed.role).toLowerCase() === "admin");
+  } catch {
+    return false;
+  }
+};
+
 export default function ConfiguracoesPage() {
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [groqKey, setGroqKey] = useState("");
-  const [groqModel, setGroqModel] = useState("");
-  const [webhook, setWebhook] = useState("");
+  const [isAdmin] = useState(getIsAdminFromStorage);
+  const [groqKey, setGroqKey] = useState(() => getStoredValue("GROQ_API_KEY"));
+  const [groqModel, setGroqModel] = useState(() => getStoredValue("GROQ_MODEL"));
+  const [webhook, setWebhook] = useState(() => getStoredValue("WEBHOOK_URL"));
   const [msg, setMsg] = useState("");
-
-  useEffect(() => {
-    try {
-      const raw = typeof window !== "undefined" ? localStorage.getItem("userData") : null;
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.role && String(parsed.role).toLowerCase() === "admin") {
-          setIsAdmin(true);
-        }
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    // Carrega configs salvas
-    try {
-      setGroqKey(localStorage.getItem("GROQ_API_KEY") || "");
-      setGroqModel(localStorage.getItem("GROQ_MODEL") || "");
-      setWebhook(localStorage.getItem("WEBHOOK_URL") || "");
-    } catch {}
-  }, [isAdmin]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
