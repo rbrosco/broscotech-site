@@ -1,14 +1,17 @@
 'use client';
-import React from 'react'; // Adicionar esta linha
 import { useState } from "react"; // useEffect não é mais necessário para o tema aqui
-import Image from "next/image"; // Importando Image caso queira adicionar imagens para os serviços
 import ContactFormModal from "./ContactFormModal"; // Importando o modal
+import {
+  FiMessageSquare,
+  FiMonitor,
+  FiServer,
+  FiSliders,
+  FiSmartphone,
+  FiZap,
+} from "react-icons/fi";
 
 const Servicos: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Função para abrir o modal
-  const openModal = () => setIsModalOpen(true);
 
   // Função para fechar o modal
   const closeModal = () => setIsModalOpen(false);
@@ -17,19 +20,15 @@ const Servicos: React.FC = () => {
     {
       title: "Desenvolvimento Front-End",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-        </svg>
+        <FiMonitor className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
-      description: "Criamos interfaces de usuário interativas e intuitivas utilizando as melhores tecnologias do mercado como React, Next.js e Tailwind CSS.",
+      description: "Interfaces modernas, rápidas e responsivas (desktop, tablet e celular) com React, Next.js e Tailwind — com tema claro/escuro quando fizer sentido.",
       items: ["✔ React, Next.js", "✔ Tailwind CSS, Sass, CSS-in-JS", "✔ Integração com APIs e Microserviços"]
     },
     {
       title: "Desenvolvimento Backend",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
-        </svg>
+        <FiServer className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
       description: "Desenvolvemos sistemas robustos com Node.js, Express e bancos de dados como PostgreSQL, MongoDB e SQL.",
       items: ["✔ Node.js, Express.js", "✔ APIs RESTful", "✔ PostgreSQL, MongoDB"]
@@ -37,19 +36,15 @@ const Servicos: React.FC = () => {
     {
       title: "Automação e Chatbots",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-        </svg>
+        <FiMessageSquare className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
-      description: "Implementamos sistemas de automação que podem otimizar processos e melhorar a interação com clientes.",
+      description: "Atendimento automatizado, captura de leads e fluxos que economizam tempo. IA + integrações para manter tudo rodando sem fricção.",
       items: ["✔ Integração de Chatbots", "✔ Automação de Processos Empresariais", "✔ Configuração de N8N, TypeBot"]
     },
     {
       title: "Desenvolvimento de Aplicações Móveis",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-        </svg>
+        <FiSmartphone className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
       description: "Criamos aplicativos móveis rápidos e escaláveis usando React Native.",
       items: ["✔ React Native", "✔ Integração com APIs", "✔ Publicação na App Store / Google Play"]
@@ -57,9 +52,7 @@ const Servicos: React.FC = () => {
     {
       title: "Facilidade e Desempenho",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-yellow-500 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
+        <FiZap className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
       description: "Criamos automações integrando seu SQL com React N8N, permitindo solicitações de boletos via dispositivos móveis.",
       items: ["✔ Facilidade", "✔ Integração com APIs", "✔ Whatsapp API"]
@@ -67,9 +60,7 @@ const Servicos: React.FC = () => {
     {
       title: "Ferramentas Google",
       icon: (
-        <svg className="w-8 h-8 mb-3 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-        </svg>
+        <FiSliders className="w-7 h-7 text-slate-900 dark:text-white/90" />
       ),
       description: "Configuramos seu Site integrando com notas e ranks no GoogleAds e GoogleWorks para melhor posicionamento.",
       items: ["✔ Google ADS", "✔ Google Works com APIs"]
@@ -77,60 +68,82 @@ const Servicos: React.FC = () => {
   ];
 
   return (
-    <div id="Servicos">
-    <div
-      className={`min-h-screen py-12 transition-all duration-300 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white`}
-    >
-      <div className="text-center text-white">
-        <h1 className="text-4xl font-semibold mb-8 animate__animated animate__fadeIn">
-          Nossos Serviços
-        </h1>
-        <p className="text-lg max-w-3xl mx-auto mb-12 animate__animated animate__fadeIn animate__delay-1s">
-          Nós oferecemos soluções de desenvolvimento personalizadas para atender às
-          necessidades específicas de seu projeto. Nosso time especializado trabalha com
-          diversas tecnologias para garantir que seu produto seja inovador, escalável e de
-          alta qualidade.
-        </p>
-      </div>
+    <section id="Servicos" className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)]">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center">
+          <h1 className="text-3xl sm:text-4xl font-semibold mb-4 animate__animated animate__fadeIn">
+            Serviços que viram resultado
+          </h1>
+          <p className="text-base sm:text-lg max-w-3xl mx-auto mb-6 animate__animated animate__fadeIn animate__delay-1s text-slate-700 dark:text-slate-100">
+            Você não precisa de “mais um site”. Você precisa de um sistema completo: presença, funil, automação, integração e visibilidade do progresso.
+          </p>
 
-      {/* Serviços */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"> {/* Ajustado para 2 colunas no desktop (md) e 1 no mobile */}
-        {servicesData.map((service, index) => (
-          <div key={index} 
-            className={`flex flex-col p-4 sm:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate__animated animate__fadeIn 
-              bg-white text-gray-700 dark:bg-gray-800 dark:text-white`}
-          >
-            <div className="flex-shrink-0">
-              {service.icon}
+          <div className="max-w-5xl mx-auto mb-10 rounded-3xl bg-white/60 border border-black/10 backdrop-blur-md p-5 sm:p-6 dark:bg-white/10 dark:border-white/15">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-left">
+                <p className="text-xs uppercase tracking-wider text-slate-600 dark:text-white/70">Dois caminhos, um objetivo</p>
+                <h2 className="mt-1 text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white">Comece agora: cadastro ou IA Agent</h2>
+                <p className="mt-1 text-sm text-slate-700 dark:text-white/85">
+                  Cadastre-se para acompanhar seu projeto no dashboard, ou fale com o nosso agente com IA para acelerar o briefing.
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  {['Multi-dispositivo', 'Tema claro/escuro', 'Dashboard de progresso'].map((tag) => (
+                    <span key={tag} className="rounded-full bg-white/60 border border-black/10 px-3 py-1.5 text-slate-700 dark:bg-black/10 dark:border-white/15 dark:text-white/90">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <a
+                  href="/register"
+                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 text-slate-900 dark:text-white px-6 py-3 font-semibold hover:bg-slate-800 transition dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white"
+                >
+                  Quero me cadastrar
+                </a>
+                <a
+                  href="/iaagent"
+                  className="inline-flex items-center justify-center rounded-xl bg-white/60 border border-black/10 px-6 py-3 font-semibold text-slate-900 hover:bg-white/50 transition dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/15"
+                >
+                  Usar IA Agent
+                </a>
+              </div>
             </div>
-            <div className="flex-grow mt-2">
-              <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">{service.title}</h3>
-              {/* A cor do texto do parágrafo e da lista será herdada do card: text-gray-700 (claro) ou dark:text-white (escuro) */}
-              <p className="mb-3 text-xs sm:text-sm"> 
-                {service.description}
-              </p>
-              <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm"> 
-              {service.items.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
           </div>
-          </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Call to Action */}
-      <div className="text-center mt-16">
-        <button
-          onClick={openModal}
-          className="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 text-lg font-semibold"
-        >
-          Solicite um Orçamento
-        </button>
-      </div>
+        {/* Serviços */}
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {servicesData.map((service, index) => (
+            <div
+              key={index}
+              className="flex flex-col p-5 sm:p-6 rounded-3xl bg-white/60 border border-black/10 backdrop-blur-md hover:bg-white/50 transition dark:bg-white/10 dark:border-white/15 dark:hover:bg-white/15"
+            >
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/60 border border-black/10 dark:bg-white/10 dark:border-white/10">
+                  {service.icon}
+                </span>
+                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">{service.title}</h3>
+              </div>
+              <div className="flex-grow mt-2">
+                <p className="mt-3 mb-3 text-sm text-slate-700 dark:text-white/85">{service.description}</p>
+                <ul className="space-y-1 text-sm text-slate-600 dark:text-white/80">
+                  {service.items.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
 
-      {/* Modal de Contato */}
-      <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />
-    </div>
-    </div>
+        {/* Call to Action removido */}
+
+        {/* Modal de Contato */}
+        <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />
+      </div>
+    </section>
   );
 };
 

@@ -1,0 +1,349 @@
+'use client';
+
+import React, { useEffect, useState, useMemo, useRef } from 'react';
+import Image from 'next/image';
+import { FiUser } from 'react-icons/fi';
+import DashboardNav from '../../component/DashboardNav';
+import DashboardSidebar from '../../component/DashboardSidebar';
+
+type Profile = {
+  id: number;
+  name: string;
+  login: string;
+  email: string;
+  phone: string | null;
+  avatar: string | null;
+  role: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ProfileResponse = {
+  profile: Profile;
+};
+
+export default function PerfilPage() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [name, setName] = useState('');
+  const [login, setLogin] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [avatar, setAvatar] = useState<string>('');
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const messageTimer = useRef<number | null>(null);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/profile', { credentials: 'include' });
+      const payload = (await res.json()) as Partial<ProfileResponse> & { message?: string };
+      if (!res.ok) throw new Error(payload.message || 'Falha ao carregar perfil.');
+      if (!payload.profile) throw new Error('Resposta inválida do servidor.');
+
+      const p = payload.profile as Profile;
+      setProfile(p);
+      setName(p.name ?? '');
+      setLogin(p.login ?? '');
+      setEmail(p.email ?? '');
+      setPhone(p.phone ?? '');
+      setAvatar(p.avatar ?? '');
+      setAvatarPreview(p.avatar ?? '');
+    } catch (e) {
+      setProfile(null);
+      setError(e instanceof Error ? e.message : 'Erro desconhecido.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      try {
+        if (messageTimer.current) window.clearTimeout(messageTimer.current);
+      } catch {}
+    };
+  }, []);
+
+  const validateEmail = (em: string) => {
+    try {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+    } catch { return false; }
+  };
+
+  const isDirty = useMemo(() => {
+    if (!profile) return false;
+    return (
+      profile.name !== name ||
+      profile.login !== login ||
+      profile.email !== email ||
+      (profile.phone ?? '') !== (phone ?? '') ||
+      (profile.avatar ?? '') !== (avatar ?? '') ||
+      !!currentPassword || !!newPassword
+    );
+  }, [profile, name, login, email, phone, avatar, currentPassword, newPassword]);
+
+  const onSave = async () => {
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    // basic client-side validation
+    if (!name.trim()) {
+      setError('Nome é obrigatório.');
+      setSaving(false);
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('E-mail inválido.');
+      setSaving(false);
+      return;
+    }
+    try {
+      const body: Record<string, unknown> = {
+        name: name.trim(),
+        login: (login ?? '').trim(),
+        email: (email ?? '').trim(),
+        phone: (phone ?? '').trim() || null,
+        avatar: avatar || null,
+      };
+
+      if (currentPassword || newPassword) {
+        body.currentPassword = currentPassword;
+        body.newPassword = newPassword;
+      }
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+
+      const payload = (await res.json()) as { message?: string; profile?: Profile };
+      if (!res.ok) throw new Error(payload.message || 'Falha ao salvar perfil.');
+
+      if (payload.profile) {
+        setProfile(payload.profile);
+        setName(payload.profile.name ?? '');
+        setLogin(payload.profile.login ?? '');
+        setEmail(payload.profile.email ?? '');
+        setPhone(payload.profile.phone ?? '');
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setMessage(payload.message || 'Salvo.');
+      try {
+        if (messageTimer.current) window.clearTimeout(messageTimer.current);
+      } catch {}
+      // auto-clear message after 3.5s
+      messageTimer.current = window.setTimeout(() => setMessage(null), 3500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro ao salvar.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatar('');
+    setAvatarPreview('');
+  };
+
+  return (
+    <div className="w-full relative flex ct-docs-disable-sidebar-content bg-blueGray-100 dark:bg-gray-900 min-h-screen min-w-0">
+      <DashboardSidebar />
+      <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
+        <DashboardNav />
+
+        <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10 min-w-0">
+          <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6 min-w-0">
+
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Perfil</h1>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Altere seus dados quando quiser.</p>
+
+            <div className="mt-6 mb-8 p-6 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur-sm dark:from-black/20 dark:to-black/10 dark:border-white/10 shadow-lg">
+              <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white flex items-center">
+                <FiUser className="h-6 w-6 mr-2 text-purple-500" />
+                Sobre o Desenvolvedor
+              </h2>
+              <p className="text-slate-700 dark:text-white/80 text-sm sm:text-base leading-relaxed mt-2">
+                Sou apaixonado por desenvolvimento de software, especialmente por criar soluções que facilitam a vida das pessoas e das empresas. Trabalho com aplicações web, APIs, bancos de dados e automações, sempre buscando clareza, eficiência e inovação. Gosto de aprender novas tecnologias, colaborar em equipe e transformar ideias em produtos digitais de verdade.
+              </p>
+            </div>
+
+            {loading ? (
+              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Carregando…</p>
+            ) : error ? (
+              <p className="mt-6 text-sm text-red-600 dark:text-red-400">{error}</p>
+            ) : !profile ? (
+              <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Perfil não encontrado.</p>
+            ) : (
+              <div className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nome</label>
+                    <input
+                      value={name}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Login</label>
+                    <input
+                      value={login}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLogin(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">E-mail</label>
+                    <input
+                      value={email}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                      type="email"
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Telefone</label>
+                    <input
+                      value={phone}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                      placeholder="(00) 00000-0000"
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Foto</label>
+                    <div className="mt-1 flex items-center gap-3">
+                      <div className="relative w-16 h-16 rounded-full bg-slate-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+                        {avatarPreview ? (
+                          <Image
+                            src={avatarPreview}
+                            alt="avatar"
+                            className="object-cover"
+                            fill
+                            onError={() => {
+                              setAvatarPreview('');
+                              setAvatar('');
+                            }}
+                          />
+                        ) : (
+                          <FiUser className="text-2xl text-slate-500" aria-hidden />
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          const maxBytes = 2 * 1024 * 1024; // 2 MB
+                          if (f.size > maxBytes) {
+                            setError('Imagem muito grande. Tamanho máximo: 2 MB.');
+                            return;
+                          }
+                          setError(null);
+                          const reader = new FileReader();
+                          reader.onerror = () => {
+                            setError('Falha ao ler arquivo de imagem.');
+                            setAvatar('');
+                            setAvatarPreview('');
+                          };
+                          reader.onload = () => {
+                            const result = String(reader.result ?? '');
+                            setAvatar(result);
+                            setAvatarPreview(result);
+                          };
+                          reader.readAsDataURL(f);
+                        }}
+                        className="mt-1 text-sm text-slate-600 dark:text-slate-300"
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => removeAvatar()}
+                            className="text-sm px-3 py-1 rounded-md border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 text-slate-700 dark:text-white hover:bg-slate-100"
+                          >
+                            Remover foto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void onSave()}
+                            disabled={saving || !isDirty}
+                            className={`rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60 ${!isDirty && !saving ? 'opacity-60 cursor-not-allowed' : ''} bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 transition-colors duration-150`}
+                          >
+                            {saving ? 'Salvando…' : 'Salvar alterações'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Senha atual</label>
+                    <input
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      type="password"
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">Nova senha</label>
+                    <input
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      type="password"
+                      className="mt-1 w-full rounded-xl border border-slate-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/40 px-3 py-2 text-sm text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void onSave()}
+                    disabled={saving || !isDirty}
+                    className={`rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-60 ${!isDirty && !saving ? 'opacity-60 cursor-not-allowed' : ''} bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90 transition-colors duration-150`}
+                  >
+                    {saving ? 'Salvando…' : 'Salvar alterações'}
+                  </button>
+                  {!isDirty && !saving ? <p className="text-sm text-slate-500">Nenhuma alteração</p> : null}
+                  {message ? <p className="text-sm text-emerald-700 dark:text-emerald-400">{message}</p> : null}
+                  {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+                </div>
+
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Última atualização: {new Date(profile.updated_at).toLocaleString()}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

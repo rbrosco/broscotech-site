@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Header from '../../component/Header';
 
 export default function LoginPage() {
@@ -27,6 +27,7 @@ export default function LoginPage() {
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -36,15 +37,22 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Login bem-sucedido
-        // Em uma aplicação real, você armazenaria o token/sessão aqui
-        // e atualizaria o estado global de autenticação.
-        console.log('Login bem-sucedido:', data.message);
-        // Exemplo: Salvar dados do usuário no localStorage (simplificado)
-        localStorage.setItem('userData', JSON.stringify(data.user));
-        localStorage.setItem('isLoggedIn', 'true');
-        
-        router.push('/dashboard'); // Redireciona para o dashboard ou página principal
+        // Após login, buscar dados do usuário autenticado
+        try {
+          const meRes = await fetch('/api/me', { credentials: 'include' });
+          if (meRes.ok) {
+            const me = await meRes.json();
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userData', JSON.stringify(me));
+          } else {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userData');
+          }
+        } catch {
+          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem('userData');
+        }
+        router.push('/dashboard'); // Redireciona para o dashboard
       } else {
         setError(data.message || 'Falha no login. Verifique suas credenciais.');
       }
@@ -57,11 +65,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white pt-24 pb-12 px-4">
-      <div className="w-full max-w-md p-6 sm:p-8 bg-white rounded-xl shadow-2xl dark:bg-gray-900">
-        <h2 className="text-3xl font-semibold mb-6 text-center text-blue-600 dark:text-blue-400">
-          Acessar Conta
-        </h2>
+    <>
+      <Header />
+      <motion.main
+        className="min-h-screen pt-[var(--header-height)] scroll-mt-[calc(var(--header-height)+1rem)] flex items-center justify-center px-4 pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+      >
+        <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white/90 dark:bg-gray-900/80 border border-black/10 dark:border-white/10 shadow-2xl">
+          <h2 className="text-3xl font-semibold mb-6 text-center text-slate-900 dark:text-white">
+            Acessar Conta
+          </h2>
         {error && (
           <p className="text-red-500 dark:text-red-400 text-sm mb-4 p-2 bg-red-100 dark:bg-red-900/30 rounded-md text-center">
             {error}
@@ -110,20 +125,21 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-900 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-slate-900 dark:text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400 dark:focus:ring-offset-gray-900 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
           </div>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-8 text-center text-sm text-slate-700 dark:text-slate-400">
           Não tem uma conta?{' '}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 underline">
+          <Link href="/register" className="font-medium text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 underline">
             Cadastre-se
           </Link>
         </p>
-      </div>
-    </div>
+        </div>
+      </motion.main>
+    </>
   );
 }

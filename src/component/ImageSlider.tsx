@@ -1,20 +1,7 @@
 'use client'; // Certifique-se de que este arquivo seja tratado no lado do cliente
 import React, { useState, useEffect, useCallback } from 'react'; // useState e useEffect já estão aqui
 import Image from 'next/image';
-
-// SVG para o ícone de seta para a esquerda
-const ChevronLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-  </svg>
-);
-
-// SVG para o ícone de seta para a direita
-const ChevronRightIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-  </svg>
-);
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 interface Slide {
   type: 'image' | 'gif' | 'mp4';
@@ -37,8 +24,12 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
   useEffect(() => {
     const updateThemeState = () => {
         const storedTheme = localStorage.getItem("theme");
-        const isDark = storedTheme === "dark" || (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        setIsDarkMode(isDark);
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const isDark = storedTheme === "dark" || (storedTheme === "system" && systemDark);
+
+        // Fallback: se alguém aplicou a classe no <html>, respeita.
+        const rootHasDarkClass = document.documentElement.classList.contains('dark');
+        setIsDarkMode(rootHasDarkClass || isDark);
     };
     
     updateThemeState();
@@ -49,8 +40,17 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
         }
     };
     window.addEventListener('storage', handleStorageChange);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleMediaChange = () => {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'system') updateThemeState();
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
+
     return () => {
         window.removeEventListener('storage', handleStorageChange);
+      mediaQuery.removeEventListener('change', handleMediaChange);
     };
   }, []);
 
@@ -119,7 +119,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
             {(slide.title || slide.description) && (
               <div className="absolute inset-0 flex flex-col items-center justify-end p-6 sm:p-10 md:p-16 bg-gradient-to-t from-black/75 via-black/40 to-transparent text-center">
                 <div className="max-w-3xl mb-4 sm:mb-8">
-                  {slide.title && <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-3 drop-shadow-lg animate__animated animate__fadeInDown animate__delay-0.5s">{slide.title}</h2>}
+                  {slide.title && <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-2 sm:mb-3 drop-shadow-lg animate__animated animate__fadeInDown animate__delay-0.5s">{slide.title}</h2>}
                   {slide.description && <p className="text-sm sm:text-lg md:text-xl text-gray-100 drop-shadow-md animate__animated animate__fadeInUp animate__delay-0.7s">{slide.description}</p>}
                 </div>
               </div>
@@ -134,25 +134,25 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ slides = [], autoPlay = true,
           <button
             onClick={goToPrevious}
             className={`absolute top-1/2 left-3 sm:left-5 transform -translate-y-1/2 p-2 sm:p-3 rounded-full shadow-lg
-                        ${isDarkMode ? 'bg-gray-700/60 hover:bg-gray-600/80 text-white' : 'bg-white/60 hover:bg-white/90 text-gray-800'} 
+                        ${isDarkMode ? 'bg-gray-700/60 hover:bg-gray-600/80 text-slate-900 dark:text-white' : 'bg-white/60 hover:bg-white/90 text-gray-800'} 
                         focus:outline-none focus:ring-2 focus:ring-offset-2 
                         ${isDarkMode ? 'focus:ring-blue-400 focus:ring-offset-gray-800' : 'focus:ring-blue-600 focus:ring-offset-gray-100'} 
                         transition-all duration-200 opacity-0 group-hover:opacity-100 z-20`}
             aria-label="Slide anterior"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6"><ChevronLeftIcon /></div>
+            <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           <button
             onClick={goToNext}
             className={`absolute top-1/2 right-3 sm:right-5 transform -translate-y-1/2 p-2 sm:p-3 rounded-full shadow-lg
-                        ${isDarkMode ? 'bg-gray-700/60 hover:bg-gray-600/80 text-white' : 'bg-white/60 hover:bg-white/90 text-gray-800'} 
+                        ${isDarkMode ? 'bg-gray-700/60 hover:bg-gray-600/80 text-slate-900 dark:text-white' : 'bg-white/60 hover:bg-white/90 text-gray-800'} 
                         focus:outline-none focus:ring-2 focus:ring-offset-2 
                         ${isDarkMode ? 'focus:ring-blue-400 focus:ring-offset-gray-800' : 'focus:ring-blue-600 focus:ring-offset-gray-100'} 
                         transition-all duration-200 opacity-0 group-hover:opacity-100 z-20`}
             aria-label="Próximo slide"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6"><ChevronRightIcon /></div>
+            <FiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           <div className="absolute bottom-5 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2.5 z-20">
