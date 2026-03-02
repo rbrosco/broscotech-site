@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 // Declare o chatwootSDK no objeto window para o TypeScript
 declare global {

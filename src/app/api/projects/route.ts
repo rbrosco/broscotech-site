@@ -1,3 +1,9 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/drizzle';
+import { projects, project_updates } from '@/lib/schema';
+import { requireAuth } from '@/lib/middlewareAuth';
+import { and, desc, eq as drizzleEq } from 'drizzle-orm';
+
 export async function POST(request: NextRequest) {
   try {
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
@@ -36,12 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Erro interno ao criar projeto.' }, { status: 500 });
   }
 }
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { projects, project_updates } from '@/lib/schema';
-import { requireAuth } from '@/lib/middlewareAuth';
-// IMPORTANT: eq must be imported from drizzle-orm. Renamed to drizzleEq to avoid shadowing.
-import { and, desc, eq as drizzleEq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {

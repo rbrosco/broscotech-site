@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react"; // Adicionado useEffect, useMemo
+import React, { useState, useEffect, useMemo } from "react"; // Adicionado useEffect, useMemo
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";

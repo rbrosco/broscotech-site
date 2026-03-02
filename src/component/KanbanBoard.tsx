@@ -33,13 +33,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId, apiBase = '/api/ka
     // Função para mover card entre colunas
     const moveCard = async (cardId: number, toColumnId: number) => {
       try {
-        await fetch(`${apiBase}/move`, {
-          method: 'POST',
+        const res = await fetch(apiBase, {
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ cardId, toColumnId }),
+          body: JSON.stringify({ cardId, toColumnId, toPosition: 0 }),
         });
-        reload();
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          setError((payload as { message?: string }).message || 'Erro ao mover card');
+        } else {
+          reload();
+        }
       } catch {
         setError('Erro ao mover card');
       }

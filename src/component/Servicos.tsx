@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react"; // useEffect não é mais necessário para o tema aqui
+import React, { useState } from "react"; // useEffect não é mais necessário para o tema aqui
 import ContactFormModal from "./ContactFormModal"; // Importando o modal
 import {
   FiMessageSquare,
