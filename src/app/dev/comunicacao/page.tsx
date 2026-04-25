@@ -261,3 +261,11 @@ function DevComunicacaoContent() {
     </div>
   );
 }
+
+export default function DevComunicacaoPage() {
+  return (
+    <Suspense>
+      <DevComunicacaoContent />
+    </Suspense>
+  );
+}
