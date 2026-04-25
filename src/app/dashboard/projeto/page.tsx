@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiEdit2, FiTrash2, FiSend, FiPlus, FiCheckCircle, FiClock, FiFolder, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import DashboardNav from '../../component/DashboardNav';
-import DashboardSidebar from '../../component/DashboardSidebar';
+import DashboardNav from '../../../component/DashboardNav';
+import Sidebar from '../../../component/Sidebar';
 
 type Project = {
   id: number;
@@ -344,7 +344,7 @@ export default function ProjetoPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
-      <DashboardSidebar />
+      <Sidebar />
       <div className="md:pl-64 flex flex-col min-h-screen">
         <DashboardNav />
 

@@ -60,17 +60,19 @@ export function middleware(request: NextRequest) {
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   }
 
-  // Protege rotas admin: exige que o token contenha 'admin' (ajuste para JWT real)
+  // Protege rotas admin: decodifica o JWT e verifica o campo role
   if (adminRoutes.some(route => pathname.startsWith(route))) {
-    // Aqui você deveria consultar o banco/session para validar o papel do usuário
-    // Exemplo: decodificar token JWT e checar role === 'admin'
-    // (pseudocódigo)
-    // const user = decodeToken(token);
-    // if (user.role !== 'admin') {
-    //   return NextResponse.redirect(new URL('/dashboard', request.url));
-    // }
-    // Para demo, só permite se token contém 'admin'
-    if (!token.includes('admin')) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return NextResponse.redirect(new URL('/dashboard', request.url));
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      const json = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
+      const payload = JSON.parse(json) as { role?: string } | null;
+      if (!payload || payload.role !== 'admin') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    } catch {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

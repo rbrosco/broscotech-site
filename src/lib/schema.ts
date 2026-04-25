@@ -27,9 +27,9 @@ export const projects = pgTable('projects', {
   client_phone: varchar('client_phone', { length: 50 }),
   project_type: varchar('project_type', { length: 100 }),
   final_date: varchar('final_date', { length: 20 }),
-  // language: varchar('language', { length: 50 }),
-  // framework: varchar('framework', { length: 50 }),
-  // integrations: text('integrations'),
+  language: varchar('language', { length: 50 }),
+  framework: varchar('framework', { length: 50 }),
+  integrations: text('integrations'),
   admin_status: varchar('admin_status', { length: 20 }),
 });
 

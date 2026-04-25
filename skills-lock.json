@@ -25,6 +25,11 @@
       "source": "delphine-l/claude_global",
       "sourceType": "github",
       "computedHash": "afec41d65b02f01b1dab10a3f784ca6b37362847569b5a8fe7424f9decb9b068"
+    },
+    "typescript-expert": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "b286805fbc1e24cdbe238445c62f27889cdc48dac9dfb77fc927bd1b3c37ab2a"
     }
   }
 }

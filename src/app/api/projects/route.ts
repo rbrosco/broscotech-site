@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
     const clientPhone = (body.clientPhone ?? null) as string | null;
     const projectType = (body.projectType ?? null) as string | null;
     const finalDate = (body.finalDate ?? null) as string | null;
+    const language = (body.language ?? null) as string | null;
+    const framework = (body.framework ?? null) as string | null;
+    const integrations = (body.integrations ?? null) as string | null;
 
     const [created] = await db
       .insert(projects)
@@ -31,6 +34,9 @@ export async function POST(request: NextRequest) {
         client_phone: clientPhone,
         project_type: projectType,
         final_date: finalDate,
+        language,
+        framework,
+        integrations,
         progress: 0,
         status: 'Em planejamento',
       })
@@ -140,6 +146,9 @@ export async function PATCH(request: NextRequest) {
     const clientPhone = (body.clientPhone ?? null) as string | null;
     const projectType = (body.projectType ?? null) as string | null;
     const finalDate = (body.finalDate ?? null) as string | null;
+    const language = (body.language ?? null) as string | null;
+    const framework = (body.framework ?? null) as string | null;
+    const integrations = (body.integrations ?? null) as string | null;
 
     const [updated] = await db
       .update(projects)
@@ -150,6 +159,9 @@ export async function PATCH(request: NextRequest) {
         client_phone: clientPhone ?? undefined,
         project_type: projectType ?? undefined,
         final_date: finalDate ?? undefined,
+        language: language ?? undefined,
+        framework: framework ?? undefined,
+        integrations: integrations ?? undefined,
         updated_at: new Date().toISOString(),
       })
       .where(and(drizzleEq(projects.id, projectId), drizzleEq(projects.user_id, userId)))
