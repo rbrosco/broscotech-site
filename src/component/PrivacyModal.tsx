@@ -36,7 +36,7 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }
       id="privacy-modal"
       tabIndex={-1}
       aria-hidden="true"
-      className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-screen max-h-full bg-gray-900 bg-opacity-50 dark:bg-opacity-75"
+      className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-screen max-h-full bg-gray-200 bg-opacity-60 dark:bg-gray-900 dark:bg-opacity-75"
       onClick={onClose} // Fecha o modal ao clicar fora
     >
       <div 

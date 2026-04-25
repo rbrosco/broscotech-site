@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Footer from "../component/Footer";
-import ThemeProvider from "../component/ThemeProvider"; // Importando o ThemeProvider
+import ThemeProvider from "../component/ThemeProvider";
 import IAAgentButton from "../component/IAAgentButton";
 
 const geistSans = Geist({
@@ -15,16 +15,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
-  title: "EasyDev",
-  description: "Criado por Rogger",
+  title: "EasyDev — Soluções Digitais que Entregam",
+  description: "Sites, sistemas, automações e integrações com foco em performance, clareza e resultado real.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -44,10 +51,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col relative`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased min-h-screen flex flex-col relative`}>
         <div
           aria-hidden="true"
-          className="fixed inset-0 z-0 pointer-events-none select-none bg-[url('/images/bg-circuit.png?v=2')] bg-center bg-cover bg-fixed bg-no-repeat opacity-20 dark:opacity-32 dark:filter dark:blur-sm dark:brightness-75 w-screen h-screen"
+          className="fixed inset-0 z-0 pointer-events-none select-none bg-[url('/images/bg-circuit.png?v=2')] bg-center bg-cover bg-fixed bg-no-repeat opacity-[0.04] dark:opacity-[0.06] w-screen h-screen"
         />
         <div className="relative z-10">
           <ThemeProvider>

@@ -11,7 +11,7 @@ export default function IAHomeBanner() {
           <p className="text-xs text-slate-600 dark:text-white/80">Receba um briefing inicial e sugestões de arquitetura.</p>
         </div>
         <div>
-          <Link href="/iaagent" className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-slate-900 dark:text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 transition dark:bg-white/90 dark:text-slate-900">
+          <Link href="/iaagent" className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white dark:bg-white/90 dark:text-slate-900 px-4 py-2 text-sm font-semibold hover:bg-slate-800 transition dark:hover:bg-white/80">
             <FiMessageCircle className="w-4 h-4" /> Conversar
           </Link>
         </div>

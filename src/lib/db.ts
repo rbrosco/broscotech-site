@@ -19,9 +19,14 @@ function createPool(): Pool {
   const portRaw = process.env.PGPORT;
 
   if (!host || !user || !password || !database) {
-    throw new Error(
-      "Missing database configuration. Set DATABASE_URL or PGHOST/PGUSER/PGPASSWORD/PGDATABASE (and optional PGPORT)."
-    );
+    // During build phase there's no DB connection - pool will fail only on actual query
+    return new Pool({
+      host: host ?? 'localhost',
+      user: user ?? 'postgres',
+      password: password ?? '',
+      database: database ?? 'postgres',
+      port: portRaw ? Number(portRaw) : 5432,
+    });
   }
 
   const port = portRaw ? Number(portRaw) : 5432;

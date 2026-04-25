@@ -27,21 +27,22 @@ const Sobre: React.FC = () => {
   ];
 
   return (
-    <section id="Sobre" className="py-10 md:py-14 scroll-mt-[calc(var(--header-height)+1rem)]">
+    <section id="Sobre" className="py-12 md:py-16 scroll-mt-[calc(var(--header-height)+1rem)]">
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-3xl border border-black/10 bg-white/60 backdrop-blur-md p-6 sm:p-8 dark:border-white/15 dark:bg-white/10">
-          <div className="pointer-events-none absolute -inset-10 opacity-20 dark:opacity-25">
+        <div className="relative overflow-hidden rounded-3xl border border-black/8 bg-white/70 backdrop-blur-sm p-6 sm:p-8 dark:border-white/10 dark:bg-white/5">
+          <div className="pointer-events-none absolute -inset-10 opacity-10 dark:opacity-15">
             <div className="gradient w-full h-full blur-3xl" />
           </div>
 
           <div className="relative">
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div className="max-w-3xl">
-                {/* Manifesto removido */}
-
-                <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Sobre
-                </h1>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-accent)' }}>
+                  Quem somos
+                </p>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  Sobre a <span className="font-display italic">EasyDev</span>
+                </h2>
                 <p className="mt-4 text-base sm:text-lg text-slate-700 dark:text-white/85">
                   Transformamos ideias em produto: site, sistema, automação e integração — com uma experiência moderna,
                   multi-dispositivo e um fluxo claro do briefing até o acompanhamento no dashboard.
@@ -49,8 +50,8 @@ const Sobre: React.FC = () => {
               </div>
 
               <div className="w-full lg:w-[26rem]">
-                <div className="rounded-3xl border border-black/10 bg-white/60 p-5 backdrop-blur-md dark:border-white/15 dark:bg-black/20">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-white/70">
+                <div className="rounded-2xl border border-black/8 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-white/50 mb-1">
                     Como entregamos
                   </p>
                   <div className="mt-3 space-y-3">
@@ -60,9 +61,9 @@ const Sobre: React.FC = () => {
                       { title: 'Automação e integração', desc: 'n8n, Google, APIs, WhatsApp', Icon: FiZap },
                       { title: 'Acompanhamento', desc: 'Dashboard com progresso e updates', Icon: FiTrendingUp },
                     ].map(({ title, desc, Icon }) => (
-                      <div key={title} className="flex items-start gap-3 rounded-2xl border border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/10">
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-white/60 dark:border-white/10 dark:bg-black/20">
-                          <Icon className="h-5 w-5 text-slate-900 dark:text-white/90" aria-hidden="true" />
+                      <div key={title} className="flex items-start gap-3 rounded-2xl border border-black/8 bg-white/60 p-4 dark:border-white/8 dark:bg-white/4">
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl shrink-0" style={{ background: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}>
+                          <Icon className="h-5 w-5" aria-hidden="true" />
                         </span>
                         <div>
                           <p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p>

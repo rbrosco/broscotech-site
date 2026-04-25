@@ -60,24 +60,24 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = Number(auth.id);
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
     const url = new URL(request.url);
     const projectIdParam = url.searchParams.get('projectId');
     let project = null;
     if (projectIdParam) {
-      // Buscar o projeto do usuário pelo projectId informado
+      // Admins can load any project; clients can only load their own
       const found = await db
         .select()
         .from(projects)
         .where(eq(projects.id, Number(projectIdParam)))
         .limit(1);
-      if (found[0] && found[0].user_id === userId) {
+      if (found[0] && (isAdmin || found[0].user_id === userId)) {
         project = found[0];
       } else {
-        // projectId inválido ou não pertence ao usuário
         return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
       }
     } else {
-      // Fallback: retorna o primeiro projeto do usuário
+      // Fallback: return the user's first project
       project = await getOrCreateProjectForUser(userId);
     }
 

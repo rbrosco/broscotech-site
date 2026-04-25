@@ -437,7 +437,7 @@ const Header: React.FC = () => {
       transition={{ duration: 0.5 }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mt-3 rounded-2xl border border-black/10 bg-white/70 backdrop-blur-xl shadow-sm dark:border-white/15 dark:bg-black/30">
+        <div className="mt-3 rounded-2xl border border-black/8 bg-white/80 backdrop-blur-xl shadow-sm dark:border-white/10 dark:bg-white/8">
           <div className="flex items-center justify-between px-3 sm:px-4"> {/* py-2 removido */}
         {/* Logo e Texto */}
         <div className="flex items-center space-x-2"> {/* Reduzido espaço para economizar em telas pequenas */}
@@ -452,7 +452,7 @@ const Header: React.FC = () => {
           </Link>
           <Link href="/">
             <span
-              className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white"
+              className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white hover:opacity-80 transition"
             >
               EASYDEV
             </span>
@@ -460,16 +460,13 @@ const Header: React.FC = () => {
         </div>
 
         {/* Menu Desktop */}
-        <nav className="hidden lg:flex flex-1 justify-center space-x-4 text-slate-700 font-semibold text-base dark:text-slate-300">
-          <ul className="flex space-x-4">
+        <nav className="hidden lg:flex flex-1 justify-center space-x-1 text-slate-700 font-medium text-sm dark:text-slate-300">
+          <ul className="flex space-x-1">
             {navLinks.map(({ label, href }, index) => (
               <li key={index} className="relative group">
                 <Link href={href} passHref>
-                  <span className="px-3 py-2 rounded-full hover:bg-white/60 hover:text-slate-900 transition dark:hover:bg-white/10 dark:hover:text-slate-900 dark:text-white">
+                  <span className="px-4 py-2 rounded-full hover:bg-black/5 text-slate-700 hover:text-slate-900 transition dark:hover:bg-white/8 dark:text-white/80 dark:hover:text-white">
                     {label}
-                    <span
-                      className="absolute left-0 bottom-0 w-full h-[1px] dark:bg-white/30 bg-white/40 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
-                    ></span>
                   </span>
                 </Link>
               </li>
@@ -523,11 +520,11 @@ const Header: React.FC = () => {
           ) : (
             // Login and Register Buttons (Desktop only)
             <div className="hidden lg:flex items-center space-x-3">
-              <button onClick={openLoginModal} className="flex items-center px-5 py-2.5 border border-black/15 text-slate-700 font-medium rounded-full hover:bg-white/60 hover:text-slate-900 transition duration-300 ease-in-out dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-slate-900 dark:text-white">
+              <button onClick={openLoginModal} className="flex items-center px-4 py-2 border border-black/10 text-slate-700 font-medium text-sm rounded-full hover:bg-black/5 hover:text-slate-900 transition duration-200 dark:border-white/15 dark:text-white/80 dark:hover:bg-white/8 dark:hover:text-white">
                 Entrar
               </button>
               <Link href="/register" passHref>
-                <span className="flex items-center px-5 py-2.5 bg-slate-900 text-slate-900 dark:text-white font-medium rounded-full hover:bg-slate-800 transition duration-300 ease-in-out dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
+                <span className="flex items-center px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition duration-200 dark:bg-white/90 dark:text-slate-900 dark:hover:bg-white">
                   Cadastre-se
                 </span>
               </Link>

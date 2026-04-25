@@ -1,22 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "baseUrl": ".",
+    // "baseUrl": ".", // Removido: deprecated no TS 7+
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     },
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -32,8 +32,8 @@
     ]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],

@@ -1,34 +1,80 @@
+/* Tooltips */
+html:not(.dark) [role="tooltip"],
+html:not(.dark) .tooltip {
+  background: #ffffff !important;
+  color: #0a0f1e !important;
+  border: 1px solid rgba(10,15,30,0.12) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+}
+
+.dark [role="tooltip"],
+.dark .tooltip {
+  background: #0e1a2d !important;
+  color: #e8f0fe !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.32);
+}
+
 @import "tailwindcss";
 
 /* Tailwind v4: faz o variant `dark:` responder à classe `.dark` no HTML */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --header-height: 50px;
+  --header-height: 60px;
+
+  /* Light mode surfaces */
   --background: #ffffff;
-  --foreground: #0f172a;
-  --color-accent: #0ea5a4; /* accent (teal) light */
-  --color-accent-600: #0d9488;
-  --color-accent-500: #14b8a6;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f8fafc;
+
+  /* Light mode text */
+  --foreground: #0a0f1e;
+  --fg-muted: #475569;
+  --fg-subtle: #94a3b8;
+
+  /* Light mode border */
+  --border: rgba(10,15,30,0.08);
+  --border-strong: rgba(10,15,30,0.14);
+
+  /* Brand accent — teal */
+  --color-accent: #00b09b;
+  --color-accent-600: #00897b;
+  --color-accent-500: #00b09b;
+  --color-accent-dim: rgba(0,176,155,0.10);
+
+  /* IA bubble */
   --ia-bubble-contrast: #ffffff;
 }
 
 .light {
   color-scheme: light;
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --color-accent: #0ea5a4;
-  --color-accent-600: #0d9488;
-  --color-accent-500: #14b8a6;
 }
 
 .dark {
   color-scheme: dark;
-  --background: #071026; /* deep navy for dark mode */
-  --foreground: #e6eef8;
-  --color-accent: #06b6d4; /* brighter accent in dark */
-  --color-accent-600: #0891b2;
-  --color-accent-500: #06b6d4;
+
+  /* Dark mode surfaces */
+  --background: #040d1a;
+  --bg-surface: #060f20;
+  --bg-elevated: #091524;
+
+  /* Dark mode text */
+  --foreground: #e8f0fe;
+  --fg-muted: #8da8c8;
+  --fg-subtle: #4d6a8a;
+
+  /* Dark mode border */
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+
+  /* Brand accent — electric teal */
+  --color-accent: #00d4aa;
+  --color-accent-600: #00b09b;
+  --color-accent-500: #00d4aa;
+  --color-accent-dim: rgba(0,212,170,0.14);
+
+  --ia-bubble-contrast: #040d1a;
 }
 
 @theme inline {
@@ -36,6 +82,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument);
 }
 
 html {
@@ -45,12 +92,14 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Novo gradiente substituindo o anterior */
+/* Brand gradient — teal precision */
 .gradient {
-  background: linear-gradient(to right, #004aad, #8a2be2, #ff00ea);
+  background: linear-gradient(135deg, #004aad 0%, #00b09b 60%, #00d4aa 100%);
 }
 
 
@@ -106,8 +155,56 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out;
+/* Entrance animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-slide-up  { animation: slide-up  0.65s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-scale-in  { animation: scale-in  0.5s  cubic-bezier(0.22,1,0.36,1) both; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+/* Stagger animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+
+/* Display typeface helper */
+.font-display {
+  font-family: var(--font-instrument), Georgia, serif;
+  font-style: italic;
+}
+
+/* Gradient text helper */
+.gradient-text {
+  background: linear-gradient(135deg, #004aad, #00b09b 55%, #00d4aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Accent glow */
+.accent-glow {
+  box-shadow: 0 0 48px var(--color-accent-dim);
 }
 
 /* IA Agent bubble styles */
@@ -115,8 +212,8 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 9999px;
   background: var(--color-accent);
   color: var(--ia-bubble-contrast);
@@ -124,76 +221,35 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
   align-items: center;
   justify-content: center;
   z-index: 60;
-  box-shadow: 0 8px 24px rgba(2,6,23,0.24);
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  box-shadow: 0 8px 28px rgba(0,176,155,0.30);
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 .iaagent-bubble:hover {
   transform: scale(1.08);
-  box-shadow: 0 12px 30px rgba(2,6,23,0.28);
+  box-shadow: 0 12px 36px rgba(0,176,155,0.40);
 }
 
 @keyframes ia-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(16,24,40,0.08); }
-  70% { box-shadow: 0 0 0 10px rgba(16,24,40,0); }
-  100% { box-shadow: 0 0 0 0 rgba(16,24,40,0); }
+  0%   { box-shadow: 0 0 0 0   rgba(0,176,155,0.35); }
+  70%  { box-shadow: 0 0 0 12px rgba(0,176,155,0); }
+  100% { box-shadow: 0 0 0 0   rgba(0,176,155,0); }
 }
 .iaagent-bubble.pulse {
   animation: ia-pulse 2.6s infinite;
 }
 
-/* make sure bubble adapts when dark class applied on html */
 .dark .iaagent-bubble {
   background: var(--color-accent);
-  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+  box-shadow: 0 10px 30px rgba(0,212,170,0.25);
 }
-
 
 /* Modal styles for IA Agent */
-.iaagent-modal-overlay { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
-.iaagent-modal-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,0.6); border: 0; }
-.iaagent-modal-panel { position: relative; width: 92vw; max-width: 1100px; height: 84vh; background: var(--background); color: var(--foreground); border-radius: 12px; overflow: hidden; z-index: 72; box-shadow: 0 20px 60px rgba(2,6,23,0.6); display: flex; flex-direction: column; }
-.iaagent-iframe { border: 0; width: 100%; height: 100%; flex: 1 1 auto; }
+.iaagent-modal-overlay  { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
+.iaagent-modal-backdrop { position: absolute; inset: 0; background: rgba(4,13,26,0.75); border: 0; }
+.iaagent-modal-panel    { position: relative; width: 92vw; max-width: 1100px; height: 84vh; background: var(--background); color: var(--foreground); border-radius: 16px; overflow: hidden; z-index: 72; box-shadow: 0 24px 64px rgba(4,13,26,0.6); display: flex; flex-direction: column; }
+.iaagent-iframe         { border: 0; width: 100%; height: 100%; flex: 1 1 auto; }
 
 /* Tooltip hint for the bubble */
-.iaagent-bubble[title]:hover::after { content: attr(title); position: absolute; right: calc(100% + 0.5rem); bottom: 50%; transform: translateY(50%); background: var(--foreground); color: var(--background); padding: 6px 8px; border-radius: 6px; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(2,6,23,0.3); }
-
-/* ===== Immediate readability fixes for light mode =====
-   These rules ensure the site is easy to read in light mode by:
-   - forcing text that was set to white to use a dark color
-   - removing backdrop blur in light mode
-   - making translucent card backgrounds solid white in light mode
-   They apply only when `.dark` is NOT present on <html> so dark theme remains unchanged. */
-html:not(.dark) [class*="text-white"] {
-  color: #0b1220 !important;
-}
-
-html:not(.dark) [class*="backdrop-blur"] {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  background: #ffffff !important;
-  color: #0b1220 !important;
-}
-
-html:not(.dark) [class*="bg-white/"] {
-  background-color: #ffffff !important;
-  color: #0b1220 !important;
-}
-
-/* Ensure specific translucent dark backgrounds become white in light mode */
-html:not(.dark) [class*="bg-black/"] {
-  background-color: #ffffff !important;
-  color: #0b1220 !important;
-}
-
-/* Inputs, placeholders and buttons inside card-like elements should be dark in light mode */
-html:not(.dark) input, html:not(.dark) textarea, html:not(.dark) button {
-  color: #0b1220 !important;
-}
-
-/* keep dark mode intact */
-.dark [class*="backdrop-blur"],
-.dark [class*="bg-white/"] {
-  /* no-op: dark mode rules continue to apply */
-}
+.iaagent-bubble[title]:hover::after { content: attr(title); position: absolute; right: calc(100% + 0.5rem); bottom: 50%; transform: translateY(50%); background: var(--foreground); color: var(--background); padding: 6px 10px; border-radius: 8px; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(4,13,26,0.3); }
 
 /* Background overlay handled via Tailwind classes on the layout element */

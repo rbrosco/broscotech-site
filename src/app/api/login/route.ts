@@ -43,6 +43,7 @@ export async function POST(request: Request) {
         name: user.name,
         login: user.login,
         email: user.email,
+        role: user.role ?? 'user',
       },
       secret,
       { expiresIn: '7d' }
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       message: 'Login realizado com sucesso.',
-      user: { id: user.id, name: user.name, login: user.login, email: user.email },
+      user: { id: user.id, name: user.name, login: user.login, email: user.email, role: user.role ?? 'user' },
     });
 
     const isProd = process.env.NODE_ENV === 'production';
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     console.error('Erro em /api/login:', error);
-    return NextResponse.json({ message: 'Erro interno ao efetuar login.' }, { status: 500 });
+    const isProd = process.env.NODE_ENV === 'production';
+    const payload: any = { message: 'Erro interno ao efetuar login.' };
+    if (!isProd) payload.error = String(error);
+    return NextResponse.json(payload, { status: 500 });
   }
 }

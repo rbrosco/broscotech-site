@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { FiUser } from 'react-icons/fi';
 import DashboardNav from '../../component/DashboardNav';
-import DashboardSidebar from '../../component/DashboardSidebar';
+import Sidebar from '../../component/Sidebar';
 
 type Profile = {
   id: number;
@@ -165,7 +165,7 @@ export default function PerfilPage() {
 
   return (
     <div className="w-full relative flex ct-docs-disable-sidebar-content bg-blueGray-100 dark:bg-gray-900 min-h-screen min-w-0">
-      <DashboardSidebar />
+      <Sidebar />
       <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
         <DashboardNav />
 

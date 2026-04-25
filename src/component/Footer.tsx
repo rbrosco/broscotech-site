@@ -2,54 +2,138 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { FiMail, FiGithub, FiLinkedin, FiInstagram } from "react-icons/fi";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="mt-10">
+    <footer className="mt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8">
-        <div className="rounded-3xl border border-black/10 bg-white/70 backdrop-blur-xl shadow-sm dark:border-white/15 dark:bg-black/30">
-          <div className="p-4 md:p-6">
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <Link href="/" passHref>
-            <span className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse cursor-pointer">
-              <Image
-                src="/images/EASYDEVLOGO.png" // Usar logotipo EASYDEV (se existir)
-                alt="EASYDEV Logo"
-                width={32}
-                height={32}
-              />
-              <span className="self-center text-2xl font-semibold whitespace-nowrap text-slate-900 dark:text-white">
-                EASYDEV
+        <div className="rounded-3xl border border-black/8 bg-white/70 backdrop-blur-xl shadow-sm dark:border-white/10 dark:bg-white/5">
+          <div className="p-6 md:p-10">
+
+            {/* Main grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+
+              {/* Brand column */}
+              <div className="lg:col-span-2">
+                <Link href="/" className="inline-flex items-center gap-3 group">
+                  <Image
+                    src="/images/EASYDEVLOGO.png"
+                    alt="EASYDEV Logo"
+                    width={36}
+                    height={36}
+                    className="opacity-90 group-hover:opacity-100 transition"
+                  />
+                  <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    EASYDEV
+                  </span>
+                </Link>
+                <p className="mt-4 text-sm text-slate-600 dark:text-white/60 max-w-xs leading-relaxed">
+                  Transformamos ideias em produto: site, sistema, automação e integração —
+                  com arquitetura moderna e acompanhamento real.
+                </p>
+                <div className="mt-5 flex items-center gap-3">
+                  <a
+                    href="mailto:contato@easydev.com.br"
+                    aria-label="E-mail"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-black/8 bg-white/60 text-slate-700 hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-[var(--color-accent)]"
+                  >
+                    <FiMail className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://github.com/rbrosco"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-black/8 bg-white/60 text-slate-700 hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-[var(--color-accent)]"
+                  >
+                    <FiGithub className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://linkedin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-black/8 bg-white/60 text-slate-700 hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-[var(--color-accent)]"
+                  >
+                    <FiLinkedin className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-black/8 bg-white/60 text-slate-700 hover:text-[var(--color-accent)] hover:border-[var(--color-accent)] transition dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:text-[var(--color-accent)]"
+                  >
+                    <FiInstagram className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Produto column */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-white/40 mb-4">
+                  Produto
+                </p>
+                <ul className="space-y-2.5 text-sm">
+                  {[
+                    { label: 'Serviços', href: '/#Servicos' },
+                    { label: 'Sobre', href: '/#Sobre' },
+                    { label: 'Depoimentos', href: '/#Depoimentos' },
+                    { label: 'Dashboard', href: '/dashboard' },
+                    { label: 'IA Agent', href: '/iaagent' },
+                  ].map(({ label, href }) => (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        className="text-slate-600 hover:text-[var(--color-accent)] transition dark:text-white/60 dark:hover:text-[var(--color-accent)]"
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Legal column */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-white/40 mb-4">
+                  Legal
+                </p>
+                <ul className="space-y-2.5 text-sm">
+                  {[
+                    { label: 'Política de Privacidade', href: '/privacidade' },
+                    { label: 'Licença', href: '/licenca' },
+                    { label: 'Contato', href: '/contato' },
+                  ].map(({ label, href }) => (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        className="text-slate-600 hover:text-[var(--color-accent)] transition dark:text-white/60 dark:hover:text-[var(--color-accent)]"
+                      >
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="mt-10 pt-6 border-t border-black/8 dark:border-white/8 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-xs text-slate-500 dark:text-white/40">
+                © 2025{' '}
+                <Link href="/" className="hover:text-[var(--color-accent)] transition">
+                  EASYDEV™
+                </Link>
+                . Todos os direitos reservados.
               </span>
-            </span>
-          </Link>
-          <ul className="flex flex-wrap items-center mb-6 text-sm font-semibold text-slate-600 sm:mb-0 dark:text-white/70">
-            
-            <li>
-              <Link href="/privacidade" className="hover:underline me-4 md:me-6">
-                Política de Privacidade
-              </Link>
-            </li>
-            <li>
-              <Link href="/licenca" className="hover:underline me-4 md:me-6">
-                Licença
-              </Link>
-            </li>
-            <li>
-              <Link href="/contato" className="hover:underline">
-                Contato
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <hr className="my-6 border-black/10 sm:mx-auto dark:border-white/10" />
-          <span className="block text-sm text-slate-600 sm:text-center dark:text-white/60">
-          © 2025{" "}
-          <Link href="/" passHref>
-            <span className="hover:underline cursor-pointer">EASYDEV™</span>
-          </Link>
-          . Todos os direitos reservados.
-        </span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-white/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] inline-block" />
+                Feito com cuidado no Brasil
+              </span>
+            </div>
+
           </div>
         </div>
       </div>
