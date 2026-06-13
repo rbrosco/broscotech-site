@@ -5,15 +5,16 @@ import { requireAuth } from '@/lib/middlewareAuth';
 import { eq, and, not } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
     if (!auth || !auth.id) return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     
     const isAdmin = ((auth as { role?: string }).role === 'admin');
     if (!isAdmin) return NextResponse.json({ message: 'Não autorizado.' }, { status: 403 });
 
-    const targetId = Number(params.id);
+    const targetId = Number(id);
     if (!Number.isFinite(targetId)) return NextResponse.json({ message: 'ID inválido.' }, { status: 400 });
 
     const body = await request.json();
@@ -43,15 +44,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
     if (!auth || !auth.id) return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     
     const isAdmin = ((auth as { role?: string }).role === 'admin');
     if (!isAdmin) return NextResponse.json({ message: 'Não autorizado.' }, { status: 403 });
 
-    const targetId = Number(params.id);
+    const targetId = Number(id);
     if (!Number.isFinite(targetId)) return NextResponse.json({ message: 'ID inválido.' }, { status: 400 });
 
     if (Number(auth.id) === targetId) {

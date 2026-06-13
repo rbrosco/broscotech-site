@@ -119,6 +119,32 @@ export default function Home() {
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
+  // Typewriter effect states
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentText, setCurrentText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const words = ['máquina_de_crescimento', 'automação_inteligente', 'código_limpo', 'software_escalável'];
+    const typingSpeed = isDeleting ? 30 : 80;
+    const currentWord = words[currentWordIndex];
+    
+    let timeout: NodeJS.Timeout;
+    
+    if (!isDeleting && currentText === currentWord) {
+      timeout = setTimeout(() => setIsDeleting(true), 2500);
+    } else if (isDeleting && currentText === '') {
+      setIsDeleting(false);
+      setCurrentWordIndex((prev) => (prev + 1) % words.length);
+    } else {
+      timeout = setTimeout(() => {
+        setCurrentText(currentWord.substring(0, currentText.length + (isDeleting ? -1 : 1)));
+      }, typingSpeed);
+    }
+    
+    return () => clearTimeout(timeout);
+  }, [currentText, isDeleting, currentWordIndex]);
+
   // Efeito para o spinner de carregamento inicial e verificação do modal de privacidade
   useEffect(() => {
     // Simula um tempo de carregamento. Em produção, isso seria
@@ -183,6 +209,12 @@ export default function Home() {
                   Sites, sistemas, automações e integrações com foco em performance, clareza e resultado.
                   Tudo organizado como uma matriz: cada peça conversa com a outra.
                 </p>
+
+                {/* Efeito de digitação movido para cá */}
+                <div className="mt-6 text-xl sm:text-2xl font-mono font-bold tracking-tight lowercase" style={{ color: '#00d4aa' }}>
+                  {`< ${currentText} />`}
+                  <span className="animate-pulse opacity-75">_</span>
+                </div>
 
                 {/* Bloco de botões e tags removido daqui para evitar duplicidade. */}
               </div>

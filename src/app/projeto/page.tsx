@@ -107,14 +107,22 @@ function DarkSelect({ value, onChange, options, placeholder, disabled }: {
 export default function ProjetoPage() {
   const router = useRouter();
 
+  const [userData, setUserData] = useState<{ name?: string; email?: string; phone?: string } | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
+
   // ── Auth ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
       try {
         const res = await fetch('/api/me', { credentials: 'include' });
         if (!res.ok) { router.replace('/login'); return; }
-        const user = await res.json() as { role?: string; id?: unknown };
+        const user = await res.json() as { role?: string; id?: unknown; name?: string; email?: string; phone?: string };
         setUserId(Number(user.id ?? NaN));
+        setUserData(user);
+        setClientName(prev => prev || user.name || '');
+        setClientEmail(prev => prev || user.email || '');
+        setClientPhone(prev => prev || user.phone || '');
       } catch { router.replace('/login'); }
     })();
   }, [router]);
@@ -132,9 +140,6 @@ export default function ProjetoPage() {
   const [, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
   const [, setCollapsedView] = useState(false);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
-
-  const [userId, setUserId] = useState<number | null>(null);
-  const [projectsList, setProjectsList] = useState<Project[]>([]);
 
   // form fields
   const [projectName, setProjectName] = useState('');
@@ -200,6 +205,7 @@ export default function ProjetoPage() {
       setSaveMessage(e instanceof Error ? e.message : 'Erro ao salvar.');
     } finally {
       setSaving(false);
+      setShowModal(false);
     }
   };
 
@@ -327,7 +333,7 @@ export default function ProjetoPage() {
   };
 
   function openNewModal() {
-    setProjectName(''); setClientName(''); setClientEmail(''); setClientPhone('');
+    setProjectName(''); setClientName(userData?.name || ''); setClientEmail(userData?.email || ''); setClientPhone(userData?.phone || '');
     setProjectType(''); setFinalDate(''); setLanguage(''); setFramework('');
     setIntegrationsField(''); setObservations('');
     setEditProjectId(null); setEditMode(true); setSaveMessage(null);

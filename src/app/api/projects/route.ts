@@ -92,7 +92,24 @@ export async function GET(request: NextRequest) {
         .from(projects)
         .where(drizzleEq(projects.user_id, userId))
         .orderBy(desc(projects.updated_at));
-      return NextResponse.json({ projects: list });
+
+      const projectsWithUpdates = await Promise.all(
+        list.map(async (project) => {
+          const rawUpdates = await db
+            .select()
+            .from(project_updates)
+            .where(drizzleEq(project_updates.project_id, project.id))
+            .orderBy(desc(project_updates.created_at));
+          const updates = rawUpdates.map((u) => ({
+            id: Number(u.id),
+            kind: u.kind ?? 'update',
+            message: u.message ?? '',
+            created_at: u.created_at ?? '',
+          }));
+          return { ...project, updates };
+        })
+      );
+      return NextResponse.json({ projects: projectsWithUpdates });
     }
 
     const list = await db

@@ -50,7 +50,7 @@ export default function IAAgentPage() {
     if (!authed) return;
     (async () => {
       try {
-        const res = await fetch('/api/projects', { credentials: 'include' });
+        const res = await fetch('/api/projects?all=1', { credentials: 'include' });
         if (res.ok) {
           const p = await res.json() as { projects?: { id: number; title: string }[] };
           const list = p.projects ?? [];

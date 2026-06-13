@@ -1,47 +1,52 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { db } from '../../../lib/drizzle';
 import { invoices, projects } from '../../../lib/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import { requireAuth } from '@/lib/middlewareAuth';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    const auth = requireAuth(req.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('projectId');
 
     let list;
+    const baseQuery = db.select({
+      id: invoices.id,
+      project_id: invoices.project_id,
+      projeto: projects.title,
+      cliente: invoices.client_name,
+      valor: invoices.value,
+      emissao: invoices.issue_date,
+      vencimento: invoices.due_date,
+      status: invoices.status,
+      descricao: invoices.description,
+      asaas_url: invoices.asaas_url,
+    })
+    .from(invoices)
+    .leftJoin(projects, eq(invoices.project_id, projects.id));
+
     if (projectId) {
-      list = await db.select({
-        id: invoices.id,
-        project_id: invoices.project_id,
-        projeto: projects.title,
-        cliente: invoices.client_name,
-        valor: invoices.value,
-        emissao: invoices.issue_date,
-        vencimento: invoices.due_date,
-        status: invoices.status,
-        descricao: invoices.description,
-        asaas_url: invoices.asaas_url,
-      })
-      .from(invoices)
-      .leftJoin(projects, eq(invoices.project_id, projects.id))
-      .where(eq(invoices.project_id, Number(projectId)))
-      .orderBy(desc(invoices.created_at));
+      if (isAdmin) {
+        list = await baseQuery
+          .where(eq(invoices.project_id, Number(projectId)))
+          .orderBy(desc(invoices.created_at));
+      } else {
+        list = await baseQuery
+          .where(and(eq(invoices.project_id, Number(projectId)), eq(projects.user_id, Number(auth.id))))
+          .orderBy(desc(invoices.created_at));
+      }
     } else {
-      list = await db.select({
-        id: invoices.id,
-        project_id: invoices.project_id,
-        projeto: projects.title,
-        cliente: invoices.client_name,
-        valor: invoices.value,
-        emissao: invoices.issue_date,
-        vencimento: invoices.due_date,
-        status: invoices.status,
-        descricao: invoices.description,
-        asaas_url: invoices.asaas_url,
-      })
-      .from(invoices)
-      .leftJoin(projects, eq(invoices.project_id, projects.id))
-      .orderBy(desc(invoices.created_at));
+      if (isAdmin) {
+        list = await baseQuery.orderBy(desc(invoices.created_at));
+      } else {
+        list = await baseQuery
+          .where(eq(projects.user_id, Number(auth.id)))
+          .orderBy(desc(invoices.created_at));
+      }
     }
 
     return NextResponse.json({ invoices: list });

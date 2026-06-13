@@ -223,7 +223,8 @@ const Header: React.FC = () => {
     })();
   }, []);
 
-  const defaultAvatar = '/images/Perfil_Rogger.png'; // Avatar padrão
+  // SVG genérico de usuário como avatar padrão
+  const defaultAvatar = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
   const [avatarSrc, setAvatarSrc] = useState<string>(defaultAvatar);
   useEffect(() => {
     try {
@@ -452,7 +453,7 @@ const Header: React.FC = () => {
           </Link>
           <Link href="/">
             <span
-              className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white hover:opacity-80 transition"
+              className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-cyan-500 dark:from-indigo-400 dark:via-purple-400 dark:to-cyan-400 hover:opacity-80 transition-all hover:scale-[1.02] inline-block drop-shadow-sm"
             >
               EASYDEV
             </span>

@@ -72,34 +72,24 @@ export default function PlanejamentoPage() {
         const admin = me?.role === 'admin';
         setIsAdmin(admin);
 
-        if (admin) {
-          const res = await fetch('/api/projects', { credentials: 'include' });
-          const payload = await res.json();
-          if (!res.ok) throw new Error(payload.message || 'Falha ao carregar.');
-          const list: ProjectWithUpdates[] = Array.isArray(payload.projects) 
-            ? payload.projects.map((p: any) => ({
-                project: {
-                  id: p.id,
-                  title: p.title,
-                  status: p.status,
-                  progress: p.progress,
-                  updated_at: p.updated_at
-                },
-                updates: p.updates || []
-              }))
-            : [];
-          setProjectsData(list);
-          if (list.length > 0) setExpandedProject(list[0].project.id);
-        } else {
-          const res = await fetch('/api/projects', { credentials: 'include' });
-          const payload = await res.json();
-          if (!res.ok) throw new Error(payload.message || 'Falha ao carregar.');
-          // Formato singular: { project, updates }
-          if (payload.project) {
-            setProjectsData([{ project: payload.project, updates: payload.updates ?? [] }]);
-            setExpandedProject(payload.project.id);
-          }
-        }
+        const fetchUrl = admin ? '/api/projects' : '/api/projects?all=1';
+        const res = await fetch(fetchUrl, { credentials: 'include' });
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.message || 'Falha ao carregar.');
+        const list: ProjectWithUpdates[] = Array.isArray(payload.projects) 
+          ? payload.projects.map((p: any) => ({
+              project: {
+                id: p.id,
+                title: p.title,
+                status: p.status,
+                progress: p.progress,
+                updated_at: p.updated_at
+              },
+              updates: p.updates || []
+            }))
+          : [];
+        setProjectsData(list);
+        if (list.length > 0) setExpandedProject(list[0].project.id);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erro desconhecido.');
       } finally {

@@ -1,16 +1,8 @@
-import 'dotenv/config';
-import { getPool } from './src/lib/db.ts';
-
-async function test() {
-  try {
-    const pool = getPool();
-    const res = await pool.query('SELECT 1 as result');
-    console.log('OK! Query result:', res.rows);
-    process.exit(0);
-  } catch (e) {
-    console.error('ERROR:', e);
-    process.exit(1);
-  }
+import { db } from './src/lib/drizzle';
+import { users } from './src/lib/schema';
+async function run() {
+  const allUsers = await db.select().from(users).limit(5);
+  console.log(allUsers);
+  process.exit(0);
 }
-
-test();
+run();

@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       email: row.email,
       role: row.role ?? 'user',
       avatar: (row as { avatar?: string | null }).avatar ?? null,
+      phone: (row as { phone?: string | null }).phone ?? null,
     });
   } catch {
     // Fallback: usa dado do JWT se banco falhar
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       id: user.id, name: user.name, login: user.login, email: user.email, role,
       avatar: (user as { avatar?: string | null }).avatar ?? null,
+      phone: null,
     });
   }
 }
