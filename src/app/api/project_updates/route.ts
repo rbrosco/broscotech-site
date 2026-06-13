@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/drizzle';
-import { project_updates, projects } from '@/lib/schema';
+import { project_updates, projects, notifications } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
 import { eq, desc } from 'drizzle-orm';
 
@@ -75,6 +75,36 @@ export async function POST(request: NextRequest) {
       .insert(project_updates)
       .values({ project_id: projectId, kind, message })
       .returning();
+
+    // Criar notificação correspondente
+    try {
+      const notifId = String(Date.now()) + '-' + String(Math.random()).slice(2,8);
+      let notifMsg = '';
+      if (kind === 'status_change') {
+        notifMsg = `Status do projeto alterado para: ${message}`;
+      } else if (kind === 'progress_change') {
+        notifMsg = `Progresso do projeto atualizado para: ${message}%`;
+      } else {
+        let extractedMessage = message;
+        if (message.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(message);
+            if (parsed.texto) extractedMessage = parsed.texto;
+          } catch (e) {}
+        }
+        notifMsg = `Nova atualização no projeto: ${extractedMessage}`;
+      }
+      
+      await db.insert(notifications).values({
+        id: notifId,
+        project_id: projectId,
+        message: notifMsg,
+        timestamp: Date.now(),
+        read: false
+      });
+    } catch (e) {
+      console.error('Erro ao criar notificação do project_update:', e);
+    }
 
     return NextResponse.json({ update: created, message: 'Atualização registrada.' });
   } catch (error) {

@@ -4,6 +4,32 @@ import { kanban_cards, kanban_columns, projects } from '@/lib/schema';
 import { requireAuth } from '@/lib/middlewareAuth';
 import { asc, eq, inArray } from 'drizzle-orm';
 
+// Pipeline padrão de colunas
+const DEFAULT_PIPELINE = [
+  'Inicio (Do Projeto)',
+  'Discussão (Sobre o Projeto)',
+  'Tipo de Projeto',
+  '1 Fase (Prévia do Projeto)',
+  '2 Fase (Segunda Prévia)',
+  'Finalização',
+  'Faturamento',
+  'Concluído',
+  'Não aceito'
+];
+
+async function ensureProjectHasColumns(projectId: number) {
+  const existingCols = await db
+    .select()
+    .from(kanban_columns)
+    .where(eq(kanban_columns.project_id, projectId));
+  
+  if (existingCols.length === 0) {
+    for (let i = 0; i < DEFAULT_PIPELINE.length; i++) {
+      await db.insert(kanban_columns).values({ project_id: projectId, title: DEFAULT_PIPELINE[i], position: i });
+    }
+  }
+}
+
 async function getOrCreateProjectForUser(userId: number) {
   const existing = await db
     .select()
@@ -21,34 +47,7 @@ async function getOrCreateProjectForUser(userId: number) {
     project = created;
   }
 
-  // Pipeline padrão único para todos os projetos
-  const pipeline = [
-    'Backlog',
-    'Levantamento de Requisitos',
-    'Planejamento',
-    'Design UI/UX',
-    'Desenvolvimento',
-    'Code Review',
-    'Testes',
-    'Homologação',
-    'Deploy',
-    'Aguardando Cliente',
-    'Concluído',
-  ];
-  const existingCols = await db
-    .select()
-    .from(kanban_columns)
-    .where(eq(kanban_columns.project_id, project.id));
-  if (existingCols.length !== pipeline.length || existingCols.some((col, idx) => col.title !== pipeline[idx])) {
-    // Remove todas as colunas antigas se não baterem com o padrão
-    if (existingCols.length > 0) {
-      await db.delete(kanban_columns).where(eq(kanban_columns.project_id, project.id));
-    }
-    // Cria as colunas padrão
-    for (let i = 0; i < pipeline.length; i++) {
-      await db.insert(kanban_columns).values({ project_id: project.id, title: pipeline[i], position: i });
-    }
-  }
+  await ensureProjectHasColumns(Number(project.id));
   return project;
 }
 
@@ -73,6 +72,7 @@ export async function GET(request: NextRequest) {
         .limit(1);
       if (found[0] && (isAdmin || found[0].user_id === userId)) {
         project = found[0];
+        await ensureProjectHasColumns(Number(project.id));
       } else {
         return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
       }

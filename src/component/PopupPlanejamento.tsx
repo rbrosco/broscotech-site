@@ -54,8 +54,28 @@ const PopupPlanejamento: React.FC<PopupPlanejamentoProps> = ({
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
           <FiCalendar /> {new Date(update.created_at).toLocaleString()}
         </div>
-        <div className="mb-4 text-base text-slate-800 dark:text-slate-100 font-medium border-l-4 border-blue-400 pl-3 bg-blue-50/60 dark:bg-blue-900/20 rounded">
-          {update.message}
+        <div className="mb-4 text-base text-slate-800 dark:text-slate-100 font-medium border-l-4 border-blue-400 pl-3 bg-blue-50/60 dark:bg-blue-900/20 rounded py-2">
+          {(() => {
+            if (update.message && update.message.startsWith('{')) {
+              try {
+                const parsed = JSON.parse(update.message);
+                if (parsed.texto) {
+                  return (
+                    <div>
+                      <p className="whitespace-pre-wrap">{parsed.texto}</p>
+                      {parsed.observacoes && (
+                        <div className="mt-2 p-2 bg-white/50 dark:bg-black/20 rounded border border-blue-100 dark:border-blue-900/50 text-sm">
+                          <p className="font-semibold text-slate-600 dark:text-slate-400">Observações:</p>
+                          <p className="whitespace-pre-wrap">{parsed.observacoes}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              } catch {}
+            }
+            return <span className="whitespace-pre-wrap">{update.message}</span>;
+          })()}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-slate-700 dark:text-slate-200 mb-4">
           <div className="flex items-center gap-2"><FiHash /> <b>Título:</b> {project?.title}</div>

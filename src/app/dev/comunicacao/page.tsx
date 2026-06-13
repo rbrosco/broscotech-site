@@ -132,7 +132,7 @@ function DevComunicacaoContent() {
               <div className="flex-1">
                 <label className="block text-xs text-slate-500 dark:text-gray-400 mb-1">Projeto</label>
                 <select
-                  className="w-full rounded-lg px-3 py-2 text-white text-sm focus:outline-none bg-slate-50 dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3555]"
+                  className="w-full rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none bg-slate-50 dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3555]"
                   value={selectedProjectId ?? ''}
                   onChange={e => setSelectedProjectId(Number(e.target.value))}
                 >
@@ -191,6 +191,11 @@ function DevComunicacaoContent() {
                   const date = u.created_at
                     ? new Date(u.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
                     : '';
+                  let parsedObj = null;
+                  if (u.message && u.message.startsWith('{')) {
+                    try { parsedObj = JSON.parse(u.message); } catch {}
+                  }
+
                   return (
                     <div key={u.id} className="rounded-lg p-4 bg-white dark:bg-[#0a0f1e] border border-slate-200 dark:border-[#1a2240]">
                       <div className="flex items-center gap-2 mb-1">
@@ -200,7 +205,19 @@ function DevComunicacaoContent() {
                         </span>
                         {date && <span className="text-xs text-slate-400 dark:text-gray-500">{date}</span>}
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-gray-200 whitespace-pre-wrap">{u.message}</p>
+                      {parsedObj && parsedObj.texto ? (
+                        <div className="text-sm text-slate-700 dark:text-gray-200">
+                          <p className="whitespace-pre-wrap">{parsedObj.texto}</p>
+                          {parsedObj.observacoes && (
+                            <div className="mt-2 p-3 bg-slate-50 dark:bg-[#1a2035] rounded border border-slate-200 dark:border-[#2a3555]">
+                              <p className="text-xs font-semibold text-slate-500 mb-1">Observações:</p>
+                              <p className="whitespace-pre-wrap">{parsedObj.observacoes}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-700 dark:text-gray-200 whitespace-pre-wrap">{u.message}</p>
+                      )}
                     </div>
                   );
                 })}

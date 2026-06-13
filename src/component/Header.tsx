@@ -604,7 +604,17 @@ const Header: React.FC = () => {
                       })();
                     }} className={`p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${n.read ? 'opacity-60' : ''}`}>
                       {n.projectTitle && <p className="text-xs text-slate-500 dark:text-slate-400">{n.projectTitle}</p>}
-                      <p className="text-sm text-slate-600 dark:text-slate-300">{n.message}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300">
+                        {(() => {
+                          if (typeof n.message === 'string' && n.message.startsWith('{')) {
+                            try {
+                              const parsed = JSON.parse(n.message);
+                              if (parsed.texto) return parsed.texto;
+                            } catch {}
+                          }
+                          return n.message;
+                        })()}
+                      </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(n.timestamp)}</p>
                     </li>
                   ))

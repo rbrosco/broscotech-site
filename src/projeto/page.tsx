@@ -135,7 +135,7 @@ export default function ProjetoPage() {
   const [showModal, setShowModal] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [, setEditProjectId] = useState<number | null>(null);
+  const [editProjectId, setEditProjectId] = useState<number | null>(null);
   const [, setLastSavedProject] = useState<Project | null>(null);
   const [, setAdminStatus] = useState<'accepted' | 'rejected' | null>(null);
   const [, setCollapsedView] = useState(false);
@@ -162,16 +162,20 @@ export default function ProjetoPage() {
     setSaving(true);
     try {
       if (!Number.isFinite(userId)) throw new Error('Faça login para salvar seu projeto.');
-      const res = await fetch('/api/projects', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
+      const method = editProjectId ? 'PATCH' : 'POST';
+      const payloadBody: any = {
           userId, title: projectName?.trim() || null, clientName, clientEmail,
           clientPhone, projectType, language: language || null, framework: framework || null,
           integrations: integrationsField || null, observations: observations || null,
           finalDate: finalDate || null,
-        }),
+      };
+      if (editProjectId) payloadBody.id = editProjectId;
+
+      const res = await fetch('/api/projects', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payloadBody),
       });
       const payload = (await res.json()) as { project?: Project; message?: string };
       if (!res.ok) throw new Error(payload.message || 'Falha ao salvar.');

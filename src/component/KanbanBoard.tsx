@@ -66,9 +66,20 @@ function KanbanBoard({ projectId }: { projectId: number }) {
       })
       .catch(() => setLoading(false));
   }, [projectId]);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-
-
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && e.deltaX === 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [data, loading]);
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -162,7 +173,16 @@ function KanbanBoard({ projectId }: { projectId: number }) {
       </div>
 
       {/* ── Kanban columns ── */}
-      <div className="px-4 pb-6 pt-3 flex gap-4 overflow-x-auto items-start" style={{ minHeight: '42vh' }}>
+      <div 
+        ref={scrollContainerRef}
+        className="px-4 pb-6 pt-3 flex gap-4 overflow-x-auto items-start scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10" 
+        style={{ minHeight: '42vh' }}
+        onWheel={(e) => {
+          if (e.deltaY !== 0 && e.deltaX === 0) {
+            e.currentTarget.scrollLeft += e.deltaY;
+          }
+        }}
+      >
         {data.columns.map((col) => {
           const accentColor = PIPELINE_COLORS[col.title] ?? '#64748b';
           return (

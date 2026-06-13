@@ -1,14 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FiSave, FiKey, FiGlobe, FiUser, FiBell, FiShield, FiCheckCircle, FiEye, FiEyeOff, FiCpu, FiSliders } from "react-icons/fi";
+import { FiSave, FiKey, FiGlobe, FiUser, FiBell, FiShield, FiCheckCircle, FiEye, FiEyeOff, FiCpu, FiSliders, FiUsers, FiBriefcase } from "react-icons/fi";
 import DashboardNav from "@/component/DashboardNav";
 import Sidebar from "@/component/Sidebar";
+import UserManagement from "./UserManagement";
 
-type Section = 'iaagent' | 'api' | 'perfil' | 'notificacoes' | 'seguranca';
+type Section = 'iaagent' | 'api' | 'perfil' | 'notificacoes' | 'seguranca' | 'clientes' | 'equipe';
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode; desc: string }[] = [
   { id: 'iaagent',       label: 'IA Agent',          icon: <FiCpu />,     desc: 'Modelo, chave Groq e comportamento do agente' },
   { id: 'api',           label: 'API & Integrações', icon: <FiKey />,     desc: 'Chaves de API e webhooks do sistema' },
+  { id: 'clientes',      label: 'Clientes',          icon: <FiUsers />,   desc: 'Gerenciamento de contas de clientes' },
+  { id: 'equipe',        label: 'Equipe',            icon: <FiBriefcase />, desc: 'Gerenciamento de membros da equipe' },
   { id: 'perfil',        label: 'Perfil',            icon: <FiUser />,    desc: 'Informações da conta e preferências' },
   { id: 'notificacoes',  label: 'Notificações',      icon: <FiBell />,    desc: 'Configurar alertas e notificações' },
   { id: 'seguranca',     label: 'Segurança',         icon: <FiShield />,  desc: 'Senha, sessões e 2FA' },
@@ -59,7 +62,11 @@ export default function ConfiguracoesPage() {
         const res = await fetch('/api/me', { credentials: 'include' });
         if (res.ok) {
           const me = await res.json() as { role?: string; name?: string; email?: string };
-          setIsAdmin(me.role === 'admin');
+          const isAdminUser = me.role === 'admin';
+          setIsAdmin(isAdminUser);
+          if (!isAdminUser && (activeSection === 'iaagent' || activeSection === 'api')) {
+            setActiveSection('perfil');
+          }
           setProfileName(me.name ?? '');
           setProfileEmail(me.email ?? '');
         }
@@ -99,26 +106,7 @@ export default function ConfiguracoesPage() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200">
-        <Sidebar />
-        <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
-          <DashboardNav />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl backdrop-blur-sm">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
-                <FiShield className="w-8 h-8 text-red-600 dark:text-red-400" />
-              </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Acesso restrito</h2>
-              <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Área exclusiva para administradores.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  const VISIBLE_SECTIONS = SECTIONS.filter(s => isAdmin || ['perfil', 'notificacoes', 'seguranca'].includes(s.id));
   const currentSectionMeta = SECTIONS.find(s => s.id === activeSection)!;
 
   return (
@@ -144,7 +132,7 @@ export default function ConfiguracoesPage() {
             <nav
               className="md:w-60 shrink-0 rounded-2xl overflow-hidden p-2 flex flex-row md:flex-col gap-1 flex-wrap bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg"
             >
-              {SECTIONS.map(s => (
+              {VISIBLE_SECTIONS.map(s => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
@@ -294,6 +282,16 @@ export default function ConfiguracoesPage() {
                       </div>
                     </Field>
                   </div>
+                )}
+
+                {/* Clientes */}
+                {activeSection === 'clientes' && (
+                  <UserManagement type="client" />
+                )}
+
+                {/* Equipe */}
+                {activeSection === 'equipe' && (
+                  <UserManagement type="team" />
                 )}
 
                 {/* Perfil */}

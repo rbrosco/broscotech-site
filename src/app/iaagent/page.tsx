@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { FiSend, FiPlus, FiMessageSquare, FiX, FiCpu, FiUser, FiLoader, FiCheckCircle } from 'react-icons/fi';
+import { FiSend, FiPlus, FiMessageSquare, FiX, FiCpu, FiUser, FiLoader, FiCheckCircle, FiImage } from 'react-icons/fi';
 import DashboardNav from '@/component/DashboardNav';
 import Sidebar from '@/component/Sidebar';
 
@@ -22,12 +22,17 @@ export default function IAAgentPage() {
   const [selected, setSelected] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const [projects, setProjects] = useState<{ id: number; title: string }[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
   // Auth check via /api/me
   useEffect(() => {
@@ -40,21 +45,45 @@ export default function IAAgentPage() {
     })();
   }, []);
 
+  // Load projects
+  useEffect(() => {
+    if (!authed) return;
+    (async () => {
+      try {
+        const res = await fetch('/api/projects', { credentials: 'include' });
+        if (res.ok) {
+          const p = await res.json() as { projects?: { id: number; title: string }[] };
+          const list = p.projects ?? [];
+          setProjects(list);
+          if (list.length > 0) setSelectedProjectId(list[0].id);
+        }
+      } catch {}
+    })();
+  }, [authed]);
+
   // Load sessions
   const loadSessions = useCallback(async () => {
+    if (!selectedProjectId) return;
     try {
-      const res = await fetch('/api/iaagent/sessions', { credentials: 'include' });
+      const res = await fetch(`/api/iaagent/sessions?projectId=${selectedProjectId}`, { credentials: 'include' });
       if (res.ok) {
         const p = await res.json() as { sessions?: Session[] };
-        setSessions(p.sessions ?? []);
+        const newSessions = p.sessions ?? [];
+        setSessions(newSessions);
+        setSelected(prev => {
+          if (!prev) return null;
+          if (!newSessions.some(s => s.id === prev.id)) return null;
+          return prev;
+        });
       }
     } catch {}
-  }, []);
+  }, [selectedProjectId]);
 
-  useEffect(() => { if (authed) void loadSessions(); }, [authed, loadSessions]);
+  useEffect(() => { if (authed && selectedProjectId) void loadSessions(); }, [authed, selectedProjectId, loadSessions]);
 
   const [newTitle, setNewTitle] = useState('');
   const [showNewModal, setShowNewModal] = useState(false);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
 
   // Load messages for selected session
   useEffect(() => {
@@ -77,14 +106,26 @@ export default function IAAgentPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setAttachedImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || !selected || sending) return;
+    if ((!text && !attachedImage) || !selected || sending) return;
     setInput('');
+    const currentImage = attachedImage;
+    setAttachedImage(null);
     setSending(true);
 
     // Optimistic: add client message
-    const clientMsg: Message = { id: crypto.randomUUID(), text, from: 'client', timestamp: new Date().toISOString() };
+    const clientMsg: Message & { imageUrl?: string } = { id: crypto.randomUUID(), text, from: 'client', imageUrl: currentImage || undefined, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, clientMsg]);
 
     try {
@@ -92,7 +133,7 @@ export default function IAAgentPage() {
       await fetch(`/api/iaagent/sessions/${selected.id}/messages`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, from: 'client' }),
+        body: JSON.stringify({ text, from: 'client', imageUrl: currentImage || undefined }),
       });
 
       // Check if admin has taken over
@@ -103,7 +144,14 @@ export default function IAAgentPage() {
         const historyForAI = [...messages, clientMsg].map(m => ({
           role: m.from === 'client' ? 'user' : 'assistant',
           content: m.text,
+          imageUrl: (m as any).imageUrl
         }));
+
+        const baseSystemPrompt = localStorage.getItem('IA_SYSTEM_PROMPT') ?? 'Você é um assistente útil e amigável.';
+        const projTitle = projects.find(p => p.id === selectedProjectId)?.title;
+        const systemPromptWithContext = projTitle 
+          ? `[Contexto Oculto]: O cliente atual está conversando com você sobre o projeto dele chamado "${projTitle}". Baseie-se nisso para ajudar o cliente e se ele quiser algo vinculado ao projeto você saberá do que ele está falando.\n\n${baseSystemPrompt}`
+          : baseSystemPrompt;
 
         const aiRes = await fetch('/api/iaagent', {
           method: 'POST', credentials: 'include',
@@ -112,7 +160,7 @@ export default function IAAgentPage() {
             messages: historyForAI,
             apiKey: localStorage.getItem('GROQ_API_KEY') ?? undefined,
             model: localStorage.getItem('GROQ_MODEL') ?? undefined,
-            systemPrompt: localStorage.getItem('IA_SYSTEM_PROMPT') ?? undefined,
+            systemPrompt: systemPromptWithContext,
           }),
         });
 
@@ -143,12 +191,13 @@ export default function IAAgentPage() {
   };
 
   const handleNewSession = async () => {
+    if (!selectedProjectId) return;
     const title = newTitle.trim() || `Sessão ${new Date().toLocaleString('pt-BR')}`;
     try {
       const res = await fetch('/api/iaagent/sessions', {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, projectId: selectedProjectId }),
       });
       if (res.ok) {
         const p = await res.json() as { session?: Session };
@@ -213,10 +262,32 @@ export default function IAAgentPage() {
                   onClick={() => setShowNewModal(true)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 hover:scale-105 shadow-sm"
                   title="Nova sessão"
+                  disabled={!selectedProjectId}
                 >
                   <FiPlus className="w-4 h-4" />
                 </button>
               </div>
+
+              {projects.length > 0 && (
+                <div className="px-4 py-3 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50 relative">
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 block">Projeto Atual</label>
+                  <select
+                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-cyan-500/50 appearance-none cursor-pointer"
+                    value={selectedProjectId || ''}
+                    onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+                  >
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.title}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {projects.length === 0 && authed && (
+                <div className="px-4 py-3 border-b border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium text-center">
+                  Crie um projeto para usar a IA.
+                </div>
+              )}
               <div className="flex-1 overflow-y-auto py-3 px-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                 {sessions.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-40 gap-3">
@@ -317,14 +388,19 @@ export default function IAAgentPage() {
                               : <FiUser className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             }
                           </div>
-                          <div className="flex flex-col">
-                            <div
-                              className={`rounded-3xl px-6 py-4 text-[15px] leading-relaxed shadow-lg ${
-                                isAdmin ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/20 text-slate-900 dark:text-slate-200 rounded-tl-none' :
-                                isIncoming ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none' : 
-                                'bg-gradient-to-br from-indigo-500 to-cyan-500 dark:from-indigo-600 dark:to-cyan-600 border border-indigo-400 dark:border-white/10 text-white rounded-tr-none'
-                              }`}
-                            >
+                          <div className={`
+                            relative px-6 py-4 max-w-full lg:max-w-3xl
+                            ${isIncoming 
+                              ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-3xl rounded-tl-none shadow-sm' 
+                              : 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white rounded-3xl rounded-tr-none shadow-md'
+                            }
+                          `}>
+                            {(m as any).imageUrl && (
+                              <div className="mb-3">
+                                <img src={(m as any).imageUrl} alt="Anexo da mensagem" className="max-w-full max-h-64 rounded-xl border border-white/20 object-contain bg-black/10" />
+                              </div>
+                            )}
+                            <div className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
                               {m.text}
                             </div>
                             <p className={`text-xs font-medium mt-2 text-slate-400 dark:text-slate-500 ${isIncoming ? 'ml-2' : 'mr-2 text-right'}`}>
@@ -351,25 +427,54 @@ export default function IAAgentPage() {
                   </div>
 
                   {/* Input */}
+                  {/* Input */}
                   <div className="px-4 md:px-10 py-6 shrink-0 bg-white/60 dark:bg-slate-900/60 border-t border-slate-200 dark:border-white/5 backdrop-blur-md relative z-10">
                     <div className="max-w-4xl mx-auto relative group">
+                      
+                      {/* Pré-visualização da imagem anexada */}
+                      {attachedImage && (
+                        <div className="mb-3 relative inline-block">
+                          <img src={attachedImage} alt="Anexo" className="h-20 w-auto rounded-xl border border-slate-200 dark:border-slate-700 object-cover" />
+                          <button 
+                            onClick={() => setAttachedImage(null)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600"
+                          >
+                            <FiX className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
                       <div className="relative flex items-end gap-3 rounded-3xl px-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 shadow-xl">
+                        
+                        <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
+                        <button 
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={sending}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 mb-1"
+                        >
+                          <FiImage className="w-5 h-5" />
+                        </button>
+
                         <textarea
                           ref={inputRef}
                           value={input}
-                          onChange={e => setInput(e.target.value)}
+                          onChange={e => {
+                            setInput(e.target.value);
+                            e.target.style.height = '44px';
+                            e.target.style.height = `${e.target.scrollHeight}px`;
+                          }}
                           onKeyDown={handleKeyDown}
                           disabled={sending}
                           rows={1}
                           placeholder="Escreva uma mensagem... (Enter para enviar)"
-                          className="flex-1 bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none resize-none max-h-40 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-1"
-                          style={{ lineHeight: '1.6' }}
+                          className="flex-1 bg-transparent text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none resize-none max-h-40 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-3"
+                          style={{ minHeight: '44px', height: '44px' }}
                         />
                         <button
                           onClick={() => void handleSend()}
-                          disabled={sending || !input.trim()}
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:hover:shadow-none hover:scale-105 bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
+                          disabled={sending || (!input.trim() && !attachedImage)}
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:hover:shadow-none hover:scale-105 bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] mb-0"
                         >
                           {sending ? <FiLoader className="w-5 h-5 animate-spin" /> : <FiSend className="w-5 h-5 ml-1" />}
                         </button>

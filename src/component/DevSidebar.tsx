@@ -196,15 +196,14 @@ const DevSidebar: React.FC = () => {
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{userName || 'Developer'}</p>
-              <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Admin</p>
+              <p className="text-[10px] text-slate-500 dark:text-white/30">Admin</p>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition hover:bg-red-500/20 ${
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-500/20 text-slate-400 dark:text-white/30 dark:hover:text-red-400 ${
               isCollapsed ? '' : 'ml-auto'
             }`}
-            style={{ color: 'rgba(255,255,255,0.3)' }}
             title="Sair"
           >
             <FiLogOut className="w-4 h-4" />

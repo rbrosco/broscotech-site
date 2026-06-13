@@ -235,15 +235,25 @@ export default function DevPage() {
                     <p className="text-xs text-center text-slate-400 dark:text-white/30">Sem atividade recente</p>
                   </div>
                 )}
-                {recentUpdates.map(u => (
-                  <div key={u.id} className="px-3 py-3 rounded-xl bg-slate-50 dark:bg-white/5">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold truncate text-cyan-600 dark:text-cyan-400">{u.projectTitle}</span>
-                      <span className="text-[10px] ml-auto shrink-0 text-slate-400 dark:text-white/30">{timeAgo(u.created_at)}</span>
+                {recentUpdates.map(u => {
+                  let displayText = u.message;
+                  if (u.message && u.message.startsWith('{')) {
+                    try {
+                      const parsed = JSON.parse(u.message);
+                      if (parsed.texto) displayText = parsed.texto;
+                    } catch {}
+                  }
+
+                  return (
+                    <div key={u.id} className="px-3 py-3 rounded-xl bg-slate-50 dark:bg-white/5">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold truncate text-cyan-600 dark:text-cyan-400">{u.projectTitle}</span>
+                        <span className="text-[10px] ml-auto shrink-0 text-slate-400 dark:text-white/30">{timeAgo(u.created_at)}</span>
+                      </div>
+                      <p className="text-xs leading-relaxed line-clamp-2 text-slate-600 dark:text-white/70">{displayText}</p>
                     </div>
-                    <p className="text-xs leading-relaxed line-clamp-2 text-slate-600 dark:text-white/70">{u.message}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

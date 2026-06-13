@@ -37,6 +37,20 @@ export default function KanbanPage() {
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newCardTitles, setNewCardTitles] = useState<Record<number, string>>({});
   const [dragging, setDragging] = useState<{ cardId: number; fromColumnId: number } | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && e.deltaX === 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [data, loading]);
 
   useEffect(() => {
     const cols = data?.columns ?? [];
@@ -205,7 +219,7 @@ export default function KanbanPage() {
             void fetch('/api/notifications', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: `Card movido: ${cardTitle ?? cardId} → coluna ${toColumnId}`, cardId, toColumnId, toColumnTitle: data?.columns?.find((c) => c.id === toColumnId)?.title ?? undefined, projectTitle: data?.project?.title ?? undefined, timestamp: Date.now() }),
+              body: JSON.stringify({ message: `Card movido: ${cardTitle ?? cardId} → ${data?.columns?.find((c) => c.id === toColumnId)?.title ?? 'outra coluna'}`, cardId, toColumnId, projectId: data?.project?.id, timestamp: Date.now() }),
             });
           } catch {}
         }
@@ -289,7 +303,10 @@ export default function KanbanPage() {
             )}
 
             <div className="mt-6 min-w-0">
-              <div className="flex gap-4 overflow-x-auto pb-2 w-full max-w-full min-w-0 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800">
+              <div 
+                ref={scrollContainerRef}
+                className="flex gap-4 overflow-x-auto pb-2 w-full max-w-full min-w-0 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800"
+              >
                 {(data?.columns ?? []).map((col) => (
                   <div
                     key={col.id}

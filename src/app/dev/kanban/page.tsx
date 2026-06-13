@@ -46,6 +46,20 @@ export default function DevKanbanPage() {
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [newCardTitles, setNewCardTitles] = useState<Record<number, string>>({});
   const [dragging, setDragging] = useState<{ cardId: number; fromColumnId: number } | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && e.deltaX === 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [data, boardLoading]);
 
   // Load all projects for selector
   useEffect(() => {
@@ -229,7 +243,11 @@ export default function DevKanbanPage() {
               <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
             </div>
           ) : (
-            <div className="mt-5 flex gap-4 overflow-x-auto pb-4" style={{ minHeight: '60vh' }}>
+            <div 
+              ref={scrollContainerRef}
+              className="mt-5 flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-white/10" 
+              style={{ minHeight: '60vh' }}
+            >
               {(data?.columns ?? []).map(col => (
                 <div
                   key={col.id}

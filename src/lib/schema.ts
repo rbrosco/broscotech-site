@@ -1,6 +1,6 @@
 
 
-import { pgTable, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, integer, bigint, bigserial, varchar, text, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
@@ -70,3 +70,30 @@ export const invoices = pgTable('invoices', {
   created_at: timestamp('created_at', { mode: 'string' }).defaultNow(),
 });
 
+export const notifications = pgTable('notifications', {
+  id: varchar('id', { length: 100 }).primaryKey(),
+  user_id: bigint('user_id', { mode: 'number' }),
+  project_id: bigint('project_id', { mode: 'number' }),
+  message: text('message').notNull(),
+  card_id: bigint('card_id', { mode: 'number' }),
+  to_column_id: bigint('to_column_id', { mode: 'number' }),
+  read: boolean('read').default(false),
+  timestamp: bigint('timestamp', { mode: 'number' }),
+  created_at: timestamp('created_at', { mode: 'string' }).defaultNow(),
+});
+export const ai_sessions = pgTable('ai_sessions', {
+  id: varchar('id', { length: 100 }).primaryKey(),
+  project_id: bigint('project_id', { mode: 'number' }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  created_at: timestamp('created_at', { mode: 'string' }).defaultNow(),
+  updated_at: timestamp('updated_at', { mode: 'string' }).defaultNow(),
+});
+
+export const ai_messages = pgTable('ai_messages', {
+  id: varchar('id', { length: 100 }).primaryKey(),
+  session_id: varchar('session_id', { length: 100 }).notNull(),
+  role: varchar('role', { length: 50 }).notNull(), // 'client', 'agent', 'admin'
+  content: text('content').notNull(),
+  image_url: text('image_url'),
+  created_at: timestamp('created_at', { mode: 'string' }).defaultNow(),
+});
