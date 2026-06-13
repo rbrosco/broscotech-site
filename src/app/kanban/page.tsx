@@ -224,8 +224,8 @@ export default function KanbanPage() {
       <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
         <DashboardNav />
 
-        <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10 min-w-0">
-          <div className="rounded-3xl bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6 min-w-0">
+        <div className="px-4 md:px-6 mx-auto w-full pt-[65px] pb-8 min-w-0">
+          <div className="rounded-3xl mt-4 bg-white/90 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-700/50 shadow-2xl p-5 sm:p-6 min-w-0">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashboard Kanban</p>

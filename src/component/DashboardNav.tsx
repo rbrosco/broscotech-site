@@ -20,27 +20,21 @@ const DashboardNav: React.FC = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 md:left-64 z-10 flex items-center justify-between px-6 h-[65px]"
-      style={{
-        background: 'rgba(10,15,30,0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-      }}
+      className="fixed top-0 left-0 right-0 md:left-[var(--sidebar-width,5rem)] transition-[left] duration-300 z-30 flex items-center justify-between px-6 h-[65px] bg-white/80 dark:bg-[#0a0f1e]/85 backdrop-blur-md border-b border-slate-200 dark:border-white/10"
     >
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm pl-12 md:pl-0">
-        <Link href="/" className="transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <Link href="/" className="transition-colors text-slate-500 dark:text-white/35 hover:text-slate-900 dark:hover:text-white">
           Home
         </Link>
-        <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-        <span className="font-semibold text-white">{label}</span>
+        <span className="text-slate-300 dark:text-white/20">/</span>
+        <span className="font-semibold text-slate-900 dark:text-white">{label}</span>
       </nav>
 
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-          style={{ color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5"
           title="Notificações"
         >
           <FiBell className="w-4 h-4" />
@@ -48,8 +42,7 @@ const DashboardNav: React.FC = () => {
         <ThemeToggle />
         <Link
           href="/perfil"
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-          style={{ color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5"
           title="Perfil"
         >
           <FiUser className="w-4 h-4" />

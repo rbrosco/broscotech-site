@@ -63,8 +63,24 @@ export default function DevPage() {
 
         const res = await fetch('/api/projects', { credentials: 'include' });
         if (res.ok) {
-          const p = await res.json() as { projects?: ProjectWithUpdates[] };
-          setData(p.projects ?? []);
+          const payload = await res.json();
+          const list: ProjectWithUpdates[] = Array.isArray(payload.projects) 
+            ? payload.projects.map((p: any) => ({
+                project: {
+                  id: p.id,
+                  title: p.title,
+                  status: p.status,
+                  progress: p.progress,
+                  client_name: p.client_name,
+                  client_email: p.client_email,
+                  project_type: p.project_type,
+                  updated_at: p.updated_at,
+                  admin_status: p.admin_status
+                },
+                updates: p.updates || []
+              }))
+            : [];
+          setData(list);
         }
       } catch { setError('Erro ao carregar dados.'); }
       setLoading(false);
@@ -83,9 +99,9 @@ export default function DevPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c18' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-64 flex items-center justify-center min-h-screen">
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -94,14 +110,14 @@ export default function DevPage() {
 
   if (!isAdmin || error) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c18' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-64 flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239,68,68,0.1)' }}>
-              <FiAlertCircle className="w-8 h-8 text-red-400" />
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+          <div className="text-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-8 rounded-3xl shadow-xl">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50 dark:bg-red-500/10">
+              <FiAlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
             </div>
-            <h2 className="text-lg font-bold text-white">{error ?? 'Acesso restrito'}</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-900 dark:text-white">{error ?? 'Acesso restrito'}</h2>
           </div>
         </div>
       </div>
@@ -109,25 +125,25 @@ export default function DevPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080c18' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
       <DevSidebar />
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
-        <main className="px-4 md:px-8 pt-[81px] pb-20">
+        <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
           {/* Header */}
           <div
-            className="relative overflow-hidden rounded-2xl mt-6 px-7 py-6"
-            style={{ background: 'linear-gradient(130deg, rgba(0,74,173,0.22) 0%, rgba(0,176,155,0.14) 100%)', border: '1px solid rgba(0,176,155,0.18)' }}
+            className="relative overflow-hidden rounded-3xl mt-4 px-8 py-8 bg-white dark:bg-transparent bg-gradient-to-br from-indigo-50 via-cyan-50 to-emerald-50 dark:from-indigo-600/10 dark:via-cyan-500/5 dark:to-emerald-500/10 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl group"
           >
-            <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle,#00b09b,transparent)' }} />
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,176,155,0.15)' }}>
-                <FiActivity className="w-5 h-5" style={{ color: '#00b09b' }} />
+            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-[80px] pointer-events-none group-hover:bg-cyan-400/20 transition-colors duration-700" />
+            <div className="absolute -bottom-20 left-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-[80px] pointer-events-none group-hover:bg-indigo-400/20 transition-colors duration-700" />
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-cyan-100 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20">
+                <FiActivity className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <h1 className="text-2xl font-extrabold text-white tracking-tight">Painel do Desenvolvedor</h1>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Visão geral de todos os projetos e clientes</p>
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-900 dark:text-white tracking-tight">Painel do Desenvolvedor</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Visão geral de todos os projetos e clientes</p>
               </div>
             </div>
           </div>
@@ -135,65 +151,62 @@ export default function DevPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
             {[
-              { label: 'Total de Projetos', value: total, icon: FiFolder, color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
-              { label: 'Em Andamento', value: inProgress, icon: FiTrendingUp, color: '#00b09b', bg: 'rgba(0,176,155,0.12)' },
-              { label: 'Concluídos', value: done, icon: FiCheckCircle, color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
-              { label: 'Clientes', value: clients, icon: FiUsers, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+              { label: 'Total de Projetos', value: total, icon: FiFolder, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+              { label: 'Em Andamento', value: inProgress, icon: FiTrendingUp, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+              { label: 'Concluídos', value: done, icon: FiCheckCircle, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-500/10' },
+              { label: 'Clientes', value: clients, icon: FiUsers, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
             ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="rounded-2xl px-5 py-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: bg }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
+              <div key={label} className="rounded-2xl px-5 py-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-md">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}>
+                  <Icon className={`w-4 h-4 ${color}`} />
                 </div>
-                <p className="text-2xl font-extrabold text-white">{value}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-900 dark:text-white">{value}</p>
+                <p className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">{label}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Projects list */}
-            <div className="lg:col-span-2 rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="lg:col-span-2 rounded-2xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-md">
+              <div className="px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-white/5">
                 <div className="flex items-center gap-2">
-                  <FiFolder className="w-4 h-4" style={{ color: '#00b09b' }} />
-                  <h2 className="text-sm font-bold text-white">Todos os Projetos</h2>
+                  <FiFolder className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-slate-900 dark:text-white">Todos os Projetos</h2>
                 </div>
-                <Link href="/dev/kanban" className="text-xs font-semibold flex items-center gap-1 transition hover:opacity-70" style={{ color: '#00b09b' }}>
+                <Link href="/dev/kanban" className="text-xs font-semibold flex items-center gap-1 transition text-cyan-600 dark:text-cyan-400 hover:opacity-70">
                   Gerenciar <FiArrowRight className="w-3 h-3" />
                 </Link>
               </div>
-              <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <div className="divide-y divide-slate-100 dark:divide-white/5">
                 {projects.length === 0 && (
                   <div className="py-12 flex flex-col items-center gap-2">
-                    <FiFolder className="w-8 h-8" style={{ color: 'rgba(255,255,255,0.1)' }} />
-                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>Nenhum projeto cadastrado</p>
+                    <FiFolder className="w-8 h-8 text-slate-300 dark:text-white/10" />
+                    <p className="text-sm text-slate-400 dark:text-white/30">Nenhum projeto cadastrado</p>
                   </div>
                 )}
                 {projects.map(p => (
-                  <div key={p.id} className="px-6 py-4 flex items-center gap-4 hover:bg-white/[0.02] transition">
-                    <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
-                    >
+                  <div key={p.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-slate-900 dark:text-white bg-gradient-to-br from-indigo-500 to-cyan-500">
                       {p.title[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">{p.title}</p>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-900 dark:text-white truncate">{p.title}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {p.client_name || p.client_email || 'Sem cliente'} · {p.project_type || 'Tipo não definido'}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                        <div className="h-full rounded-full" style={{ width: `${p.progress ?? 0}%`, background: 'linear-gradient(90deg,#004aad,#00b09b)' }} />
+                      <div className="w-24 h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-white/10">
+                        <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500" style={{ width: `${p.progress ?? 0}%` }} />
                       </div>
-                      <span className="text-xs font-semibold w-8 text-right" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.progress ?? 0}%</span>
+                      <span className="text-xs font-semibold w-8 text-right text-slate-500 dark:text-slate-400">{p.progress ?? 0}%</span>
                       <span
                         className="text-[10px] font-bold px-2.5 py-1 rounded-full"
                         style={{
-                          background: `${STATUS_COLOR[p.status ?? ''] ?? '#475569'}22`,
-                          color: STATUS_COLOR[p.status ?? ''] ?? '#94a3b8',
-                          border: `1px solid ${STATUS_COLOR[p.status ?? ''] ?? '#475569'}44`,
+                          background: `${STATUS_COLOR[p.status ?? ''] ?? '#475569'}15`,
+                          color: STATUS_COLOR[p.status ?? ''] ?? '#64748b',
+                          border: `1px solid ${STATUS_COLOR[p.status ?? ''] ?? '#475569'}30`,
                         }}
                       >
                         {p.status ?? '—'}
@@ -205,30 +218,30 @@ export default function DevPage() {
             </div>
 
             {/* Recent updates */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-2xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-md">
+              <div className="px-5 py-4 flex items-center justify-between border-b border-slate-200 dark:border-white/5">
                 <div className="flex items-center gap-2">
-                  <FiMessageSquare className="w-4 h-4" style={{ color: '#00b09b' }} />
-                  <h2 className="text-sm font-bold text-white">Atividade Recente</h2>
+                  <FiMessageSquare className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-slate-900 dark:text-white">Atividade Recente</h2>
                 </div>
-                <Link href="/dev/comunicacao" className="text-xs font-semibold flex items-center gap-1 transition hover:opacity-70" style={{ color: '#00b09b' }}>
+                <Link href="/dev/comunicacao" className="text-xs font-semibold flex items-center gap-1 transition text-cyan-600 dark:text-cyan-400 hover:opacity-70">
                   Ver tudo <FiArrowRight className="w-3 h-3" />
                 </Link>
               </div>
               <div className="p-3 flex flex-col gap-1">
                 {recentUpdates.length === 0 && (
                   <div className="py-8 flex flex-col items-center gap-2">
-                    <FiClock className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.1)' }} />
-                    <p className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>Sem atividade recente</p>
+                    <FiClock className="w-6 h-6 text-slate-300 dark:text-white/10" />
+                    <p className="text-xs text-center text-slate-400 dark:text-white/30">Sem atividade recente</p>
                   </div>
                 )}
                 {recentUpdates.map(u => (
-                  <div key={u.id} className="px-3 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div key={u.id} className="px-3 py-3 rounded-xl bg-slate-50 dark:bg-white/5">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold truncate" style={{ color: '#00b09b' }}>{u.projectTitle}</span>
-                      <span className="text-[10px] ml-auto shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>{timeAgo(u.created_at)}</span>
+                      <span className="text-[10px] font-bold truncate text-cyan-600 dark:text-cyan-400">{u.projectTitle}</span>
+                      <span className="text-[10px] ml-auto shrink-0 text-slate-400 dark:text-white/30">{timeAgo(u.created_at)}</span>
                     </div>
-                    <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.6)' }}>{u.message}</p>
+                    <p className="text-xs leading-relaxed line-clamp-2 text-slate-600 dark:text-white/70">{u.message}</p>
                   </div>
                 ))}
               </div>
@@ -238,24 +251,23 @@ export default function DevPage() {
           {/* Quick access */}
           <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { href: '/dev/kanban', label: 'Gerenciar Kanban', desc: 'Controle o board de qualquer projeto', icon: FiActivity, color: '#00b09b' },
-              { href: '/dev/comunicacao', label: 'Comunicação', desc: 'Envie atualizações para os clientes', icon: FiMessageSquare, color: '#6366f1' },
-              { href: '/dev/clientes', label: 'Clientes', desc: 'Lista completa de clientes e projetos', icon: FiUsers, color: '#f59e0b' },
-            ].map(({ href, label, desc, icon: Icon, color }) => (
+              { href: '/dev/kanban', label: 'Gerenciar Kanban', desc: 'Controle o board de qualquer projeto', icon: FiActivity, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
+              { href: '/dev/comunicacao', label: 'Comunicação', desc: 'Envie atualizações para os clientes', icon: FiMessageSquare, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+              { href: '/dev/clientes', label: 'Clientes', desc: 'Lista completa de clientes e projetos', icon: FiUsers, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+            ].map(({ href, label, desc, icon: Icon, color, bg }) => (
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-4 px-5 py-4 rounded-2xl transition hover:scale-[1.01]"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="flex items-center gap-4 px-5 py-4 rounded-2xl transition hover:scale-[1.01] bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-md"
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
+                  <Icon className={`w-5 h-5 ${color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white">{label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{desc}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-900 dark:text-white">{label}</p>
+                  <p className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">{desc}</p>
                 </div>
-                <FiArrowRight className="w-4 h-4 shrink-0" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                <FiArrowRight className="w-4 h-4 shrink-0 text-slate-300 dark:text-white/20" />
               </Link>
             ))}
           </div>

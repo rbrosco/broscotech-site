@@ -62,54 +62,55 @@ export default function FaturasPage() {
   const pagoCount = MOCK_INVOICES.filter(i => i.status === 'pago').length;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
-        <main className="px-4 md:px-8 pt-[81px] pb-20">
+        <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
 
           {/* ── Hero ── */}
-          <div
-            className="relative overflow-hidden rounded-2xl mt-6 px-7 py-6"
-            style={{ background: 'linear-gradient(130deg, rgba(0,74,173,0.18) 0%, rgba(0,176,155,0.12) 100%)', border: '1px solid rgba(0,176,155,0.2)' }}
-          >
-            <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle,#004aad,transparent)' }} />
-            <div className="absolute top-4 right-36 w-24 h-24 rounded-full blur-2xl opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle,#00b09b,transparent)' }} />
-            <FiFileText className="w-7 h-7 mb-3" style={{ color: '#00b09b' }} />
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Faturas</h1>
-            <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Histórico de cobranças e pagamentos de serviços prestados.</p>
+          <div className="relative overflow-hidden rounded-3xl mt-4 px-8 py-8 bg-white dark:bg-transparent bg-gradient-to-br from-indigo-50 via-cyan-50 to-emerald-50 dark:from-indigo-600/10 dark:via-cyan-500/5 dark:to-emerald-500/10 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl group">
+            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-[80px] pointer-events-none group-hover:bg-cyan-400/20 transition-colors duration-700" />
+            <div className="absolute -bottom-20 left-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-[80px] pointer-events-none group-hover:bg-indigo-400/20 transition-colors duration-700" />
+            
+            <div className="relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center border border-cyan-200 dark:border-cyan-500/20 shadow-sm dark:shadow-[0_0_15px_rgba(34,211,238,0.15)] mb-4">
+                <FiFileText className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+              </div>
+              <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Faturas</h1>
+              <p className="mt-2 text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+                Histórico de cobranças e pagamentos de serviços prestados.
+              </p>
+            </div>
 
             {/* KPI cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 relative z-10">
               {[
-                { label: 'Total faturado', value: fmt(total), sub: `${MOCK_INVOICES.length} faturas`, color: '#6366f1' },
-                { label: 'Recebido', value: fmt(pago), sub: `${pagoCount} pagas`, color: '#00b09b' },
-                { label: 'A receber', value: fmt(pendente), sub: 'pendentes', color: '#f59e0b' },
-                { label: 'Em atraso', value: fmt(vencido), sub: 'vencidas', color: '#ef4444' },
-              ].map(({ label, value, sub, color }) => (
-                <div key={label} className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${color}22` }}>
-                  <div className="w-2 h-2 rounded-full mb-2 animate-pulse" style={{ background: color }} />
-                  <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.38)' }}>{label}</p>
-                  <p className="text-lg font-extrabold text-white mt-0.5 tabular-nums">{value}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>{sub}</p>
+                { label: 'Total faturado', value: fmt(total), sub: `${MOCK_INVOICES.length} faturas`, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-400/10', border: 'border-indigo-100 dark:border-indigo-400/20' },
+                { label: 'Recebido', value: fmt(pago), sub: `${pagoCount} pagas`, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-400/10', border: 'border-cyan-100 dark:border-cyan-400/20' },
+                { label: 'A receber', value: fmt(pendente), sub: 'pendentes', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-400/10', border: 'border-amber-100 dark:border-amber-400/20' },
+                { label: 'Em atraso', value: fmt(vencido), sub: 'vencidas', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-400/10', border: 'border-red-100 dark:border-red-400/20' },
+              ].map(({ label, value, sub, color, bg, border }) => (
+                <div key={label} className={`rounded-2xl px-5 py-4 border ${bg} ${border} bg-white/50 dark:bg-transparent shadow-sm dark:shadow-lg backdrop-blur-sm transition-transform hover:-translate-y-1 duration-300`}>
+                  <div className={`w-2.5 h-2.5 rounded-full mb-3 shadow-[0_0_8px_currentColor] animate-pulse ${color}`} />
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{label}</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-white mt-1 tabular-nums tracking-tight">{value}</p>
+                  <p className="text-xs font-medium text-slate-500 mt-1">{sub}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* ── Filters ── */}
-          <div className="mt-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <div className="mt-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex flex-wrap gap-1 p-1.5 rounded-2xl bg-slate-200/50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
               {TABS.map(t => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={tab === t
-                    ? { background: 'linear-gradient(135deg,#004aad,#00b09b)', color: 'white', boxShadow: '0 0 12px rgba(0,176,155,0.25)' }
-                    : { color: 'rgba(255,255,255,0.4)' }}
+                  className={`px-5 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${tab === t ? 'bg-white text-slate-900 dark:bg-cyan-500 dark:text-slate-950 shadow-sm dark:shadow-[0_0_15px_rgba(34,211,238,0.4)]' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'}`}
                 >
                   {t}
                 </button>
@@ -117,26 +118,26 @@ export default function FaturasPage() {
             </div>
 
             {/* Search */}
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.3)' }} />
+            <div className="relative w-full md:w-auto">
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar fatura, projeto..."
-                className="pl-8 pr-4 py-2 rounded-xl text-xs text-white outline-none transition focus:ring-1 focus:ring-[#00b09b] w-56"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'white' }}
+                className="w-full md:w-64 pl-11 pr-4 py-3 rounded-2xl text-sm text-slate-900 dark:text-white bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/10"
               />
             </div>
           </div>
 
           {/* ── Invoice list ── */}
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-6 flex flex-col gap-4">
             {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.1)' }}>
-                  <FiFilter className="w-6 h-6" style={{ color: '#818cf8' }} />
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="w-16 h-16 rounded-3xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 shadow-sm dark:shadow-[0_0_30px_rgba(99,102,241,0.15)] relative">
+                  <div className="absolute inset-0 bg-indigo-400 blur-xl opacity-20 rounded-3xl animate-pulse" />
+                  <FiFilter className="w-8 h-8 text-indigo-600 dark:text-indigo-400 relative z-10" />
                 </div>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Nenhuma fatura encontrada.</p>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhuma fatura encontrada com esses filtros.</p>
               </div>
             ) : filtered.map(inv => {
               const st = STATUS_CONFIG[inv.status];
@@ -144,69 +145,67 @@ export default function FaturasPage() {
               return (
                 <div
                   key={inv.id}
-                  className="rounded-2xl overflow-hidden transition-all duration-200"
-                  style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.08)', borderLeft: `3px solid ${st.dot}` }}
+                  className="rounded-3xl overflow-hidden transition-all duration-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.07] shadow-sm dark:shadow-lg group"
+                  style={{ borderLeft: `4px solid ${st.dot}` }}
                 >
                   {/* Row */}
                   <div
-                    className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors flex-wrap"
+                    className="px-6 py-5 flex items-center gap-5 cursor-pointer flex-wrap"
                     onClick={() => setExpanded(isOpen ? null : inv.id)}
                   >
                     {/* Icon */}
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: st.bg }}>
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border" style={{ background: st.bg, borderColor: st.dot + '30' }}>
                       <span style={{ color: st.text }}>{st.icon}</span>
                     </div>
 
                     {/* ID + project */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono font-bold" style={{ color: 'rgba(255,255,255,0.35)' }}>{inv.id}</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold" style={{ background: st.bg, color: st.text }}>
-                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-sm font-mono font-bold text-slate-500 dark:text-slate-400">{inv.id}</span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border" style={{ background: st.bg, color: st.text, borderColor: st.dot + '30' }}>
+                          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: st.dot }} />
                           {st.label}
                         </span>
                       </div>
-                      <p className="text-sm font-bold text-white mt-0.5 truncate">{inv.projeto}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{inv.cliente}</p>
+                      <p className="text-base font-black text-slate-900 dark:text-white mt-1 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{inv.projeto}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-500 mt-0.5">{inv.cliente}</p>
                     </div>
 
                     {/* Dates */}
-                    <div className="hidden md:flex flex-col items-end gap-1 text-xs shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                      <span>Emissão: <span className="text-white/50">{fmtDate(inv.emissao)}</span></span>
-                      <span>Vencimento: <span style={{ color: inv.status === 'vencido' ? '#fca5a5' : 'rgba(255,255,255,0.5)' }}>{fmtDate(inv.vencimento)}</span></span>
+                    <div className="hidden md:flex flex-col items-end gap-1.5 text-sm shrink-0 mr-4 font-medium">
+                      <span className="text-slate-500 dark:text-slate-500">Emissão: <span className="text-slate-900 dark:text-slate-300">{fmtDate(inv.emissao)}</span></span>
+                      <span className="text-slate-500 dark:text-slate-500">Vencimento: <span style={{ color: inv.status === 'vencido' ? '#f87171' : 'currentColor' }} className={inv.status !== 'vencido' ? 'text-slate-900 dark:text-slate-300' : ''}>{fmtDate(inv.vencimento)}</span></span>
                     </div>
 
                     {/* Value */}
                     <div className="text-right shrink-0">
-                      <p className="text-base font-extrabold tabular-nums" style={{ color: inv.status === 'pago' ? '#00d4aa' : inv.status === 'vencido' ? '#fca5a5' : 'white' }}>
+                      <p className={`text-xl font-black tabular-nums tracking-tight ${inv.status !== 'pago' && inv.status !== 'vencido' ? 'text-slate-900 dark:text-white' : ''}`} style={{ color: inv.status === 'pago' ? '#34d399' : inv.status === 'vencido' ? '#f87171' : undefined }}>
                         {fmt(inv.valor)}
                       </p>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                    <div className="flex gap-2 shrink-0 ml-4" onClick={e => e.stopPropagation()}>
                       <button
                         title="Visualizar"
-                        className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:bg-white/10"
-                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
                       >
-                        <FiEye className="w-3.5 h-3.5" style={{ color: '#818cf8' }} />
+                        <FiEye className="w-4 h-4" />
                       </button>
                       <button
                         title="Baixar PDF"
-                        className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:bg-white/10"
-                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-500/20"
                       >
-                        <FiDownload className="w-3.5 h-3.5" style={{ color: '#00b09b' }} />
+                        <FiDownload className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
                   {/* Expanded detail */}
                   {isOpen && (
-                    <div className="px-5 pb-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                      <p className="text-xs mt-4 mb-3 font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Detalhes da fatura</p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="px-6 pb-6 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50">
+                      <p className="text-[11px] mt-6 mb-4 font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500">Detalhes da fatura</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
                         {[
                           { label: 'Número', value: inv.id },
                           { label: 'Cliente', value: inv.cliente },
@@ -214,19 +213,19 @@ export default function FaturasPage() {
                           { label: 'Vencimento', value: fmtDate(inv.vencimento) },
                         ].map(({ label, value }) => (
                           <div key={label}>
-                            <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{label}</p>
-                            <p className="font-medium text-white/70">{value}</p>
+                            <p className="text-[11px] font-bold uppercase tracking-wider mb-1 text-slate-500 dark:text-slate-500">{label}</p>
+                            <p className="font-semibold text-slate-900 dark:text-slate-200">{value}</p>
                           </div>
                         ))}
                       </div>
-                      <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>Descrição do serviço</p>
-                        <p className="text-sm mt-1 text-white/65">{inv.descricao}</p>
+                      <div className="rounded-2xl p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Descrição do serviço</p>
+                        <p className="text-sm mt-2 text-slate-700 dark:text-slate-300 leading-relaxed">{inv.descricao}</p>
                       </div>
                       {/* Total row */}
-                      <div className="mt-3 flex items-center justify-between py-3 px-4 rounded-xl" style={{ background: 'rgba(0,176,155,0.07)', border: '1px solid rgba(0,176,155,0.15)' }}>
-                        <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.45)' }}>Total da fatura</span>
-                        <span className="text-xl font-extrabold tabular-nums" style={{ color: '#00d4aa' }}>{fmt(inv.valor)}</span>
+                      <div className="mt-4 flex items-center justify-between py-4 px-6 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20 shadow-sm dark:shadow-inner">
+                        <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Total da fatura</span>
+                        <span className="text-2xl font-black tabular-nums text-cyan-600 dark:text-cyan-400">{fmt(inv.valor)}</span>
                       </div>
                     </div>
                   )}

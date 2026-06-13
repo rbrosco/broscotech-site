@@ -124,12 +124,22 @@ export async function POST(request: NextRequest) {
     if (!auth || !auth.id) {
       return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     }
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
+    if (!isAdmin) {
+      return NextResponse.json({ message: 'Acesso negado. Apenas admins podem modificar.' }, { status: 403 });
+    }
 
     const body = await request.json();
     const type = String(body.type ?? '');
 
-    const userId = Number(auth.id);
-    const project = await getOrCreateProjectForUser(userId);
+    let projectIdToUse: number;
+    if (body.projectId) {
+      projectIdToUse = Number(body.projectId);
+    } else {
+      const userId = Number(auth.id);
+      const project = await getOrCreateProjectForUser(userId);
+      projectIdToUse = Number(project.id);
+    }
 
     if (type === 'column') {
       const title = String(body.title ?? '').trim();
@@ -138,12 +148,12 @@ export async function POST(request: NextRequest) {
       const existingCols = await db
         .select()
         .from(kanban_columns)
-        .where(eq(kanban_columns.project_id, Number(project.id)));
+        .where(eq(kanban_columns.project_id, projectIdToUse));
 
       const position = existingCols.length;
       const [created] = await db
         .insert(kanban_columns)
-        .values({ project_id: Number(project.id), title, position })
+        .values({ project_id: projectIdToUse, title, position })
         .returning();
 
       return NextResponse.json({ column: created, message: 'Coluna criada.' });
@@ -183,6 +193,10 @@ export async function PATCH(request: NextRequest) {
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
     if (!auth || !auth.id) {
       return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
+    if (!isAdmin) {
+      return NextResponse.json({ message: 'Acesso negado. Apenas admins podem modificar.' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -235,6 +249,10 @@ export async function DELETE(request: NextRequest) {
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
     if (!auth || !auth.id) {
       return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+    }
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
+    if (!isAdmin) {
+      return NextResponse.json({ message: 'Acesso negado. Apenas admins podem modificar.' }, { status: 403 });
     }
 
     const body = await request.json();

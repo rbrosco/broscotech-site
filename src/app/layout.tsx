@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import Footer from "../component/Footer";
+import ConditionalFooter from "../component/ConditionalFooter";
 import ThemeProvider from "../component/ThemeProvider";
 import IAAgentButton from "../component/IAAgentButton";
 
@@ -58,9 +58,9 @@ export default function RootLayout({
         />
         <div className="relative z-10">
           <ThemeProvider>
-            <main className="flex-1 pt-10">{children}</main>
+            <main className="flex-1">{children}</main>
             <IAAgentButton />
-            <Footer />
+            <ConditionalFooter />
           </ThemeProvider>
         </div>
       </body>

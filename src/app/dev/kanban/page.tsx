@@ -58,8 +58,8 @@ export default function DevKanbanPage() {
 
         const res = await fetch('/api/projects', { credentials: 'include' });
         if (res.ok) {
-          const p = await res.json() as { projects?: { project: Project }[] };
-          const list = (p.projects ?? []).map(d => d.project);
+          const p = await res.json() as { projects?: Project[] };
+          const list = p.projects ?? [];
           setProjects(list);
           if (list.length > 0) setSelectedProjectId(list[0].id);
         }
@@ -95,7 +95,7 @@ export default function DevKanbanPage() {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'add_column', title: newColumnTitle, projectId: selectedProjectId }),
+      body: JSON.stringify({ type: 'column', title: newColumnTitle, projectId: selectedProjectId }),
     });
     setNewColumnTitle('');
     void loadBoard(selectedProjectId);
@@ -108,7 +108,7 @@ export default function DevKanbanPage() {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'add_card', column_id: columnId, title, projectId: selectedProjectId }),
+      body: JSON.stringify({ type: 'card', columnId: columnId, title, projectId: selectedProjectId }),
     });
     setNewCardTitles(prev => ({ ...prev, [columnId]: '' }));
     void loadBoard(selectedProjectId);
@@ -117,10 +117,10 @@ export default function DevKanbanPage() {
   const handleDrop = async (toColumnId: number) => {
     if (!dragging || dragging.fromColumnId === toColumnId || !selectedProjectId) return;
     await fetch('/api/kanban', {
-      method: 'POST',
+      method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'move_card', card_id: dragging.cardId, to_column_id: toColumnId, projectId: selectedProjectId }),
+      body: JSON.stringify({ cardId: dragging.cardId, toColumnId: toColumnId, toPosition: 0 }),
     });
     setDragging(null);
     void loadBoard(selectedProjectId);
@@ -129,10 +129,10 @@ export default function DevKanbanPage() {
   const handleDeleteCard = async (cardId: number) => {
     if (!selectedProjectId) return;
     await fetch('/api/kanban', {
-      method: 'POST',
+      method: 'DELETE',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete_card', card_id: cardId, projectId: selectedProjectId }),
+      body: JSON.stringify({ cardId: cardId }),
     });
     void loadBoard(selectedProjectId);
   };
@@ -141,9 +141,9 @@ export default function DevKanbanPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c18' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-64 flex items-center justify-center min-h-screen">
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -152,12 +152,12 @@ export default function DevKanbanPage() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c18' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-64 flex items-center justify-center min-h-screen">
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <FiAlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-            <p className="text-white">{error}</p>
+            <p className="text-slate-900 dark:text-slate-900 dark:text-white">{error}</p>
           </div>
         </div>
       </div>
@@ -165,9 +165,9 @@ export default function DevKanbanPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080c18' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
       <DevSidebar />
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="px-4 md:px-6 pt-[81px] pb-10">
@@ -178,8 +178,8 @@ export default function DevKanbanPage() {
                 <FiLayers className="w-4 h-4" style={{ color: '#00b09b' }} />
               </div>
               <div>
-                <h1 className="text-xl font-extrabold text-white">Kanban</h1>
-                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{totals} tarefas · {data?.columns.length ?? 0} colunas</p>
+                <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Kanban</h1>
+                <p className="text-xs" style={{ color: 'rgba(156, 163, 175, 0.8)' }}>{totals} tarefas · {data?.columns.length ?? 0} colunas</p>
               </div>
             </div>
 
@@ -187,36 +187,33 @@ export default function DevKanbanPage() {
             <div className="relative md:ml-auto">
               <button
                 onClick={() => setShowProjectPicker(v => !v)}
-                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', minWidth: '220px' }}
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 min-w-[220px]"
               >
-                <div className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                <div className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-900 dark:text-white shrink-0"
                   style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}>
                   {selectedProject?.title[0] ?? '?'}
                 </div>
                 <span className="flex-1 text-left truncate">{selectedProject?.title ?? 'Selecionar projeto'}</span>
-                <FiChevronDown className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                <FiChevronDown className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(156, 163, 175, 0.8)' }} />
               </button>
 
               {showProjectPicker && (
                 <div
-                  className="absolute top-full left-0 mt-1 w-full rounded-xl overflow-hidden z-30"
-                  style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}
+                  className="absolute top-full left-0 mt-1 w-full rounded-xl overflow-hidden z-30 bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 shadow-xl"
                 >
                   {projects.map(p => (
                     <button
                       key={p.id}
                       onClick={() => { setSelectedProjectId(p.id); setShowProjectPicker(false); }}
-                      className="w-full text-left px-4 py-3 flex items-center gap-3 transition hover:bg-white/05"
-                      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                      className="w-full text-left px-4 py-3 flex items-center gap-3 transition hover:bg-white/05 border-b border-slate-200 dark:border-white/5"
                     >
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-900 dark:text-white shrink-0"
                         style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}>
                         {p.title[0]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-white truncate">{p.title}</p>
-                        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{p.client_name ?? 'Sem cliente'} · {p.status ?? '—'}</p>
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{p.title}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-white/30">{p.client_name ?? 'Sem cliente'} · {p.status ?? '—'}</p>
                       </div>
                       {p.id === selectedProjectId && <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#00b09b' }} />}
                     </button>
@@ -236,15 +233,14 @@ export default function DevKanbanPage() {
               {(data?.columns ?? []).map(col => (
                 <div
                   key={col.id}
-                  className="shrink-0 flex flex-col rounded-2xl overflow-hidden"
-                  style={{ width: '272px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  className="shrink-0 flex flex-col rounded-2xl overflow-hidden w-[272px] bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07]"
                   onDragOver={e => e.preventDefault()}
                   onDrop={() => void handleDrop(col.id)}
                 >
                   {/* Column header */}
-                  <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 dark:border-white/10">
                     <div className="w-2 h-2 rounded-full" style={{ background: '#00b09b' }} />
-                    <span className="text-xs font-bold text-white flex-1">{col.title}</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-900 dark:text-white flex-1">{col.title}</span>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(0,176,155,0.12)', color: '#00b09b' }}>
                       {col.cards.length}
                     </span>
@@ -258,11 +254,10 @@ export default function DevKanbanPage() {
                         draggable
                         onDragStart={() => setDragging({ cardId: card.id, fromColumnId: col.id })}
                         onDragEnd={() => setDragging(null)}
-                        className="group px-3.5 py-3 rounded-xl cursor-grab active:cursor-grabbing relative"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="group px-3.5 py-3 rounded-xl cursor-grab active:cursor-grabbing relative bg-white dark:bg-white/5 border border-slate-200 dark:border-white/[0.08]"
                       >
-                        <p className="text-xs font-semibold text-white pr-5 leading-relaxed">{card.title}</p>
-                        {card.description && <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{card.description}</p>}
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white pr-5 leading-relaxed">{card.title}</p>
+                        {card.description && <p className="text-[11px] mt-1" style={{ color: 'rgba(156, 163, 175, 0.8)' }}>{card.description}</p>}
                         {card.responsavel && (
                           <p className="text-[10px] mt-1.5 font-medium" style={{ color: '#00b09b' }}>@ {card.responsavel}</p>
                         )}
@@ -278,11 +273,10 @@ export default function DevKanbanPage() {
                   </div>
 
                   {/* Add card input */}
-                  <div className="p-2" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="p-2 border-t border-slate-200 dark:border-white/5">
                     <div className="flex gap-1.5">
                       <input
-                        className="flex-1 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 outline-none"
-                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="flex-1 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-white/25 outline-none bg-slate-50 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08]"
                         placeholder="Nova tarefa..."
                         value={newCardTitles[col.id] ?? ''}
                         onChange={e => setNewCardTitles(prev => ({ ...prev, [col.id]: e.target.value }))}
@@ -293,7 +287,7 @@ export default function DevKanbanPage() {
                         className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition hover:opacity-80"
                         style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
                       >
-                        <FiPlus className="w-3.5 h-3.5 text-white" />
+                        <FiPlus className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                       </button>
                     </div>
                   </div>
@@ -303,8 +297,7 @@ export default function DevKanbanPage() {
               {/* Add column */}
               <div className="shrink-0 flex flex-col gap-2" style={{ width: '220px' }}>
                 <input
-                  className="rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)' }}
+                  className="rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-white/30 outline-none bg-slate-50 dark:bg-white/[0.04] border border-slate-200 border-dashed dark:border-white/[0.12]"
                   placeholder="Nova coluna..."
                   value={newColumnTitle}
                   onChange={e => setNewColumnTitle(e.target.value)}

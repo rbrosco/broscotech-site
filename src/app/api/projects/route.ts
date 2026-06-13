@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
           message: u.message ?? '',
           created_at: u.created_at ?? ''
         }));
-        return { project, updates };
+        return { ...project, updates };
       }));
       return NextResponse.json({ projects: projectsWithUpdates });
     }

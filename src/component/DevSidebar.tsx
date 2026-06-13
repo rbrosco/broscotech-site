@@ -4,9 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
-  FiGrid, FiLayers, FiMessageSquare, FiUsers,
-  FiSettings, FiLogOut, FiMenu, FiX, FiCode,
-  FiActivity,
+  FiChevronLeft, FiChevronRight, FiGrid, FiLayers, FiMessageSquare, FiUsers,
+  FiSettings, FiLogOut, FiMenu, FiX, FiCode, FiActivity
 } from 'react-icons/fi';
 
 const devItems = [
@@ -25,16 +24,33 @@ const DevSidebar: React.FC = () => {
   const pathname = usePathname();
   const [userName, setUserName] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.name) setUserName(parsed.name);
-      }
-    } catch {}
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sidebarCollapsed');
+        if (stored !== null) setIsCollapsed(stored === 'true');
+        else localStorage.setItem('sidebarCollapsed', 'true');
+
+        const raw = localStorage.getItem('userData');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.name) setUserName(parsed.name);
+        }
+      } catch {}
+    }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '5rem' : '16rem');
+  }, [isCollapsed]);
+
+  const toggleSidebar = () => {
+    const val = !isCollapsed;
+    setIsCollapsed(val);
+    localStorage.setItem('sidebarCollapsed', String(val));
+  };
 
   const isActive = (href: string) =>
     href === '/dev' ? pathname === '/dev' : pathname.startsWith(href);
@@ -46,40 +62,55 @@ const DevSidebar: React.FC = () => {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full" style={{ background: '#080c18' }}>
+    <div className="flex flex-col h-full relative" >
+      {/* Toggle button */}
+      <button
+        onClick={toggleSidebar}
+        className="hidden md:flex absolute -right-3 top-10 w-6 h-6 rounded-full items-center justify-center transition-colors z-50 shadow-sm"
+        style={{ background: '#0d1224', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+      >
+        {isCollapsed ? <FiChevronRight className="w-3.5 h-3.5" /> : <FiChevronLeft className="w-3.5 h-3.5" />}
+      </button>
+
       {/* Logo */}
-      <div className="flex flex-col items-center pt-8 pb-6 px-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="flex flex-col items-center pt-8 pb-6 px-5 border-b border-slate-200 dark:border-white/10">
         <Link href="/dev" className="flex flex-col items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
           <div className="relative">
             <div className="absolute inset-0 rounded-full blur-xl opacity-50" style={{ background: 'radial-gradient(circle, #00b09b, #004aad)' }} />
             <Image
               src="/images/EASYDEVLOGO.png"
               alt="EASYDEV"
-              width={52}
-              height={52}
-              className="relative rounded-full"
+              width={isCollapsed ? 42 : 52}
+              height={isCollapsed ? 42 : 52}
+              className="relative rounded-full transition-all duration-300"
               style={{ border: '2px solid rgba(0,176,155,0.4)' }}
             />
           </div>
-          <div className="text-center">
-            <span className="text-white font-extrabold tracking-[0.12em] text-sm uppercase group-hover:text-[#00d4aa] transition-colors">
-              EASYDEV
-            </span>
-            <div className="flex items-center justify-center gap-1 mt-0.5">
-              <FiCode className="w-2.5 h-2.5" style={{ color: '#00b09b' }} />
-              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#00b09b' }}>
-                Dev Panel
+          {!isCollapsed && (
+            <div className="text-center">
+              <span className="text-slate-900 dark:text-white font-extrabold tracking-[0.12em] text-sm uppercase group-hover:text-[#00d4aa] transition-colors">
+                EASYDEV
               </span>
+              <div className="flex items-center justify-center gap-1 mt-0.5">
+                <FiCode className="w-2.5 h-2.5" style={{ color: '#00b09b' }} />
+                <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: '#00b09b' }}>
+                  Dev Panel
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </Link>
       </div>
 
       {/* Nav */}
-      <div className="flex flex-col px-3 pt-6 gap-0.5 flex-1 overflow-y-auto">
-        <span className="text-[10px] font-bold uppercase tracking-[0.14em] px-3 mb-2" style={{ color: '#475569' }}>
-          Desenvolvimento
-        </span>
+      <div className="flex flex-col pt-6 gap-1 flex-1 overflow-y-auto overflow-x-hidden">
+        {isCollapsed ? (
+          <div className="mx-4 mb-2 border-b border-slate-200 dark:border-white/10" />
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] px-6 mb-2 text-slate-500">
+            Desenvolvimento
+          </span>
+        )}
 
         {devItems.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
@@ -87,81 +118,92 @@ const DevSidebar: React.FC = () => {
             <Link
               key={href}
               href={href}
+              title={isCollapsed ? label : undefined}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-              style={{
-                background: active ? 'rgba(0,176,155,0.12)' : 'transparent',
-                color: active ? '#00d4aa' : 'rgba(255,255,255,0.55)',
-                borderLeft: `2px solid ${active ? '#00b09b' : 'transparent'}`,
-              }}
+              className={`flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group mx-3 border-l-2 ${
+                isCollapsed ? 'px-0 justify-center' : 'px-3'
+              } ${active ? "bg-[#00b09b]/10 text-[#00b09b] dark:text-[#00d4aa] border-[#00b09b]" : "border-transparent text-slate-600 dark:text-white/55 hover:bg-slate-50 dark:hover:bg-white/5"}`}
+              
             >
-              <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-              <span>{label}</span>
-              {active && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#00b09b' }} />}
+              <Icon className={`shrink-0 transition-transform group-hover:scale-110 ${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+              {!isCollapsed && <span>{label}</span>}
+              {!isCollapsed && active && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#00b09b' }} />}
             </Link>
           );
         })}
 
-        <span className="text-[10px] font-bold uppercase tracking-[0.14em] px-3 mt-5 mb-2" style={{ color: '#475569' }}>
-          Sistema
-        </span>
+        {isCollapsed ? (
+          <div className="mx-4 mt-4 mb-2 border-b border-slate-200 dark:border-white/10" />
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] px-6 mt-5 mb-2 text-slate-500">
+            Sistema
+          </span>
+        )}
+        
         {adminItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               href={href}
+              title={isCollapsed ? label : undefined}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-              style={{
-                background: active ? 'rgba(0,74,173,0.15)' : 'transparent',
-                color: active ? '#60a5fa' : 'rgba(255,255,255,0.55)',
-                borderLeft: `2px solid ${active ? '#004aad' : 'transparent'}`,
-              }}
+              className={`flex items-center gap-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group mx-3 border-l-2 ${
+                isCollapsed ? 'px-0 justify-center' : 'px-3'
+              } ${active ? "bg-[#00b09b]/10 text-[#00b09b] dark:text-[#00d4aa] border-[#00b09b]" : "border-transparent text-slate-600 dark:text-white/55 hover:bg-slate-50 dark:hover:bg-white/5"}`}
+              
             >
-              <Icon className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
-              {label}
+              <Icon className={`shrink-0 transition-transform group-hover:scale-110 ${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+              {!isCollapsed && <span>{label}</span>}
             </Link>
           );
         })}
 
         {/* Switch to client view */}
-        <div className="mt-4 px-3">
+        <div className={`mt-4 ${isCollapsed ? 'mx-3' : 'px-3'}`}>
           <Link
             href="/dashboard"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition"
-            style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.07)' }}
+            title={isCollapsed ? 'Ver área do cliente' : undefined}
+            className={`flex items-center gap-2 py-2 rounded-xl text-xs font-semibold transition border ${
+              isCollapsed ? 'justify-center px-0' : 'px-3'
+            } bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-white/5 dark:text-white/40 dark:border-white/10 dark:hover:bg-white/10`}
           >
-            <FiUsers className="w-3.5 h-3.5" />
-            Ver área do cliente
+            <FiUsers className={isCollapsed ? 'w-5 h-5' : 'w-3.5 h-3.5'} />
+            {!isCollapsed && "Ver área do cliente"}
           </Link>
         </div>
       </div>
 
       {/* User footer */}
-      <div className="px-3 py-4">
+      <div className="p-4 mt-auto">
         <div
-          className="flex items-center gap-3 px-3 py-3 rounded-xl"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className={`flex items-center rounded-xl transition-all border ${
+            isCollapsed ? 'flex-col gap-3 p-3' : 'gap-3 px-3 py-3'
+          } bg-slate-50 border-slate-200 dark:bg-white/5 dark:border-white/10`}
         >
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0"
             style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
+            title={isCollapsed ? userName || 'Developer' : undefined}
           >
             {userName ? userName[0].toUpperCase() : 'D'}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white truncate">{userName || 'Developer'}</p>
-            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Admin</p>
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{userName || 'Developer'}</p>
+              <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Admin</p>
+            </div>
+          )}
           <button
             onClick={handleLogout}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition hover:bg-red-500/20"
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition hover:bg-red-500/20 ${
+              isCollapsed ? '' : 'ml-auto'
+            }`}
             style={{ color: 'rgba(255,255,255,0.3)' }}
             title="Sair"
           >
-            <FiLogOut className="w-3.5 h-3.5" />
+            <FiLogOut className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -181,7 +223,7 @@ const DevSidebar: React.FC = () => {
 
       {/* Desktop */}
       <aside
-        className="fixed top-0 left-0 h-full w-64 z-40 hidden md:block"
+        className={`fixed top-0 left-0 h-full z-40 hidden md:block transition-[width] duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}
         style={{ borderRight: '1px solid rgba(255,255,255,0.07)' }}
       >
         <SidebarContent />

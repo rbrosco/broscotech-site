@@ -14,15 +14,14 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode; desc: strin
   { id: 'seguranca',     label: 'Segurança',         icon: <FiShield />,  desc: 'Senha, sessões e 2FA' },
 ];
 
-const FIELD_STYLE = "w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b]";
-const FIELD_BG = { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' };
+const FIELD_STYLE = "w-full rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:bg-white dark:focus:bg-white/10";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</label>
+      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-white/35">{label}</label>
       {children}
-      {hint && <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.22)' }}>{hint}</p>}
+      {hint && <p className="text-[11px] text-slate-400 dark:text-white/20">{hint}</p>}
     </div>
   );
 }
@@ -91,9 +90,9 @@ export default function ConfiguracoesPage() {
 
   if (checkingAuth) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200">
         <Sidebar />
-        <div className="md:pl-64 flex items-center justify-center min-h-screen">
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -102,17 +101,17 @@ export default function ConfiguracoesPage() {
 
   if (!isAdmin) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200">
         <Sidebar />
-        <div className="md:pl-64 flex flex-col min-h-screen">
+        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
           <DashboardNav />
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239,68,68,0.1)' }}>
-                <FiShield className="w-8 h-8 text-red-400" />
+            <div className="text-center p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl backdrop-blur-sm">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
+                <FiShield className="w-8 h-8 text-red-600 dark:text-red-400" />
               </div>
-              <h2 className="text-lg font-bold text-white">Acesso restrito</h2>
-              <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Área exclusiva para administradores.</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Acesso restrito</h2>
+              <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">Área exclusiva para administradores.</p>
             </div>
           </div>
         </div>
@@ -123,58 +122,58 @@ export default function ConfiguracoesPage() {
   const currentSectionMeta = SECTIONS.find(s => s.id === activeSection)!;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
-        <main className="px-4 md:px-8 pt-[81px] pb-20">
+        <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
           {/* Header */}
           <div
-            className="relative overflow-hidden rounded-2xl mt-6 px-7 py-6"
-            style={{ background: 'linear-gradient(130deg, rgba(0,74,173,0.18) 0%, rgba(0,176,155,0.12) 100%)', border: '1px solid rgba(0,176,155,0.2)' }}
+            className="relative overflow-hidden rounded-3xl mt-4 px-8 py-8 bg-white dark:bg-transparent bg-gradient-to-br from-indigo-50 via-cyan-50 to-emerald-50 dark:from-indigo-600/10 dark:via-cyan-500/5 dark:to-emerald-500/10 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl group"
           >
-            <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle,#004aad,transparent)' }} />
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Configurações</h1>
-            <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Gerencie preferências, integrações e segurança do sistema.</p>
+            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-[80px] pointer-events-none group-hover:bg-cyan-400/20 transition-colors duration-700" />
+            <div className="absolute -bottom-20 left-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-[80px] pointer-events-none group-hover:bg-indigo-400/20 transition-colors duration-700" />
+            
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight relative z-10">Configurações</h1>
+            <p className="mt-2 text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-md leading-relaxed relative z-10">Gerencie preferências, integrações e segurança do sistema.</p>
           </div>
 
           <div className="mt-5 flex flex-col md:flex-row gap-5">
             {/* ── Sidebar nav ── */}
             <nav
-              className="md:w-60 shrink-0 rounded-2xl overflow-hidden p-2 flex flex-row md:flex-col gap-1 flex-wrap"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+              className="md:w-60 shrink-0 rounded-2xl overflow-hidden p-2 flex flex-row md:flex-col gap-1 flex-wrap bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg"
             >
               {SECTIONS.map(s => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className="group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all w-full"
-                  style={activeSection === s.id
-                    ? { background: 'rgba(0,176,155,0.12)', borderLeft: '3px solid #00b09b' }
-                    : { borderLeft: '3px solid transparent' }
-                  }
+                  className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all w-full border-l-[3px] ${
+                    activeSection === s.id
+                      ? 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-500'
+                      : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
+                  }`}
                 >
-                  <span className="text-base shrink-0" style={{ color: activeSection === s.id ? '#00b09b' : 'rgba(255,255,255,0.3)' }}>
+                  <span className={`text-base shrink-0 ${activeSection === s.id ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`}>
                     {s.icon}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold" style={{ color: activeSection === s.id ? 'white' : 'rgba(255,255,255,0.5)' }}>{s.label}</p>
+                    <p className={`text-xs font-bold ${activeSection === s.id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{s.label}</p>
                   </div>
                 </button>
               ))}
             </nav>
 
             {/* ── Content panel ── */}
-            <div className="flex-1 rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex-1 rounded-2xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg">
               {/* Panel header */}
-              <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(0,176,155,0.12)' }}>
-                  <span style={{ color: '#00b09b' }}>{currentSectionMeta.icon}</span>
+              <div className="px-6 py-5 flex items-center gap-3 border-b border-slate-200 dark:border-white/5">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20">
+                  <span className="text-cyan-600 dark:text-cyan-400">{currentSectionMeta.icon}</span>
                 </div>
                 <div>
-                  <h2 className="text-sm font-extrabold text-white">{currentSectionMeta.label}</h2>
-                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{currentSectionMeta.desc}</p>
+                  <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">{currentSectionMeta.label}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{currentSectionMeta.desc}</p>
                 </div>
               </div>
 
@@ -183,35 +182,35 @@ export default function ConfiguracoesPage() {
 
                 {/* IA Agent */}
                 {activeSection === 'iaagent' && (
-                  <div className="flex flex-col gap-5 max-w-lg">
+                  <div className="flex flex-col gap-5 w-full">
 
                     {/* Model */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        <FiSliders className="w-4 h-4" style={{ color: '#00b09b' }} />
-                        <p className="text-xs font-bold text-white">Modelo de IA</p>
+                    <div className="rounded-2xl overflow-hidden bg-slate-50 dark:bg-white/[0.025] border border-slate-200 dark:border-white/5">
+                      <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 dark:border-white/5">
+                        <FiSliders className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">Modelo de IA</p>
                       </div>
                       <div className="px-4 py-4 flex flex-col gap-3">
                         <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
-                          <input className={FIELD_STYLE} style={FIELD_BG} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
+                          <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
                         </Field>
                         <div className="flex flex-wrap gap-2">
                           {['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'].map(m => (
-                            <button key={m} onClick={() => setGroqModel(m)} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold transition"
-                              style={groqModel === m
-                                ? { background: 'rgba(0,176,155,0.2)', color: '#00d4aa', border: '1px solid rgba(0,176,155,0.3)' }
-                                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }
-                              }>{m}</button>
+                            <button key={m} onClick={() => setGroqModel(m)} className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition border ${
+                                groqModel === m
+                                  ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30'
+                                  : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                              }`}>{m}</button>
                           ))}
                         </div>
                       </div>
                     </div>
 
                     {/* API Key & Webhook */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        <FiKey className="w-4 h-4" style={{ color: '#818cf8' }} />
-                        <p className="text-xs font-bold text-white">API & Integrações</p>
+                    <div className="rounded-2xl overflow-hidden bg-slate-50 dark:bg-white/[0.025] border border-slate-200 dark:border-white/5">
+                      <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 dark:border-white/5">
+                        <FiKey className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">API & Integrações</p>
                       </div>
                       <div className="px-4 py-4 flex flex-col gap-4">
                         <Field label="GROQ API Key" hint="Sua chave privada da plataforma Groq">
@@ -219,40 +218,38 @@ export default function ConfiguracoesPage() {
                             <input
                               type={showKey ? 'text' : 'password'}
                               className={`${FIELD_STYLE} pr-10`}
-                              style={FIELD_BG}
                               value={groqKey}
                               onChange={e => setGroqKey(e.target.value)}
                               placeholder="gsk_••••••••••••••••••••••"
                             />
-                            <button type="button" onClick={() => setShowKey(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            <button type="button" onClick={() => setShowKey(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                               {showKey ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                             </button>
                           </div>
                         </Field>
                         <Field label="Webhook URL" hint="URL para receber notificações de eventos">
                           <div className="relative">
-                            <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.3)' }} />
-                            <input className={`${FIELD_STYLE} pl-8`} style={FIELD_BG} value={webhook} onChange={e => setWebhook(e.target.value)} placeholder="https://..." />
+                            <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                            <input className={`${FIELD_STYLE} pl-8`} value={webhook} onChange={e => setWebhook(e.target.value)} placeholder="https://..." />
                           </div>
                         </Field>
                       </div>
                     </div>
 
                     {/* System Prompt */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        <FiCpu className="w-4 h-4" style={{ color: '#fbbf24' }} />
-                        <p className="text-xs font-bold text-white">System Prompt</p>
+                    <div className="rounded-2xl overflow-hidden bg-slate-50 dark:bg-white/[0.025] border border-slate-200 dark:border-white/5">
+                      <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 dark:border-white/5">
+                        <FiCpu className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">System Prompt</p>
                       </div>
                       <div className="px-4 py-4">
                         <textarea
-                          className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b] resize-none h-36"
-                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                          className="w-full rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b] resize-none h-36 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:bg-white dark:focus:bg-white/10"
                           value={systemPrompt}
                           onChange={e => setSystemPrompt(e.target.value)}
                           placeholder="Você é um assistente especializado em desenvolvimento de software da EasyDev. Responda sempre em português..."
                         />
-                        <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Instrução base que define o comportamento do agente em cada conversa.</p>
+                        <p className="text-[11px] mt-1 text-slate-500 dark:text-slate-400">Instrução base que define o comportamento do agente em cada conversa.</p>
                       </div>
                     </div>
 
@@ -261,10 +258,10 @@ export default function ConfiguracoesPage() {
 
                 {/* API & Integrações */}
                 {activeSection === 'api' && (
-                  <div className="flex flex-col gap-5 max-w-lg">
-                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                      <FiCpu className="w-4 h-4 shrink-0" style={{ color: '#818cf8' }} />
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                  <div className="flex flex-col gap-5 w-full">
+                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
+                      <FiCpu className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                      <p className="text-xs text-indigo-800 dark:text-indigo-200/70">
                         Configure a chave da API Groq e o modelo de linguagem para o agente de IA.
                       </p>
                     </div>
@@ -273,7 +270,6 @@ export default function ConfiguracoesPage() {
                         <input
                           type={showKey ? 'text' : 'password'}
                           className={`${FIELD_STYLE} pr-10`}
-                          style={FIELD_BG}
                           value={groqKey}
                           onChange={e => setGroqKey(e.target.value)}
                           placeholder="gsk_••••••••••••••••••••••"
@@ -281,21 +277,20 @@ export default function ConfiguracoesPage() {
                         <button
                           type="button"
                           onClick={() => setShowKey(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2"
-                          style={{ color: 'rgba(255,255,255,0.3)' }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                         >
                           {showKey ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                         </button>
                       </div>
                     </Field>
                     <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
-                      <input className={FIELD_STYLE} style={FIELD_BG} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
+                      <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
                     </Field>
-                    <div className="pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
+                    <div className="pt-1 border-t border-slate-200 dark:border-white/5" />
                     <Field label="Webhook URL" hint="URL para receber notificações de eventos do sistema">
                       <div className="relative">
-                        <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.3)' }} />
-                        <input className={`${FIELD_STYLE} pl-8`} style={FIELD_BG} value={webhook} onChange={e => setWebhook(e.target.value)} placeholder="https://..." />
+                        <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                        <input className={`${FIELD_STYLE} pl-8`} value={webhook} onChange={e => setWebhook(e.target.value)} placeholder="https://..." />
                       </div>
                     </Field>
                   </div>
@@ -303,46 +298,44 @@ export default function ConfiguracoesPage() {
 
                 {/* Perfil */}
                 {activeSection === 'perfil' && (
-                  <div className="flex flex-col gap-5 max-w-lg">
-                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shrink-0" style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}>
+                  <div className="flex flex-col gap-5 w-full">
+                    <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shrink-0 bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-sm">
                         {profileName ? profileName[0].toUpperCase() : 'A'}
                       </div>
                       <div>
-                        <p className="font-bold text-white">{profileName || 'Admin'}</p>
-                        <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Administrador do sistema</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{profileName || 'Admin'}</p>
+                        <p className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">Administrador do sistema</p>
                       </div>
                     </div>
                     <Field label="Nome de exibição">
-                      <input className={FIELD_STYLE} style={FIELD_BG} value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="Seu nome" />
+                      <input className={FIELD_STYLE} value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="Seu nome" />
                     </Field>
                     <Field label="E-mail">
-                      <input type="email" className={FIELD_STYLE} style={FIELD_BG} value={profileEmail} onChange={e => setProfileEmail(e.target.value)} placeholder="seu@email.com" />
+                      <input type="email" className={FIELD_STYLE} value={profileEmail} onChange={e => setProfileEmail(e.target.value)} placeholder="seu@email.com" />
                     </Field>
                   </div>
                 )}
 
                 {/* Notificações */}
                 {activeSection === 'notificacoes' && (
-                  <div className="flex flex-col gap-3 max-w-lg">
+                  <div className="flex flex-col gap-3 w-full">
                     {[
                       { label: 'Notificações por e-mail', desc: 'Receba atualizações importantes no e-mail', state: notifEmail, set: setNotifEmail },
                       { label: 'Atualizações de projeto', desc: 'Alertas quando um projeto mudar de status', state: notifProject, set: setNotifProject },
                       { label: 'Alertas do sistema', desc: 'Notificações sobre erros e manutenção', state: notifSystem, set: setNotifSystem },
                     ].map(({ label, desc, state, set }) => (
-                      <div key={label} className="flex items-center justify-between px-4 py-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div key={label} className="flex items-center justify-between px-4 py-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
                         <div>
-                          <p className="text-sm font-semibold text-white">{label}</p>
-                          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{desc}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{label}</p>
+                          <p className="text-xs mt-0.5 text-slate-500 dark:text-slate-400">{desc}</p>
                         </div>
                         <button
                           onClick={() => set(v => !v)}
-                          className="w-11 h-6 rounded-full transition-all shrink-0 relative"
-                          style={{ background: state ? 'linear-gradient(135deg,#004aad,#00b09b)' : 'rgba(255,255,255,0.1)' }}
+                          className={`w-11 h-6 rounded-full transition-all shrink-0 relative ${state ? 'bg-gradient-to-r from-indigo-500 to-cyan-500' : 'bg-slate-200 dark:bg-slate-700'}`}
                         >
                           <span
-                            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-                            style={{ left: state ? '22px' : '2px', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
+                            className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-sm ${state ? 'left-[22px]' : 'left-[2px]'}`}
                           />
                         </button>
                       </div>
@@ -352,19 +345,19 @@ export default function ConfiguracoesPage() {
 
                 {/* Segurança */}
                 {activeSection === 'seguranca' && (
-                  <div className="flex flex-col gap-5 max-w-lg">
-                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                      <FiShield className="w-4 h-4 shrink-0 text-amber-400" />
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Altere sua senha periodicamente para manter a conta segura.</p>
+                  <div className="flex flex-col gap-5 w-full">
+                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+                      <FiShield className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <p className="text-xs text-amber-800 dark:text-amber-200/70">Altere sua senha periodicamente para manter a conta segura.</p>
                     </div>
                     <Field label="Senha atual">
-                      <input type="password" className={FIELD_STYLE} style={FIELD_BG} value={currentPass} onChange={e => setCurrentPass(e.target.value)} placeholder="••••••••" />
+                      <input type="password" className={FIELD_STYLE} value={currentPass} onChange={e => setCurrentPass(e.target.value)} placeholder="••••••••" />
                     </Field>
                     <Field label="Nova senha">
-                      <input type="password" className={FIELD_STYLE} style={FIELD_BG} value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="••••••••" />
+                      <input type="password" className={FIELD_STYLE} value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="••••••••" />
                     </Field>
                     <Field label="Confirmar nova senha">
-                      <input type="password" className={FIELD_STYLE} style={FIELD_BG} value={confirmPass} onChange={e => setConfirmPass(e.target.value)} placeholder="••••••••" />
+                      <input type="password" className={FIELD_STYLE} value={confirmPass} onChange={e => setConfirmPass(e.target.value)} placeholder="••••••••" />
                     </Field>
                   </div>
                 )}
@@ -372,16 +365,15 @@ export default function ConfiguracoesPage() {
               </div>
 
               {/* Panel footer */}
-              <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="px-6 py-4 flex items-center justify-between border-t border-slate-200 dark:border-white/5">
                 {saved ? (
-                  <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#00d4aa' }}>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                     <FiCheckCircle className="w-4 h-4" /> Salvo com sucesso!
                   </div>
                 ) : <span />}
                 <button
                   onClick={handleSave}
-                  className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
+                  className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-md"
                 >
                   <FiSave className="w-4 h-4" /> Salvar alterações
                 </button>

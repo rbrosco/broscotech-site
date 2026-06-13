@@ -40,13 +40,13 @@ function statusStyle(status: string) {
 }
 
 const FIELD_STYLE =
-  'w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b] disabled:opacity-40';
-const FIELD_BG = { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' };
+  'w-full rounded-2xl px-4 py-3.5 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 placeholder:text-slate-400 dark:placeholder:text-white/30 outline-none transition-all focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/10 disabled:opacity-40';
+const FIELD_BG = {}; // Handled by Tailwind classes
 
 function InputField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>
+      <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {label}
       </label>
       {children}
@@ -79,29 +79,21 @@ function DarkSelect({ value, onChange, options, placeholder, disabled }: {
         type="button"
         disabled={disabled}
         onClick={() => setOpen(o => !o)}
-        className="w-full rounded-xl px-3 py-2.5 text-sm text-left flex items-center justify-between outline-none transition focus:ring-1 focus:ring-[#00b09b] disabled:opacity-40"
-        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: value ? 'white' : 'rgba(255,255,255,0.25)' }}
+        className={`w-full rounded-2xl px-4 py-3.5 text-sm text-left flex items-center justify-between outline-none transition-all focus:ring-2 focus:ring-cyan-500 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 disabled:opacity-40 ${value ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-white/30'}`}
       >
         <span>{value || placeholder || 'Selecione'}</span>
-        <FiChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'none', color: 'rgba(255,255,255,0.35)' }} />
+        <FiChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''} text-slate-400 dark:text-white/40`} />
       </button>
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 mt-1 rounded-xl overflow-hidden py-1"
-          style={{ background: '#1a2235', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+          className="absolute z-50 left-0 right-0 mt-2 rounded-2xl overflow-hidden py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
         >
           {['', ...options].map(opt => (
             <button
               key={opt}
               type="button"
               onClick={() => { onChange(opt); setOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm transition"
-              style={{
-                color: opt === value ? '#00d4aa' : opt ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.3)',
-                background: opt === value ? 'rgba(0,176,155,0.12)' : 'transparent',
-              }}
-              onMouseEnter={e => { if (opt !== value) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; }}
-              onMouseLeave={e => { if (opt !== value) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${opt === value ? 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10' : opt ? 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
             >
               {opt || placeholder || 'Selecione'}
             </button>
@@ -343,37 +335,36 @@ export default function ProjetoPage() {
   const activeCount = projectsList.filter(p => p.status !== 'enviado' && p.status !== 'concluido').length;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-64 flex flex-col min-h-screen">
+      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
-        <main className="px-4 md:px-8 pt-[81px] pb-20">
+        <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
 
           {/* ── Hero Header ─────────────────────────────────────── */}
           <div
-            className="relative overflow-hidden rounded-2xl mt-6 px-7 py-6"
-            style={{ background: 'linear-gradient(130deg, rgba(0,74,173,0.18) 0%, rgba(0,176,155,0.12) 100%)', border: '1px solid rgba(0,176,155,0.2)' }}
+            className="relative overflow-hidden rounded-3xl mt-4 px-8 py-8 bg-white dark:bg-transparent bg-gradient-to-br from-indigo-50 via-cyan-50 to-emerald-50 dark:from-indigo-600/10 dark:via-cyan-500/5 dark:to-emerald-500/10 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl group"
           >
-            <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full blur-3xl opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle,#004aad,transparent)' }} />
-            <div className="absolute -bottom-8 right-24 w-32 h-32 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle,#00b09b,transparent)' }} />
-            <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-[80px] pointer-events-none group-hover:bg-cyan-400/20 transition-colors duration-700" />
+            <div className="absolute -bottom-20 left-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-[80px] pointer-events-none group-hover:bg-indigo-400/20 transition-colors duration-700" />
+            <div className="relative flex items-start justify-between gap-5 flex-wrap">
               <div>
-                <h1 className="text-2xl font-extrabold text-white tracking-tight">Meus Projetos</h1>
-                <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Meus Projetos</h1>
+                <p className="mt-2 text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
                   Gerencie solicitações e acompanhe o desenvolvimento.
                 </p>
                 {!loading && (
                   <div className="flex flex-wrap gap-3 mt-4">
                     {[
-                      { label: 'Total', value: projectsList.length, icon: FiFolder, color: '#6366f1' },
-                      { label: 'Em andamento', value: activeCount, icon: FiClock, color: '#f59e0b' },
-                      { label: 'Enviados', value: sentCount, icon: FiCheckCircle, color: '#00b09b' },
-                    ].map(({ label, value, icon: Icon, color }) => (
-                      <div key={label} className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: color + '18', border: `1px solid ${color}28` }}>
-                        <Icon className="w-4 h-4 shrink-0" style={{ color }} />
-                        <span className="text-white font-bold tabular-nums text-sm">{value}</span>
-                        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</span>
+                      { label: 'Total', value: projectsList.length, icon: FiFolder, color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-indigo-400/20' },
+                      { label: 'Em andamento', value: activeCount, icon: FiClock, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+                      { label: 'Enviados', value: sentCount, icon: FiCheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
+                    ].map(({ label, value, icon: Icon, color, bg, border }) => (
+                      <div key={label} className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl border ${bg} ${border}`}>
+                        <Icon className={`w-4 h-4 shrink-0 ${color}`} />
+                        <span className="text-white font-black tabular-nums text-sm">{value}</span>
+                        <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">{label}</span>
                       </div>
                     ))}
                   </div>
@@ -381,11 +372,12 @@ export default function ProjetoPage() {
               </div>
               <button
                 onClick={openNewModal}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition hover:opacity-90 active:scale-95 shrink-0"
-                style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)', boxShadow: '0 0 20px rgba(0,176,155,0.25)' }}
+                className="group relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)] shrink-0"
+                style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
               >
-                <FiPlus className="w-4 h-4" />
-                Novo Projeto
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+                <FiPlus className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">Novo Projeto</span>
               </button>
             </div>
           </div>
@@ -395,20 +387,21 @@ export default function ProjetoPage() {
             {loading ? (
               <div className="flex items-center justify-center py-24 gap-3">
                 <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
-                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>Carregando projetos...</span>
+                <span className="text-sm text-slate-500 dark:text-white/35">Carregando projetos...</span>
               </div>
             ) : projectsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,74,173,0.12)', border: '1px solid rgba(0,74,173,0.2)' }}>
-                  <FiFolder className="w-8 h-8" style={{ color: '#6366f1' }} />
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 shadow-sm dark:shadow-[0_0_30px_rgba(99,102,241,0.15)] relative">
+                  <div className="absolute inset-0 bg-indigo-400 blur-xl opacity-20 rounded-3xl animate-pulse" />
+                  <FiFolder className="w-10 h-10 text-indigo-400 relative z-10" />
                 </div>
-                <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>Nenhum projeto encontrado.</p>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhum projeto encontrado.</p>
                 <button
                   onClick={openNewModal}
-                  className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
+                  className="group flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-300 transition-colors mt-2"
                 >
-                  <FiPlus className="w-4 h-4" /> Criar primeiro projeto
+                  <FiPlus className="w-4 h-4 transition-transform group-hover:scale-110" /> 
+                  Criar primeiro projeto
                 </button>
               </div>
             ) : (
@@ -420,65 +413,66 @@ export default function ProjetoPage() {
                   return (
                     <div
                       key={project.id}
-                      className="rounded-2xl overflow-hidden transition-all duration-200"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderLeft: `3px solid ${st.dot}` }}
+                      className="rounded-3xl overflow-hidden transition-all duration-300 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.07] shadow-sm dark:shadow-lg group"
+                      style={{ borderLeft: `4px solid ${st.dot}` }}
                     >
                       {/* Card header */}
-                      <div className="px-5 py-4 flex items-center gap-3 flex-wrap">
+                      <div className="px-6 py-5 flex items-center gap-4 flex-wrap">
                         {/* Title + status */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <h3 className="font-extrabold text-white text-base truncate">{project.title || 'Projeto sem nome'}</h3>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="font-black text-slate-900 dark:text-white text-xl tracking-tight truncate">{project.title || 'Projeto sem nome'}</h3>
                             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: st.bg, color: st.text }}>
                               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: st.dot }} />
                               {project.status}
                             </span>
                           </div>
-                          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>
-                            Atualizado em {new Date(project.updated_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
+                            Atualizado em <span className="text-slate-700 dark:text-slate-300">{new Date(project.updated_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                           </p>
                         </div>
 
                         {/* Progress ring + pct */}
-                        <div className="flex items-center gap-1.5 mr-1">
-                          <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0">
-                            <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3.5" />
+                        <div className="flex items-center gap-2 mr-2">
+                          <svg width="44" height="44" viewBox="0 0 44 44" className="shrink-0 drop-shadow-md">
+                            <circle cx="22" cy="22" r="18" fill="none" className="stroke-slate-200 dark:stroke-white/10" strokeWidth="4" />
                             <circle
-                              cx="18" cy="18" r="14" fill="none"
-                              stroke={st.dot} strokeWidth="3.5"
-                              strokeDasharray={`${(project.progress / 100) * 87.96} 87.96`}
+                              cx="22" cy="22" r="18" fill="none"
+                              stroke={st.dot} strokeWidth="4"
+                              strokeDasharray={`${(project.progress / 100) * 113.09} 113.09`}
                               strokeLinecap="round"
-                              transform="rotate(-90 18 18)"
-                              style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                              transform="rotate(-90 22 22)"
+                              style={{ transition: 'stroke-dasharray 1s ease-out' }}
                             />
-                            <text x="18" y="22" textAnchor="middle" fontSize="8" fontWeight="800" fill="white">{project.progress}%</text>
+                            <text x="22" y="26" textAnchor="middle" fontSize="10" fontWeight="900" fill="currentColor" className="text-slate-900 dark:text-white">{project.progress}%</text>
                           </svg>
                         </div>
 
                         {/* Expand toggle */}
                         <button
                           onClick={() => setExpandedCard(isExpanded ? null : project.id)}
-                          className="p-1.5 rounded-lg transition hover:bg-white/10"
-                          style={{ color: 'rgba(255,255,255,0.35)' }}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
                         >
-                          {isExpanded ? <FiChevronUp className="w-4 h-4" /> : <FiChevronDown className="w-4 h-4" />}
+                          <FiChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
                       </div>
 
                       {/* Progress bar */}
-                      <div className="px-5 pb-3">
-                        <div className="h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                      <div className="px-6 pb-4">
+                        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-900 shadow-inner overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${project.progress}%`, background: `linear-gradient(90deg,#004aad,${st.dot})` }}
-                          />
+                            className="h-full rounded-full transition-all duration-1000 ease-out relative"
+                            style={{ width: `${project.progress}%`, background: `linear-gradient(90deg,#4f46e5,${st.dot})` }}
+                          >
+                            <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
+                          </div>
                         </div>
                       </div>
 
                       {/* Expanded details */}
                       {isExpanded && (
-                        <div className="px-5 pb-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 mt-4 text-sm">
+                        <div className="px-6 pb-6 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/50">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6 mt-6">
                             {[
                               { label: 'Cliente', value: project.client_name },
                               { label: 'E-mail', value: project.client_email },
@@ -490,8 +484,8 @@ export default function ProjetoPage() {
                               { label: 'Data final', value: project.final_date ? String(project.final_date).slice(0, 10) : null },
                             ].map(({ label, value }) => (
                               <div key={label}>
-                                <p className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</p>
-                                <p className="font-medium text-white/70 truncate">{value || '—'}</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1">{label}</p>
+                                <p className="font-semibold text-slate-900 dark:text-slate-200 truncate" title={value || undefined}>{value || '—'}</p>
                               </div>
                             ))}
                           </div>
@@ -499,19 +493,21 @@ export default function ProjetoPage() {
                       )}
 
                       {/* Actions footer */}
-                      <div className="px-5 py-3 flex items-center justify-between gap-3 flex-wrap border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                        <div className="flex items-center gap-2">
+                      <div className="px-6 py-4 flex items-center justify-between gap-3 flex-wrap border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/30">
+                        <div className="flex items-center gap-3">
                           {sent ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold" style={{ background: 'rgba(0,176,155,0.15)', color: '#00d4aa' }}>
-                              <FiCheckCircle className="w-3.5 h-3.5" /> Enviado ao desenvolvedor
+                            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                              <FiCheckCircle className="w-4 h-4" /> Enviado ao desenvolvedor
                             </span>
                           ) : (
                             <button
                               onClick={() => handleSendToDev(project.id, project.status)}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition hover:opacity-80 active:scale-95"
-                              style={{ background: 'linear-gradient(135deg,#16a34a,#059669)', boxShadow: '0 0 12px rgba(22,163,74,0.2)' }}
+                              className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                              style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}
                             >
-                              <FiSend className="w-3.5 h-3.5" /> Enviar para desenvolvedor
+                              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+                              <FiSend className="w-4 h-4 relative z-10" /> 
+                              <span className="relative z-10">Enviar para desenvolvedor</span>
                             </button>
                           )}
                         </div>
@@ -527,18 +523,16 @@ export default function ProjetoPage() {
                               setIntegrationsField(project.integrations || ''); setObservations('');
                               setSaveMessage(null); setShowModal(true);
                             }}
-                            className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:bg-blue-500/20"
-                            style={{ background: 'rgba(99,102,241,0.12)' }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
                           >
-                            <FiEdit2 className="w-3.5 h-3.5" style={{ color: '#818cf8' }} />
+                            <FiEdit2 className="w-4 h-4" />
                           </button>
                           <button
                             title="Excluir projeto"
                             onClick={() => handleDeleteProject(project.id)}
-                            className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:bg-red-500/20"
-                            style={{ background: 'rgba(239,68,68,0.1)' }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20"
                           >
-                            <FiTrash2 className="w-3.5 h-3.5" style={{ color: '#f87171' }} />
+                            <FiTrash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -553,29 +547,32 @@ export default function ProjetoPage() {
 
       {/* ── Create / Edit Modal ──────────────────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md">
           <div
-            className="relative w-full max-w-2xl rounded-2xl overflow-hidden max-h-[92vh] flex flex-col"
-            style={{ background: '#111827', border: '1px solid rgba(0,176,155,0.25)', boxShadow: '0 0 60px rgba(0,74,173,0.2)' }}
+            className="relative w-full max-w-3xl rounded-3xl overflow-hidden max-h-[92vh] flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-[0_0_60px_rgba(0,0,0,0.6)]"
           >
             {/* Modal header */}
-            <div className="px-6 py-5 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              <div>
-                <h2 className="text-base font-extrabold text-white">Solicitar novo projeto</h2>
-                <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Preencha as informações básicas</p>
+            <div className="px-8 py-6 flex items-center justify-between shrink-0 border-b border-slate-200 dark:border-white/10">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-cyan-500/20">
+                  <FiFolder className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Solicitar novo projeto</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Preencha as informações detalhadas abaixo</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition hover:bg-white/10"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
               >
-                <FiX className="w-4 h-4" />
+                <FiX className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal body */}
-            <div className="overflow-y-auto px-6 py-5 flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="overflow-y-auto px-8 py-6 flex-1 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <InputField label="Nome do projeto">
                   <input className={FIELD_STYLE} style={FIELD_BG} value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="Ex: Site institucional" disabled={!editMode} />
                 </InputField>
@@ -603,24 +600,23 @@ export default function ProjetoPage() {
                 <InputField label="Data final">
                   <input className={FIELD_STYLE} style={FIELD_BG} value={finalDate} onChange={e => setFinalDate(e.target.value)} type="date" disabled={!editMode} />
                 </InputField>
-                <div className="sm:col-span-2">
+                <div className="md:col-span-2">
                   <InputField label="Observações">
-                    <textarea className={`${FIELD_STYLE} resize-none h-24`} style={FIELD_BG} value={observations} onChange={e => setObservations(e.target.value)} placeholder="Descreva requisitos, referências ou particularidades..." disabled={!editMode} />
+                    <textarea className={`${FIELD_STYLE} resize-none h-32`} style={FIELD_BG} value={observations} onChange={e => setObservations(e.target.value)} placeholder="Descreva requisitos, referências ou particularidades..." disabled={!editMode} />
                   </InputField>
                 </div>
               </div>
             </div>
 
             {/* Modal footer */}
-            <div className="px-6 py-4 flex items-center justify-between gap-3 shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="px-8 py-5 flex items-center justify-between gap-3 shrink-0 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50">
               {saveMessage ? (
-                <p className={`text-sm font-medium ${saveMessage.includes('sucesso') ? 'text-emerald-400' : 'text-red-400'}`}>{saveMessage}</p>
+                <p className={`text-sm font-bold ${saveMessage.includes('sucesso') ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>{saveMessage}</p>
               ) : <span />}
-              <div className="flex gap-2 ml-auto">
+              <div className="flex gap-3 ml-auto">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold transition hover:bg-white/10"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                  className="px-6 py-3 rounded-xl text-sm font-bold transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10"
                 >
                   Cancelar
                 </button>
@@ -628,18 +624,20 @@ export default function ProjetoPage() {
                   <button
                     onClick={() => { void onSave(); setEditMode(false); setShowModal(false); }}
                     disabled={saving}
-                    className="px-5 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
+                    className="group relative overflow-hidden px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
                   >
-                    {saving ? 'Salvando…' : 'Salvar Projeto'}
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+                    <span className="relative z-10">{saving ? 'Salvando…' : 'Salvar Projeto'}</span>
                   </button>
                 ) : (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="px-5 py-2 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-                    style={{ background: 'linear-gradient(135deg,#004aad,#00b09b)' }}
+                    className="group relative overflow-hidden px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
                   >
-                    Solicitar projeto
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
+                    <span className="relative z-10">Solicitar projeto</span>
                   </button>
                 )}
               </div>
@@ -652,14 +650,14 @@ export default function ProjetoPage() {
       {showSuccessPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
           <div
-            className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl"
-            style={{ background: 'rgba(0,20,40,0.95)', border: '1px solid rgba(0,176,155,0.35)', backdropFilter: 'blur(12px)', boxShadow: '0 0 40px rgba(0,176,155,0.2)' }}
+            className="flex flex-col items-center gap-3 px-10 py-8 rounded-3xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-500/30 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.1)] dark:shadow-[0_0_60px_rgba(16,185,129,0.2)] animate-in fade-in zoom-in duration-300"
           >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,176,155,0.15)' }}>
-              <FiCheckCircle className="w-6 h-6" style={{ color: '#00d4aa' }} />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-emerald-100 dark:bg-emerald-500/20 relative">
+              <div className="absolute inset-0 bg-emerald-400 blur-md opacity-20 rounded-full animate-pulse" />
+              <FiCheckCircle className="w-8 h-8 text-emerald-500 dark:text-emerald-400 relative z-10" />
             </div>
-            <p className="font-bold text-white text-sm">Projeto enviado com sucesso!</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>O desenvolvedor foi notificado.</p>
+            <p className="font-black text-slate-900 dark:text-white text-lg mt-2">Projeto enviado com sucesso!</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">O desenvolvedor foi notificado.</p>
           </div>
         </div>
       )}
