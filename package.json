@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack --port 4000",
     "build": "next build",
-    "start": "next start --port 4000",
-    "lint": "next lint"
+    "start": "next start --port 5091",
+    "lint": "next lint",
+    "migrate": "pnpm exec tsx scripts/init-db.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
@@ -30,9 +31,12 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.2",
+    "dotenv": "^16.4.3",
+    "eslint": "^9.39.3",
     "eslint-config-next": "15.3.2",
+    "lodash": "^4.17.23",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.19.0",
     "typescript": "5.8.3",
     "vite": "^7.3.0"
   }

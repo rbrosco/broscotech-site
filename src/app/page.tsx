@@ -1,6 +1,22 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import ContactFormModal from '../component/ContactFormModal';
+import Header from "../component/Header";
+import VCard from "../component/VCard";
+import HeroProfileCard from "../component/HeroProfileCard";
+import IAHomeBanner from "../component/IAHomeBanner";
+import Chatbot from "../component/ChatBot";
+import Servicos from "../component/Servicos";
+import Sobre from "../component/Sobre";
+import LoadingSpinner from '../component/LoadingSpinner';
+import PrivacyModal from '../component/PrivacyModal';
+import IconBanner from "../component/IconBanner";
+import type { IconType } from 'react-icons';
+import { FaDocker, FaGithub, FaNodeJs, FaReact } from 'react-icons/fa';
+import { SiMongodb, SiN8N, SiNextdotjs, SiPostgresql, SiTailwindcss, SiTypescript } from 'react-icons/si';
+import { FcGoogle } from 'react-icons/fc';
+import { FiCode, FiMessageSquare, FiMonitor, FiServer, FiShield, FiSmartphone, FiZap } from 'react-icons/fi';
 
 function getInitials(name: string) {
   return name
@@ -10,79 +26,127 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-// Componente de Depoimentos
+// Componente de Depoimentos reutilizável
 const depoimentos = [
   {
-    texto: 'O serviço foi excelente, superou todas as expectativas! Recomendo muito a equipe.',
+    texto: 'O serviço foi excelente, superou todas as expectativas! Recomendo muito.',
     autor: 'João Silva',
     cargo: 'CEO da StartupX',
   },
   {
-    texto: 'Atendimento rápido, solução eficiente e design impecável. Com certeza voltarei a contratar!',
+    texto: 'Atendimento rápido, solução eficiente e design impecável. Voltarei a contratar!',
     autor: 'Maria Oliveira',
     cargo: 'Gerente de Projetos',
   },
   {
-    texto: 'A automação implementada transformou nosso dia a dia. Equipe muito competente e comprometida.',
+    texto: 'A automação implementada facilitou muito nosso dia a dia. Equipe muito competente.',
     autor: 'Carlos Souza',
     cargo: 'Diretor de TI',
   },
 ];
 
 function DepoimentosBlock() {
+  // Cores do projeto
+  const avatarBg = "bg-indigo-500 dark:bg-indigo-400 border-4 border-white dark:border-slate-800";
+  const avatarText = "text-slate-900 dark:text-white";
+
   return (
-    <section id="Depoimentos" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-accent)' }}>
-            Depoimentos
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
-            O que nossos clientes{' '}
-            <span className="font-display italic">dizem</span>
-          </h2>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div id="Depoimentos" className="flex flex-col items-center justify-center py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
+      <div className="max-w-5xl w-full bg-white/90 dark:bg-slate-800 rounded-2xl shadow-2xl p-10 mx-auto">
+        <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-10 tracking-tight">Depoimentos</h2>
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {depoimentos.map((dep, idx) => (
             <div
               key={idx}
-              className="relative flex flex-col h-full rounded-2xl border border-black/8 bg-white/80 backdrop-blur-sm p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 dark:border-white/10 dark:bg-white/5"
+              className="relative flex flex-col h-full bg-slate-50 dark:bg-slate-700 rounded-xl p-7 shadow group border border-slate-200 dark:border-slate-600 transition hover:scale-[1.025] hover:shadow-xl"
             >
-              <span className="font-display italic text-6xl leading-none opacity-30 select-none mb-2" style={{ color: 'var(--color-accent)' }}>&ldquo;</span>
-              <p className="text-[15px] text-slate-700 dark:text-white/85 leading-relaxed flex-1">
+              <span className="absolute -top-6 left-6 text-5xl text-indigo-200 dark:text-indigo-400 select-none">“</span>
+              <p className="text-base sm:text-lg text-slate-800 dark:text-white mb-4 font-medium leading-relaxed z-10">
                 {dep.texto}
               </p>
-              <div className="flex items-center mt-5 pt-4 border-t border-black/8 dark:border-white/10 gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#004aad] to-[#00b09b] flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                  {dep.autor.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+              <div className="flex items-center mt-auto pt-4 border-t border-slate-200 dark:border-slate-600 gap-3">
+                <div className={`flex-shrink-0 w-12 h-12 rounded-full ${avatarBg} flex items-center justify-center ${avatarText} font-bold text-lg shadow relative overflow-hidden`}>
+                  <Image
+                    src={`/images/ia-avatar-${idx + 1}.png`}
+                    alt={dep.autor}
+                    fill
+                    sizes="48px"
+                    className="absolute inset-0 object-cover rounded-full"
+                  />
+                  <span className="relative z-10 text-xl font-extrabold tracking-wide">
+                    {getInitials(dep.autor)}
+                  </span>
                 </div>
                 <div>
                   <span className="block text-sm font-semibold text-slate-900 dark:text-white">{dep.autor}</span>
-                  <span className="block text-xs text-slate-500 dark:text-white/60">{dep.cargo}</span>
+                  <span className="block text-xs text-slate-500 dark:text-slate-300">{dep.cargo}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
-import ContactFormModal from '../component/ContactFormModal';
-import Header from "../component/Header";
-import VCard from "../component/VCard";
-import IAHomeBanner from "../component/IAHomeBanner";
-import Chatbot from "../component/ChatBot";
-import Servicos from "../component/Servicos";
-import Sobre from "../component/Sobre";
-import LoadingSpinner from '../component/LoadingSpinner';
-import PrivacyModal from '../component/PrivacyModal';
-import IconBanner from '../component/IconBanner';
-import type { IconType } from 'react-icons';
-import { FaDocker, FaGithub, FaNodeJs, FaReact } from 'react-icons/fa';
-import { SiMongodb, SiN8N, SiNextdotjs, SiPostgresql, SiTailwindcss, SiTypescript } from 'react-icons/si';
-import { FcGoogle } from 'react-icons/fc';
-import { FiCode, FiMessageSquare, FiMonitor, FiServer, FiShield, FiSmartphone, FiZap } from 'react-icons/fi';
+
+function Banner50Off() {
+  // 30 dias a partir de agora
+  const [timeLeft, setTimeLeft] = useState(30 * 24 * 60 * 60); // segundos
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 5000); // aparece após 5s
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [visible]);
+
+  function formatTime(secs: number) {
+    const days = Math.floor(secs / (24 * 60 * 60));
+    const hours = Math.floor((secs % (24 * 60 * 60)) / 3600);
+    const minutes = Math.floor((secs % 3600) / 60);
+    const seconds = secs % 60;
+    return `${days}d ${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 animate-float-in">
+      <div className="relative bg-gradient-to-br from-indigo-600 via-fuchsia-500 to-amber-400 rounded-xl shadow-2xl p-3 sm:p-4 max-w-[220px] w-full text-center flex flex-col items-center border-2 border-white/70">
+        <button
+          type="button"
+          onClick={() => setVisible(false)}
+          aria-label="Fechar promoção"
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 text-slate-900 dark:text-slate-900 shadow hover:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          ×
+        </button>
+        <span className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white drop-shadow-lg">50% OFF</span>
+        <span className="block mt-1 text-xs sm:text-sm font-bold text-slate-900 dark:text-white/90">Só hoje!<br />Acredite no seu projeto.<br /><span className="text-slate-900 dark:text-white/80 text-xs font-medium">Eu acredito em você 🚀</span></span>
+        <span className="inline-block mt-2 px-3 py-1.5 rounded-xl bg-white/90 text-indigo-700 font-bold text-xs shadow hover:bg-white cursor-pointer">Aproveitar agora</span>
+        <span className="mt-2 text-[10px] font-semibold text-slate-900 dark:text-white/90 bg-white/40 px-2 py-0.5 rounded-full tracking-wider">Expira em: {formatTime(timeLeft)}</span>
+      </div>
+      <style>{`
+        @keyframes float-in {
+          0% { transform: translateY(60px) scale(0.7); opacity: 0; }
+          60% { transform: translateY(-10px) scale(1.05); opacity: 1; }
+          100% { transform: translateY(0) scale(1); }
+        }
+        .animate-float-in { animation: float-in 0.9s cubic-bezier(.68,-0.55,.27,1.55); }
+      `}</style>
+    </div>
+  );
+}
 
 const matrixItems: ReadonlyArray<{
   title: string;
@@ -150,6 +214,7 @@ export default function Home() {
 
   return (
     <>
+      <Banner50Off />
       {isLoading && <LoadingSpinner />}
       <div className={`transition-opacity duration-500 ${isLoading ? 'opacity-0' : 'opacity-100'}`}> 
         <Header />
@@ -165,18 +230,23 @@ export default function Home() {
               <div className="text-slate-900 dark:text-white">
                 <p className="inline-flex items-center gap-2 rounded-full bg-white/60 border border-black/10 px-4 py-2 text-xs sm:text-sm backdrop-blur-md dark:bg-white/10 dark:border-white/15">
                   <span className="font-semibold"></span>
-                                    <span className="font-semibold">EASYDEV</span>
+                  <span className="font-semibold">EASYDEV</span>
                   <span className="text-slate-500 dark:text-white/80">•</span>
                   <span className="text-slate-600 dark:text-white/80">Soluções digitais que realmente entregam</span>
                 </p>
+
+                {/* Hero profile card (diferenciado) */}
+                <div className="mt-6">
+                  <HeroProfileCard />
+                </div>
 
                 {/* IA banner: mensagem diferenciada com botão para conversar com a IA */}
                 <div className="mt-4">
                   <IAHomeBanner />
                 </div>
-                <h1 id="home-title" className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.12] text-slate-900 dark:text-white">
+                <h1 id="home-title" className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
                   Transforme seu negócio em uma
-                  <span className="block gradient-text">máquina de crescimento.</span>
+                  <span className="block">máquina de crescimento.</span>
                 </h1>
 
                 <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-700 dark:text-white/90">
@@ -195,16 +265,16 @@ export default function Home() {
                     <span className="text-xs text-slate-600 dark:text-white/70">Tudo conectado</span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-visible">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {matrixItems.map(({ title, subtitle, Icon, tooltip }) => (
                       <div
                         key={title}
-                        className="relative group rounded-2xl bg-white/60 border border-black/10 p-4 hover:bg-white/50 transition dark:bg-white/10 dark:border-white/15 dark:hover:bg-white/15 cursor-pointer overflow-visible"
+                        className="relative group rounded-2xl bg-white/60 border border-black/10 p-4 hover:bg-white/50 transition dark:bg-white/10 dark:border-white/15 dark:hover:bg-white/15 cursor-pointer"
                       >
                         <Icon className="h-6 w-6 text-slate-800 dark:text-white/90" aria-hidden="true" />
                         <p className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
                         <p className="mt-1 text-[11px] text-slate-600 dark:text-white/75 leading-snug">{subtitle}</p>
-                        <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-0 top-full mt-2 z-20 w-56 bg-slate-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-white/10" style={{whiteSpace: 'normal'}}>
+                        <span className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 top-full mt-2 z-20 w-56 bg-slate-900 text-slate-900 dark:text-white text-xs rounded-lg px-3 py-2 shadow-xl border border-white/10 dark:bg-slate-800 dark:border-white/20" style={{whiteSpace: 'normal'}}>
                           {tooltip}
                         </span>
                       </div>
@@ -244,7 +314,7 @@ export default function Home() {
               image="/images/Perfil_Adriano.png"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
+              bio="Foto de Adriano Neco\nAdriano Neco\nFull Stack • Banco de Dados • Automação\n\nEasyDev\nWeb Apps\nAPIs\nPostgreSQL\nMongoDB\nn8n\nVer serviços"
               email="adriano@easydev.com.br"
             />
             <VCard
@@ -252,7 +322,7 @@ export default function Home() {
               image="/images/Perfil_Rogger.png"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
+              bio={"Foto de Rogger Brosco\nRogger Brosco\nFull Stack • Banco de Dados • Automação\n\nEasyDev\nWeb Apps\nAPIs\nPostgreSQL\nMongoDB\nn8n\nVer serviços"}
               email="contato@easydev.com.br"
             />
           </div>

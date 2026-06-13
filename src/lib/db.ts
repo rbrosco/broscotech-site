@@ -12,11 +12,11 @@ function createPool(): Pool {
     return new Pool({ connectionString });
   }
 
-  const host = process.env.PGHOST;
-  const user = process.env.PGUSER;
-  const password = process.env.PGPASSWORD;
-  const database = process.env.PGDATABASE;
-  const portRaw = process.env.PGPORT;
+  const host = process.env.PGHOST ?? process.env.POSTGRES_HOST;
+  const user = process.env.PGUSER ?? process.env.POSTGRES_USER;
+  const password = process.env.PGPASSWORD ?? process.env.POSTGRES_PASSWORD;
+  const database = process.env.PGDATABASE ?? process.env.POSTGRES_DB;
+  const portRaw = process.env.PGPORT ?? process.env.POSTGRES_PORT;
 
   if (!host || !user || !password || !database) {
     // During build phase there's no DB connection - pool will fail only on actual query

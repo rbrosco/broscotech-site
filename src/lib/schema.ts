@@ -1,6 +1,6 @@
 
 
-import { pgTable, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import { date, pgTable, integer, bigint, bigserial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: bigserial('id', { mode: 'number' }).primaryKey(),
@@ -26,7 +26,7 @@ export const projects = pgTable('projects', {
   client_email: varchar('client_email', { length: 255 }),
   client_phone: varchar('client_phone', { length: 50 }),
   project_type: varchar('project_type', { length: 100 }),
-  final_date: varchar('final_date', { length: 20 }),
+  final_date: date('final_date'),
   language: varchar('language', { length: 50 }),
   framework: varchar('framework', { length: 50 }),
   integrations: text('integrations'),
@@ -54,6 +54,8 @@ export const kanban_cards = pgTable('kanban_cards', {
   title: varchar('title', { length: 255 }),
   description: text('description'),
   position: integer('position'),
+  assignee_id: bigint('assignee_id', { mode: 'number' }),
+  created_at: timestamp('created_at', { mode: 'string' }),
 });
 
 
