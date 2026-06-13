@@ -89,9 +89,9 @@ export default function DevClientesPage() {
   return (
     <div className="flex h-screen overflow-hidden" >
       <DevSidebar />
-      <div className="flex-1 flex flex-col min-w-0 md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300">
+      <div className="flex-1 flex flex-col min-w-0 md:pl-sidebar transition-[padding] duration-300">
         <DashboardNav />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto px-6 md:px-8 pt-[85px] pb-8">
           <div className="max-w-5xl mx-auto flex flex-col gap-6">
             {/* Header */}
             <div>

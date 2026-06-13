@@ -143,7 +143,7 @@ export default function DevKanbanPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -154,7 +154,7 @@ export default function DevKanbanPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <FiAlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
             <p className="text-slate-900 dark:text-slate-900 dark:text-white">{error}</p>
@@ -167,7 +167,7 @@ export default function DevKanbanPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
       <DevSidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="px-4 md:px-6 pt-[81px] pb-10">

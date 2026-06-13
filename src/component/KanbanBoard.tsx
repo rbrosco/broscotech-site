@@ -100,28 +100,35 @@ function KanbanBoard({ projectId }: { projectId: number }) {
             const short = PIPELINE_SHORT[col.title] ?? col.title;
             return (
               <React.Fragment key={col.id}>
-                <div className="flex flex-col items-center gap-1.5">
+                <div className="flex flex-col items-center gap-2">
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-300"
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-all duration-300 ${
+                      isActive || isPast
+                        ? 'text-white'
+                        : 'border-slate-200 text-slate-400 dark:border-white/15 dark:text-white/30'
+                    }`}
                     style={{
-                      background: isActive ? color : isPast ? color : 'transparent',
-                      borderColor: isActive || isPast ? color : 'rgba(255,255,255,0.15)',
-                      color: isActive || isPast ? '#fff' : 'rgba(255,255,255,0.25)',
+                      background: isActive || isPast ? color : 'transparent',
+                      borderColor: isActive || isPast ? color : undefined,
                       boxShadow: isActive ? `0 0 12px ${color}60` : 'none',
                     }}
                   >
                     {isPast ? '✓' : idx + 1}
                   </div>
                   <span
-                    className={`text-[9px] font-semibold whitespace-nowrap transition-colors ${isActive || isPast ? '' : 'text-slate-400 dark:text-slate-500'}`}
-                    style={isActive || isPast ? { color: isActive ? color : color + 'aa' } : {}}
+                    className={`text-[10px] font-semibold whitespace-nowrap transition-colors ${
+                      isActive || isPast ? '' : 'text-slate-400 dark:text-white/30'
+                    }`}
+                    style={isActive || isPast ? { color: isActive ? color : color + 'cc' } : {}}
                   >
                     {short}
                   </span>
                 </div>
                 {idx < data.columns.length - 1 && (
                   <div
-                    className={`h-[2px] w-6 mt-[-14px] mx-0.5 rounded-full transition-all duration-300 ${idx < activeStageIdx ? '' : 'bg-slate-200 dark:bg-white/10'}`}
+                    className={`h-[2px] w-8 mt-[-18px] mx-1 rounded-full transition-all duration-300 ${
+                      idx < activeStageIdx ? '' : 'bg-slate-200 dark:bg-white/10'
+                    }`}
                     style={idx < activeStageIdx ? { background: PIPELINE_COLORS[data.columns[idx + 1]?.title] ?? '#00b09b' } : {}}
                   />
                 )}

@@ -92,7 +92,7 @@ export default function ConfiguracoesPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200">
         <Sidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function ConfiguracoesPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200">
         <Sidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
           <DashboardNav />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl backdrop-blur-sm">
@@ -124,7 +124,7 @@ export default function ConfiguracoesPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">

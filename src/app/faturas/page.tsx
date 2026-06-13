@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiDownload, FiEye, FiFileText, FiTrendingUp, FiClock, FiCheckCircle, FiAlertCircle, FiSearch, FiFilter } from 'react-icons/fi';
 import DashboardNav from '../../component/DashboardNav';
 import Sidebar from '../../component/Sidebar';
@@ -45,26 +45,56 @@ function fmtDate(d: string) {
 }
 
 export default function FaturasPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('Todas');
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const filtered = MOCK_INVOICES.filter(inv => {
+  // Fetch from API
+  useEffect(() => {
+    fetch('/api/invoices', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.invoices) {
+          // Map DB keys to frontend keys
+          const mapped = data.invoices.map((inv: any) => ({
+            id: inv.id,
+            projeto: inv.projeto || 'Projeto Avulso',
+            cliente: inv.cliente,
+            valor: inv.valor,
+            emissao: inv.emissao,
+            vencimento: inv.vencimento,
+            status: inv.status,
+            descricao: inv.descricao,
+            asaas_url: inv.asaas_url,
+          }));
+          setInvoices(mapped);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = invoices.filter(inv => {
     const matchTab = tab === 'Todas' || inv.status === tab.toLowerCase();
     const matchSearch = search.trim() === '' || inv.id.toLowerCase().includes(search.toLowerCase()) || inv.projeto.toLowerCase().includes(search.toLowerCase()) || inv.cliente.toLowerCase().includes(search.toLowerCase());
     return matchTab && matchSearch;
   });
 
-  const total = MOCK_INVOICES.reduce((s, i) => s + i.valor, 0);
-  const pago = MOCK_INVOICES.filter(i => i.status === 'pago').reduce((s, i) => s + i.valor, 0);
-  const pendente = MOCK_INVOICES.filter(i => i.status === 'pendente').reduce((s, i) => s + i.valor, 0);
-  const vencido = MOCK_INVOICES.filter(i => i.status === 'vencido').reduce((s, i) => s + i.valor, 0);
-  const pagoCount = MOCK_INVOICES.filter(i => i.status === 'pago').length;
+  const total = invoices.reduce((s, i) => s + i.valor, 0);
+  const pago = invoices.filter(i => i.status === 'pago').reduce((s, i) => s + i.valor, 0);
+  const pendente = invoices.filter(i => i.status === 'pendente').reduce((s, i) => s + i.valor, 0);
+  const vencido = invoices.filter(i => i.status === 'vencido').reduce((s, i) => s + i.valor, 0);
+  const pagoCount = invoices.filter(i => i.status === 'pago').length;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
@@ -87,7 +117,7 @@ export default function FaturasPage() {
             {/* KPI cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 relative z-10">
               {[
-                { label: 'Total faturado', value: fmt(total), sub: `${MOCK_INVOICES.length} faturas`, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-400/10', border: 'border-indigo-100 dark:border-indigo-400/20' },
+                { label: 'Total faturado', value: fmt(total), sub: `${invoices.length} faturas`, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-400/10', border: 'border-indigo-100 dark:border-indigo-400/20' },
                 { label: 'Recebido', value: fmt(pago), sub: `${pagoCount} pagas`, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-50 dark:bg-cyan-400/10', border: 'border-cyan-100 dark:border-cyan-400/20' },
                 { label: 'A receber', value: fmt(pendente), sub: 'pendentes', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-400/10', border: 'border-amber-100 dark:border-amber-400/20' },
                 { label: 'Em atraso', value: fmt(vencido), sub: 'vencidas', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-400/10', border: 'border-red-100 dark:border-red-400/20' },

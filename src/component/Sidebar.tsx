@@ -23,14 +23,17 @@ const Sidebar: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try { return localStorage.getItem('sidebarCollapsed') === 'true'; } catch {}
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('sidebarCollapsed');
-        if (stored !== null) setIsCollapsed(stored === 'true');
-        else localStorage.setItem('sidebarCollapsed', 'true');
+
 
         const raw = localStorage.getItem('userData');
         if (raw) {
@@ -52,6 +55,12 @@ const Sidebar: React.FC = () => {
     localStorage.setItem('sidebarCollapsed', String(val));
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    localStorage.removeItem('userData');
+    window.location.href = '/login';
+  };
+
   const isActive = (href: string) => pathname === href;
 
   const SidebarContent = () => (
@@ -65,16 +74,16 @@ const Sidebar: React.FC = () => {
       </button>
 
       {/* Logo */}
-      <div className="flex flex-col items-center pt-8 pb-6 px-5 border-b border-slate-200 dark:border-white/10">
+      <div className={`flex flex-col items-center pt-8 pb-6 border-b border-slate-200 dark:border-white/10 ${isCollapsed ? 'px-2' : 'px-5'}`}>
         <Link href="/dashboard" className="flex flex-col items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full blur-xl opacity-50 bg-[radial-gradient(circle,#00b09b,#004aad)]" />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full blur-md opacity-40 bg-[radial-gradient(circle,#00b09b,#004aad)]" />
             <Image
               src="/images/EASYDEVLOGO.png"
               alt="EASYDEV"
-              width={isCollapsed ? 42 : 52}
-              height={isCollapsed ? 42 : 52}
-              className="relative rounded-full border-2 border-[#00b09b]/40 transition-all duration-300"
+              width={isCollapsed ? 36 : 48}
+              height={isCollapsed ? 36 : 48}
+              className="relative rounded-full border border-[#00b09b]/50 transition-all duration-300 shadow-sm"
             />
           </div>
           {!isCollapsed && (
@@ -170,9 +179,9 @@ const Sidebar: React.FC = () => {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">{isAdmin ? 'Administrador' : 'Área do cliente'}</p>
             </div>
           )}
-          <Link href="/api/logout" className={`transition-colors text-slate-400 hover:text-red-500 ${isCollapsed ? '' : 'ml-auto'}`} title="Sair">
+          <button onClick={handleLogout} className={`transition-colors text-slate-400 hover:text-red-500 ${isCollapsed ? '' : 'ml-auto'}`} title="Sair">
             <FiLogOut className="w-4 h-4" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

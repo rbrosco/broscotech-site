@@ -16,26 +16,29 @@ const applyThemeToRoot = (selectedTheme: Theme) => {
 };
 
 const getInitialTheme = (): Theme => {
-  return 'light';
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (isValidTheme(stored)) return stored;
+  }
+  return 'dark';
 };
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const initialTheme = isValidTheme(stored) ? stored : 'light';
-
+    setMounted(true);
+    const initialTheme = getInitialTheme();
+    setTheme(initialTheme);
     applyThemeToRoot(initialTheme);
-    setTimeout(() => setTheme(initialTheme), 0);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     applyThemeToRoot(theme);
     localStorage.setItem(STORAGE_KEY, theme);
-
-    // Não há mais modo sistema
-  }, [theme]);
+  }, [theme, mounted]);
 
   const nextThemeLabel = useMemo(() => {
     if (theme === 'light') return 'escuro';

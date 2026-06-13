@@ -101,7 +101,7 @@ export default function DevPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function DevPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
         <DevSidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
           <div className="text-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-8 rounded-3xl shadow-xl">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50 dark:bg-red-500/10">
               <FiAlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
@@ -127,7 +127,7 @@ export default function DevPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#080c18]">
       <DevSidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
@@ -142,7 +142,7 @@ export default function DevPage() {
                 <FiActivity className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-900 dark:text-white tracking-tight">Painel do Desenvolvedor</h1>
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Painel do Desenvolvedor</h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Visão geral de todos os projetos e clientes</p>
               </div>
             </div>

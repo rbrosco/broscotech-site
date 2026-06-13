@@ -158,7 +158,7 @@ export default function IAAgentPage() {
     return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex items-center justify-center min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 rounded-full border-[3px] animate-spin border-cyan-500/30 border-t-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
       </div>
     </div>
@@ -169,7 +169,7 @@ export default function IAAgentPage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
         <Sidebar />
-        <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+        <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
           <DashboardNav />
           <div className="flex-1 flex items-center justify-center relative overflow-hidden">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 blur-[100px] rounded-full pointer-events-none" />
@@ -189,7 +189,7 @@ export default function IAAgentPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30 flex overflow-hidden">
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col w-full h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col w-full h-screen">
         <DashboardNav />
 
         <div className="flex flex-1 overflow-hidden pt-[65px]">

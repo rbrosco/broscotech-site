@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   FiChevronLeft, FiChevronRight, FiGrid, FiLayers, FiMessageSquare, FiUsers,
-  FiSettings, FiLogOut, FiMenu, FiX, FiCode, FiActivity
+  FiSettings, FiLogOut, FiMenu, FiX, FiCode, FiActivity, FiFileText
 } from 'react-icons/fi';
 
 const devItems = [
@@ -13,6 +13,7 @@ const devItems = [
   { href: '/dev/kanban', label: 'Kanban', icon: FiLayers },
   { href: '/dev/comunicacao', label: 'Comunicação', icon: FiMessageSquare },
   { href: '/dev/clientes', label: 'Clientes', icon: FiUsers },
+  { href: '/dev/faturas', label: 'Faturas', icon: FiFileText },
 ];
 
 const adminItems = [
@@ -24,14 +25,17 @@ const DevSidebar: React.FC = () => {
   const pathname = usePathname();
   const [userName, setUserName] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try { return localStorage.getItem('sidebarCollapsed') === 'true'; } catch {}
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('sidebarCollapsed');
-        if (stored !== null) setIsCollapsed(stored === 'true');
-        else localStorage.setItem('sidebarCollapsed', 'true');
+
 
         const raw = localStorage.getItem('userData');
         if (raw) {
@@ -62,7 +66,7 @@ const DevSidebar: React.FC = () => {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full relative" >
+    <div className="flex flex-col h-full bg-white dark:bg-[#0a0f1e] relative" >
       {/* Toggle button */}
       <button
         onClick={toggleSidebar}
@@ -73,17 +77,16 @@ const DevSidebar: React.FC = () => {
       </button>
 
       {/* Logo */}
-      <div className="flex flex-col items-center pt-8 pb-6 px-5 border-b border-slate-200 dark:border-white/10">
+      <div className={`flex flex-col items-center pt-8 pb-6 border-b border-slate-200 dark:border-white/10 ${isCollapsed ? 'px-2' : 'px-5'}`}>
         <Link href="/dev" className="flex flex-col items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full blur-xl opacity-50" style={{ background: 'radial-gradient(circle, #00b09b, #004aad)' }} />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full blur-md opacity-40" style={{ background: 'radial-gradient(circle, #00b09b, #004aad)' }} />
             <Image
               src="/images/EASYDEVLOGO.png"
               alt="EASYDEV"
-              width={isCollapsed ? 42 : 52}
-              height={isCollapsed ? 42 : 52}
-              className="relative rounded-full transition-all duration-300"
-              style={{ border: '2px solid rgba(0,176,155,0.4)' }}
+              width={isCollapsed ? 36 : 48}
+              height={isCollapsed ? 36 : 48}
+              className="relative rounded-full border border-[#00b09b]/50 transition-all duration-300 shadow-sm"
             />
           </div>
           {!isCollapsed && (

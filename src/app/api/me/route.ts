@@ -4,6 +4,8 @@ import { db } from '@/lib/drizzle';
 import { users } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const user = requireAuth(request.headers as unknown as { get(name: string): string | null });
   if (!user || !user.id) {

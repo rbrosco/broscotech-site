@@ -56,4 +56,17 @@ export const kanban_cards = pgTable('kanban_cards', {
   position: integer('position'),
 });
 
+export const invoices = pgTable('invoices', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  project_id: bigint('project_id', { mode: 'number' }),
+  client_name: varchar('client_name', { length: 255 }).notNull(),
+  value: integer('value').notNull(),
+  issue_date: varchar('issue_date', { length: 20 }).notNull(),
+  due_date: varchar('due_date', { length: 20 }).notNull(),
+  status: varchar('status', { length: 50 }).notNull(),
+  description: text('description'),
+  asaas_id: varchar('asaas_id', { length: 100 }),
+  asaas_url: varchar('asaas_url', { length: 255 }),
+  created_at: timestamp('created_at', { mode: 'string' }).defaultNow(),
+});
 

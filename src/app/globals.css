@@ -253,3 +253,7 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
 .iaagent-bubble[title]:hover::after { content: attr(title); position: absolute; right: calc(100% + 0.5rem); bottom: 50%; transform: translateY(50%); background: var(--foreground); color: var(--background); padding: 6px 10px; border-radius: 8px; font-size: 12px; white-space: nowrap; box-shadow: 0 6px 18px rgba(4,13,26,0.3); }
 
 /* Background overlay handled via Tailwind classes on the layout element */
+
+@utility pl-sidebar {
+  padding-left: var(--sidebar-width, 5rem);
+}

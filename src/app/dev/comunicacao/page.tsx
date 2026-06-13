@@ -117,13 +117,13 @@ function DevComunicacaoContent() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0a0f1e]" >
       <DevSidebar />
-      <div className="flex-1 flex flex-col min-w-0 md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300">
+      <div className="flex-1 flex flex-col min-w-0 md:pl-sidebar transition-[padding] duration-300">
         <DashboardNav />
-        <main className="flex-1 overflow-auto p-6">
-          <div className="max-w-5xl mx-auto flex flex-col gap-6">
+        <main className="flex-1 overflow-auto px-6 md:px-8 pt-[85px] pb-8">
+          <div className="w-full mx-auto flex flex-col gap-6">
             {/* Header */}
             <div>
-              <h1 className="text-2xl font-bold text-white">Comunicação com Clientes</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Comunicação com Clientes</h1>
               <p className="text-slate-500 dark:text-gray-400 text-sm mt-1">Envie atualizações e marcos para seus clientes.</p>
             </div>
 

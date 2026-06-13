@@ -114,7 +114,7 @@ export default function PlanejamentoPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">

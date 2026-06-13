@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/middlewareAuth';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });

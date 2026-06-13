@@ -39,7 +39,7 @@ export default function RootLayout({
   try {
     const storageKey = 'theme';
     const stored = localStorage.getItem(storageKey);
-    const theme = stored === 'dark' ? 'dark' : 'light';
+    const theme = stored === 'light' ? 'light' : 'dark';
     const isDark = theme === 'dark';
     const root = document.documentElement;
     root.classList.remove('light', 'dark');

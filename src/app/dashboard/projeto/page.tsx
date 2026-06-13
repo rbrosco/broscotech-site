@@ -345,7 +345,7 @@ export default function ProjetoPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0f1e' }}>
       <Sidebar />
-      <div className="md:pl-[var(--sidebar-width,5rem)] transition-[padding] duration-300 flex flex-col min-h-screen">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
         <main className="px-4 md:px-8 pt-[81px] pb-20">
