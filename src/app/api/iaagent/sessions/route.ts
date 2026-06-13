@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-let mockSessions: any[] = [];
+import { mockSessions } from '@/lib/ia-store';
 
 export async function GET(request: NextRequest) {
   return NextResponse.json({ sessions: mockSessions });

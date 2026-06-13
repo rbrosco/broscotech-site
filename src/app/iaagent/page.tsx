@@ -5,7 +5,7 @@ import DashboardNav from '@/component/DashboardNav';
 import Sidebar from '@/component/Sidebar';
 
 type Session = { id: string; title: string; updatedAt: string };
-type Message = { id: string; text: string; from: 'client' | 'agent'; timestamp: string };
+type Message = { id: string; text: string; from: 'client' | 'agent' | 'admin'; timestamp: string };
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -95,35 +95,40 @@ export default function IAAgentPage() {
         body: JSON.stringify({ text, from: 'client' }),
       });
 
-      // Get AI response
-      const historyForAI = [...messages, clientMsg].map(m => ({
-        role: m.from === 'client' ? 'user' : 'assistant',
-        content: m.text,
-      }));
+      // Check if admin has taken over
+      const isAssumed = messages.some(m => m.from === 'admin');
 
-      const aiRes = await fetch('/api/iaagent', {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: historyForAI,
-          apiKey: localStorage.getItem('GROQ_API_KEY') ?? undefined,
-          model: localStorage.getItem('GROQ_MODEL') ?? undefined,
-          systemPrompt: localStorage.getItem('IA_SYSTEM_PROMPT') ?? undefined,
-        }),
-      });
+      if (!isAssumed) {
+        // Get AI response
+        const historyForAI = [...messages, clientMsg].map(m => ({
+          role: m.from === 'client' ? 'user' : 'assistant',
+          content: m.text,
+        }));
 
-      const aiPayload = await aiRes.json() as { reply?: string };
-      const replyText = aiPayload.reply ?? 'Desculpe, não consegui processar sua mensagem.';
+        const aiRes = await fetch('/api/iaagent', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: historyForAI,
+            apiKey: localStorage.getItem('GROQ_API_KEY') ?? undefined,
+            model: localStorage.getItem('GROQ_MODEL') ?? undefined,
+            systemPrompt: localStorage.getItem('IA_SYSTEM_PROMPT') ?? undefined,
+          }),
+        });
 
-      // Save agent response
-      await fetch(`/api/iaagent/sessions/${selected.id}/messages`, {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: replyText, from: 'agent' }),
-      });
+        const aiPayload = await aiRes.json() as { reply?: string };
+        const replyText = aiPayload.reply ?? 'Desculpe, não consegui processar sua mensagem.';
 
-      const agentMsg: Message = { id: crypto.randomUUID(), text: replyText, from: 'agent', timestamp: new Date().toISOString() };
-      setMessages(prev => [...prev, agentMsg]);
+        // Save agent response
+        await fetch(`/api/iaagent/sessions/${selected.id}/messages`, {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: replyText, from: 'agent' }),
+        });
+
+        const agentMsg: Message = { id: crypto.randomUUID(), text: replyText, from: 'agent', timestamp: new Date().toISOString() };
+        setMessages(prev => [...prev, agentMsg]);
+      }
       await loadSessions(); // refresh updatedAt
     } catch {
       const errMsg: Message = { id: crypto.randomUUID(), text: 'Erro ao conectar com o agente.', from: 'agent', timestamp: new Date().toISOString() };
@@ -293,24 +298,37 @@ export default function IAAgentPage() {
                         <p className="text-base font-medium text-slate-500">Nenhuma mensagem. Diga olá!</p>
                       </div>
                     ) : messages.map(m => {
-                      const isAgent = m.from === 'agent';
+                      const isIncoming = m.from === 'agent' || m.from === 'admin';
+                      const isAdmin = m.from === 'admin';
+                      
                       return (
-                        <div key={m.id} className={`flex gap-4 max-w-3xl ${isAgent ? '' : 'ml-auto flex-row-reverse'}`}>
+                        <div key={m.id} className={`flex gap-4 max-w-3xl ${isIncoming ? '' : 'ml-auto flex-row-reverse'}`}>
                           <div
-                            className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center mt-1 border shadow-sm ${isAgent ? 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/20' : 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20'}`}
+                            className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center mt-1 border shadow-sm ${
+                              isAdmin ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20' :
+                              isIncoming ? 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/20' : 
+                              'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20'
+                            }`}
                           >
-                            {isAgent
+                            {isAdmin
+                              ? <FiUser className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                              : isIncoming
                               ? <FiCpu className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                               : <FiUser className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             }
                           </div>
                           <div className="flex flex-col">
                             <div
-                              className={`rounded-3xl px-6 py-4 text-[15px] leading-relaxed shadow-lg ${isAgent ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none' : 'bg-gradient-to-br from-indigo-500 to-cyan-500 dark:from-indigo-600 dark:to-cyan-600 border border-indigo-400 dark:border-white/10 text-white rounded-tr-none'}`}
+                              className={`rounded-3xl px-6 py-4 text-[15px] leading-relaxed shadow-lg ${
+                                isAdmin ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-500/20 text-slate-900 dark:text-slate-200 rounded-tl-none' :
+                                isIncoming ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none' : 
+                                'bg-gradient-to-br from-indigo-500 to-cyan-500 dark:from-indigo-600 dark:to-cyan-600 border border-indigo-400 dark:border-white/10 text-white rounded-tr-none'
+                              }`}
                             >
                               {m.text}
                             </div>
-                            <p className={`text-xs font-medium mt-2 text-slate-400 dark:text-slate-500 ${isAgent ? 'ml-2' : 'mr-2 text-right'}`}>
+                            <p className={`text-xs font-medium mt-2 text-slate-400 dark:text-slate-500 ${isIncoming ? 'ml-2' : 'mr-2 text-right'}`}>
+                              {isAdmin && <span className="font-bold text-amber-500 dark:text-amber-400 mr-2">Equipe EasyDev</span>}
                               {new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>

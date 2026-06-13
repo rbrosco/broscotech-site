@@ -103,18 +103,15 @@ body {
 }
 
 
-/* Oculta a marca d'água do Chatwoot */
-iframe[src*="chatwoot"] {
-  opacity: 0.99; /* Tenta forçar uma re-renderização */
-}
-
-iframe[src*="chatwoot"] ~ div {
-  display: none !important;
-}
-
-/* Esconde links de branding */
+/* Oculta a marca d'água do Chatwoot (se necessário) */
+/* Esconde links de branding sem quebrar o widget inteiro */
 a[href*="chatwoot"], div[title="Chatwoot"] {
   display: none !important;
+}
+
+/* Posiciona o widget do Chatwoot acima da bolha verde da IA */
+.woot-widget-bubble, .woot-widget-holder {
+  bottom: 90px !important;
 }
 
 /* Animação para o IconBanner */

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-let mockMessages: Record<string, any[]> = {};
+import { mockMessages } from '@/lib/ia-store';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -15,23 +14,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!mockMessages[resolvedParams.id]) {
       mockMessages[resolvedParams.id] = [];
     }
+    
+    // Suportar tanto o formato antigo (role/content) quanto o novo (from/text)
+    const from = body.from || (body.role === 'assistant' ? 'agent' : 'client');
+    const text = body.text || body.content || '';
+    
     const message = {
       id: Date.now().toString(),
-      role: body.role || 'user',
-      content: body.content,
-      createdAt: new Date().toISOString()
+      text,
+      from,
+      timestamp: new Date().toISOString()
     };
     mockMessages[resolvedParams.id].push(message);
-
-    // Mock an AI response just to make the UI work
-    setTimeout(() => {
-      mockMessages[resolvedParams.id].push({
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Esta é uma resposta simulada. O backend da IA ainda não foi integrado.',
-        createdAt: new Date().toISOString()
-      });
-    }, 1000);
 
     return NextResponse.json({ message });
   } catch (error) {

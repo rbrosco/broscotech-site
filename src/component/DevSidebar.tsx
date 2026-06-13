@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   FiChevronLeft, FiChevronRight, FiGrid, FiLayers, FiMessageSquare, FiUsers,
-  FiSettings, FiLogOut, FiMenu, FiX, FiCode, FiActivity, FiFileText
+  FiSettings, FiLogOut, FiMenu, FiX, FiCode, FiActivity, FiFileText, FiCpu
 } from 'react-icons/fi';
 
 const devItems = [
@@ -14,6 +14,7 @@ const devItems = [
   { href: '/dev/comunicacao', label: 'Comunicação', icon: FiMessageSquare },
   { href: '/dev/clientes', label: 'Clientes', icon: FiUsers },
   { href: '/dev/faturas', label: 'Faturas', icon: FiFileText },
+  { href: '/dev/ia-monitor', label: 'Monitor IA', icon: FiCpu },
 ];
 
 const adminItems = [

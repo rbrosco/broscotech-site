@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 // Declare o chatwootSDK no objeto window para o TypeScript
 declare global {
   interface Window {
+    chatwootSettings?: any;
     chatwootSDK?: {
       run: (options: {
         websiteToken: string;
@@ -21,8 +22,15 @@ const Chatbot: React.FC = () => {
       return;
     }
 
+    window.chatwootSettings = {
+      position: "right",
+      type: "standard",
+      launcherTitle: "",
+      bottomSpacing: 100
+    };
+
     (function(d: Document, t: string) {
-      const BASE_URL = "";
+      const BASE_URL = "https://chatwoot.easydev.com.br";
       const g = d.createElement(t) as HTMLScriptElement;
       const s = d.getElementsByTagName(t)[0] as HTMLScriptElement | undefined; // Pode ser undefined se não houver scripts
 
@@ -59,19 +67,11 @@ const Chatbot: React.FC = () => {
 
         if (window.chatwootSDK) {
           window.chatwootSDK.run({
-            websiteToken: 'cdiU6YEJFNn2orhaEqJSYqbV',
+            websiteToken: 'XNUHQLZ68srhTY687vfQUNs4',
             baseUrl: BASE_URL,
             darkMode: chatwootThemeMode
           });
         }
-
-        // Aguarda o carregamento e tenta ocultar a marca d'água
-        setTimeout(() => {
-          const branding = d.querySelector('a[href*="chatwoot"], div[title="Chatwoot"]') as HTMLElement | null;
-          if (branding) {
-            branding.style.display = "none";
-          }
-        }, 3000);
       };
 
       g.onerror = function() {
