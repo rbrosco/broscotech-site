@@ -22,7 +22,7 @@ const depoimentos: Depoimento[] = [
     texto: 'A automação implementada facilitou muito nosso dia a dia. Equipe muito competente.',
     autor: 'Carlos Souza',
     cargo: 'Diretor de TI',
-  },
+  }
 ];
 
 export default function DepoimentoPage() {
