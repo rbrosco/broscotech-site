@@ -1,5 +1,6 @@
 'use client';
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DevSidebar from '../../../component/DevSidebar';
 import DashboardNav from '../../../component/DashboardNav';
 import { FiAlertCircle, FiPlus, FiChevronDown, FiLayers } from 'react-icons/fi';
@@ -34,7 +35,8 @@ type Project = {
   status: string | null;
 };
 
-export default function DevKanbanPage() {
+function DevKanbanContent() {
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [data, setData] = useState<KanbanResponse | null>(null);
@@ -91,10 +93,13 @@ export default function DevKanbanPage() {
           const p = await res.json() as { projects?: Project[]; project?: Project };
           const list = p.projects ?? (p.project ? [p.project] : []);
           setProjects(list);
-          if (list.length > 0) {
-            const firstId = Number(list[0].id);
-            setSelectedProjectId(firstId);
-            await loadBoard(firstId);
+          const qid = Number(searchParams.get('projectId'));
+          const targetId = Number.isFinite(qid) && qid > 0 && list.some(x => Number(x.id) === qid)
+            ? qid
+            : (list.length > 0 ? Number(list[0].id) : null);
+          if (targetId) {
+            setSelectedProjectId(targetId);
+            await loadBoard(targetId);
           } else {
             await loadBoard(null);
           }
@@ -104,7 +109,7 @@ export default function DevKanbanPage() {
       } catch { setError('Erro ao carregar projetos.'); }
       setLoading(false);
     })();
-  }, [loadBoard]);
+  }, [loadBoard, searchParams]);
 
   useEffect(() => {
     if (selectedProjectId) void loadBoard(selectedProjectId);
@@ -346,5 +351,13 @@ export default function DevKanbanPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DevKanbanPage() {
+  return (
+    <Suspense>
+      <DevKanbanContent />
+    </Suspense>
   );
 }

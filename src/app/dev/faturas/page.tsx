@@ -62,7 +62,7 @@ export default function DevFaturasPage() {
     try {
       const [invRes, projRes] = await Promise.all([
         fetch('/api/invoices', { credentials: 'include' }),
-        fetch('/api/projects', { credentials: 'include' })
+        fetch('/api/projects?all=1', { credentials: 'include' })
       ]);
       const invData = await invRes.json();
       const projData = await projRes.json();

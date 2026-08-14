@@ -56,7 +56,7 @@ export default function FaturasPage() {
     fetch('/api/invoices', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
-        if (data.invoices) {
+        if (Array.isArray(data.invoices) && data.invoices.length > 0) {
           // Map DB keys to frontend keys
           const mapped = data.invoices.map((inv: any) => ({
             id: inv.id,
@@ -66,10 +66,12 @@ export default function FaturasPage() {
             emissao: inv.emissao,
             vencimento: inv.vencimento,
             status: inv.status,
-            descricao: inv.descricao,
+            descricao: inv.descricao || 'Sem descrição.',
             asaas_url: inv.asaas_url,
           }));
           setInvoices(mapped);
+        } else {
+          setInvoices(MOCK_INVOICES);
         }
         setLoading(false);
       })

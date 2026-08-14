@@ -24,8 +24,33 @@ async function ensureProjectHasColumns(projectId: number) {
     .where(eq(kanban_columns.project_id, projectId));
   
   if (existingCols.length === 0) {
+    const defaultCardsMap: Record<string, Array<{ title: string; description: string }>> = {
+      'Inicio (Do Projeto)': [{ title: 'Alinhamento inicial do projeto', description: 'Reunião de kickoff e levantamento de necessidades.' }],
+      'Discussão (Sobre o Projeto)': [{ title: 'Definição da arquitetura e escopo', description: 'Mapeamento das funcionalidades principais.' }],
+      'Tipo de Projeto': [{ title: 'Aprovação do modelo de desenvolvimento', description: 'Escolha da stack tecnológica e cronograma.' }],
+      '1 Fase (Prévia do Projeto)': [{ title: 'Desenvolvimento do protótipo UI/UX', description: 'Criação das telas principais do sistema.' }],
+      '2 Fase (Segunda Prévia)': [{ title: 'Integração de APIs e Banco de Dados', description: 'Conexão das rotas de backend com PostgreSQL.' }],
+      'Finalização': [{ title: 'Testes de homologação', description: 'Validação final das funcionalidades e entrega.' }],
+    };
+
     for (let i = 0; i < DEFAULT_PIPELINE.length; i++) {
-      await db.insert(kanban_columns).values({ project_id: projectId, title: DEFAULT_PIPELINE[i], position: i });
+      const title = DEFAULT_PIPELINE[i];
+      const [col] = await db
+        .insert(kanban_columns)
+        .values({ project_id: projectId, title, position: i })
+        .returning();
+
+      const initialCards = defaultCardsMap[title];
+      if (initialCards && col) {
+        for (let j = 0; j < initialCards.length; j++) {
+          await db.insert(kanban_cards).values({
+            column_id: Number(col.id),
+            title: initialCards[j].title,
+            description: initialCards[j].description,
+            position: j,
+          });
+        }
+      }
     }
   }
 }

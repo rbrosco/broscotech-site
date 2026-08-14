@@ -45,7 +45,7 @@ function DevComunicacaoContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/projects', { credentials: 'include' })
+    fetch('/api/projects?all=1', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data.projects)) {

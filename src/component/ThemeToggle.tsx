@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiMoon, FiSun } from 'react-icons/fi';
 
 type Theme = 'light' | 'dark';
@@ -15,21 +15,19 @@ const applyThemeToRoot = (selectedTheme: Theme) => {
   root.classList.add(isDark ? 'dark' : 'light');
 };
 
-const getInitialTheme = (): Theme => {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (isValidTheme(stored)) return stored;
-  }
-  return 'dark';
-};
-
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const initialTheme = getInitialTheme();
+    let initialTheme: Theme = 'dark';
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (isValidTheme(stored)) {
+        initialTheme = stored;
+      }
+    }
     setTheme(initialTheme);
     applyThemeToRoot(initialTheme);
   }, []);
@@ -40,23 +38,25 @@ export default function ThemeToggle() {
     localStorage.setItem(STORAGE_KEY, theme);
   }, [theme, mounted]);
 
-  const nextThemeLabel = useMemo(() => {
-    if (theme === 'light') return 'escuro';
-    return 'claro';
-  }, [theme]);
+  if (!mounted) {
+    return (
+      <button
+        className="p-2 rounded-full text-slate-700 dark:text-slate-300 opacity-0 pointer-events-none"
+        aria-hidden="true"
+        type="button"
+      >
+        <span className="h-5 w-5 block" />
+      </button>
+    );
+  }
 
+  const nextThemeLabel = theme === 'light' ? 'escuro' : 'claro';
   const iconClass = 'h-5 w-5';
-  const icon = useMemo(() => {
-    if (theme === 'light') return <FiSun className={iconClass} />;
-    if (theme === 'dark') return <FiMoon className={iconClass} />;
-    return <FiSun className={iconClass} />;
-  }, [theme]);
+  const icon = theme === 'light' ? <FiSun className={iconClass} /> : <FiMoon className={iconClass} />;
 
   return (
     <button
-      onClick={() =>
-        setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-      }
+      onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
       className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
       aria-label={`Mudar tema. Atual: ${theme}. Próximo: ${nextThemeLabel}`}
       type="button"
