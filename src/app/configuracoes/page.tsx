@@ -36,8 +36,19 @@ export default function ConfiguracoesPage() {
   const [saved, setSaved] = useState(false);
 
   // IA Agent section
+  type ProviderType = 'google' | 'openai' | 'anthropic' | 'groq' | 'lmstudio';
+  const [provider, setProvider] = useState<ProviderType>('groq');
   const [groqKey, setGroqKey] = useState('');
   const [groqModel, setGroqModel] = useState('');
+  const [openAiKey, setOpenAiKey] = useState('');
+  const [openAiModel, setOpenAiModel] = useState('gpt-4o-mini');
+  const [anthropicKey, setAnthropicKey] = useState('');
+  const [anthropicModel, setAnthropicModel] = useState('claude-3-5-sonnet-20241022');
+  const [googleKey, setGoogleKey] = useState('');
+  const [googleModel, setGoogleModel] = useState('gemini-1.5-flash');
+  const [lmStudioUrl, setLmStudioUrl] = useState('http://127.0.0.1:1234/v1');
+  const [lmStudioModel, setLmStudioModel] = useState('local-model');
+  const [lmStudioApiKey, setLmStudioApiKey] = useState('lm-studio');
   const [webhook, setWebhook] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showKey, setShowKey] = useState(false);
@@ -75,8 +86,19 @@ export default function ConfiguracoesPage() {
     })();
     // Load persisted IA settings
     try {
+      const savedProvider = (localStorage.getItem('IA_PROVIDER') as ProviderType) || 'groq';
+      setProvider(['google','openai','anthropic','groq','lmstudio'].includes(savedProvider) ? savedProvider : 'groq');
       setGroqKey(localStorage.getItem('GROQ_API_KEY') ?? '');
       setGroqModel(localStorage.getItem('GROQ_MODEL') ?? '');
+      setOpenAiKey(localStorage.getItem('OPENAI_API_KEY') ?? '');
+      setOpenAiModel(localStorage.getItem('OPENAI_MODEL') ?? 'gpt-4o-mini');
+      setAnthropicKey(localStorage.getItem('ANTHROPIC_API_KEY') ?? '');
+      setAnthropicModel(localStorage.getItem('ANTHROPIC_MODEL') ?? 'claude-3-5-sonnet-20241022');
+      setGoogleKey(localStorage.getItem('GOOGLE_API_KEY') ?? '');
+      setGoogleModel(localStorage.getItem('GOOGLE_MODEL') ?? 'gemini-1.5-flash');
+      setLmStudioUrl(localStorage.getItem('LMSTUDIO_BASE_URL') ?? 'http://127.0.0.1:1234/v1');
+      setLmStudioModel(localStorage.getItem('LMSTUDIO_MODEL') ?? 'local-model');
+      setLmStudioApiKey(localStorage.getItem('LMSTUDIO_API_KEY') ?? 'lm-studio');
       setWebhook(localStorage.getItem('WEBHOOK_URL') ?? '');
       setSystemPrompt(localStorage.getItem('IA_SYSTEM_PROMPT') ?? '');
     } catch {}
@@ -85,8 +107,18 @@ export default function ConfiguracoesPage() {
   const handleSave = () => {
     try {
       if (activeSection === 'iaagent') {
+        localStorage.setItem('IA_PROVIDER', provider);
         localStorage.setItem('GROQ_API_KEY', groqKey);
         localStorage.setItem('GROQ_MODEL', groqModel);
+        localStorage.setItem('OPENAI_API_KEY', openAiKey);
+        localStorage.setItem('OPENAI_MODEL', openAiModel);
+        localStorage.setItem('ANTHROPIC_API_KEY', anthropicKey);
+        localStorage.setItem('ANTHROPIC_MODEL', anthropicModel);
+        localStorage.setItem('GOOGLE_API_KEY', googleKey);
+        localStorage.setItem('GOOGLE_MODEL', googleModel);
+        localStorage.setItem('LMSTUDIO_BASE_URL', lmStudioUrl);
+        localStorage.setItem('LMSTUDIO_MODEL', lmStudioModel);
+        localStorage.setItem('LMSTUDIO_API_KEY', lmStudioApiKey);
         localStorage.setItem('WEBHOOK_URL', webhook);
         localStorage.setItem('IA_SYSTEM_PROMPT', systemPrompt);
       }
@@ -178,19 +210,80 @@ export default function ConfiguracoesPage() {
                         <FiSliders className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                         <p className="text-xs font-bold text-slate-900 dark:text-white">Modelo de IA</p>
                       </div>
-                      <div className="px-4 py-4 flex flex-col gap-3">
-                        <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
-                          <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
+                      <div className="px-4 py-4 flex flex-col gap-4">
+                        <Field label="Provedor de IA">
+                          <select className={FIELD_STYLE} value={provider} onChange={e => setProvider(e.target.value as ProviderType)}>
+                            <option value="google">Google</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="groq">Groq</option>
+                            <option value="lmstudio">LM Studio</option>
+                          </select>
                         </Field>
-                        <div className="flex flex-wrap gap-2">
-                          {['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'].map(m => (
-                            <button key={m} onClick={() => setGroqModel(m)} className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition border ${
-                                groqModel === m
-                                  ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30'
-                                  : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
-                              }`}>{m}</button>
-                          ))}
-                        </div>
+
+                        {provider === 'google' && (
+                          <>
+                            <Field label="API Key do Google AI" hint="Sua chave da Google Gemini API">
+                              <input className={FIELD_STYLE} value={googleKey} onChange={e => setGoogleKey(e.target.value)} placeholder="AIza..." />
+                            </Field>
+                            <Field label="Modelo do Google" hint="Ex: gemini-1.5-flash, gemini-2.0-flash">
+                              <input className={FIELD_STYLE} value={googleModel} onChange={e => setGoogleModel(e.target.value)} placeholder="gemini-1.5-flash" />
+                            </Field>
+                          </>
+                        )}
+
+                        {provider === 'openai' && (
+                          <>
+                            <Field label="OpenAI API Key" hint="Sua chave da OpenAI">
+                              <input className={FIELD_STYLE} value={openAiKey} onChange={e => setOpenAiKey(e.target.value)} placeholder="sk-..." />
+                            </Field>
+                            <Field label="Modelo OpenAI" hint="Ex: gpt-4o-mini, gpt-4.1-mini">
+                              <input className={FIELD_STYLE} value={openAiModel} onChange={e => setOpenAiModel(e.target.value)} placeholder="gpt-4o-mini" />
+                            </Field>
+                          </>
+                        )}
+
+                        {provider === 'anthropic' && (
+                          <>
+                            <Field label="Anthropic API Key" hint="Sua chave da Anthropic">
+                              <input className={FIELD_STYLE} value={anthropicKey} onChange={e => setAnthropicKey(e.target.value)} placeholder="sk-ant-..." />
+                            </Field>
+                            <Field label="Modelo Anthropic" hint="Ex: claude-3-5-sonnet-20241022">
+                              <input className={FIELD_STYLE} value={anthropicModel} onChange={e => setAnthropicModel(e.target.value)} placeholder="claude-3-5-sonnet-20241022" />
+                            </Field>
+                          </>
+                        )}
+
+                        {provider === 'groq' && (
+                          <>
+                            <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
+                              <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
+                            </Field>
+                            <div className="flex flex-wrap gap-2">
+                              {['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'].map(m => (
+                                <button key={m} onClick={() => setGroqModel(m)} className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition border ${
+                                    groqModel === m
+                                      ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30'
+                                      : 'bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                                  }`}>{m}</button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {provider === 'lmstudio' && (
+                          <>
+                            <Field label="API Key do LM Studio" hint="Opcional em ambiente local; geralmente use 'lm-studio'">
+                              <input className={FIELD_STYLE} value={lmStudioApiKey} onChange={e => setLmStudioApiKey(e.target.value)} placeholder="lm-studio" />
+                            </Field>
+                            <Field label="URL do LM Studio" hint="Ex: http://127.0.0.1:1234/v1">
+                              <input className={FIELD_STYLE} value={lmStudioUrl} onChange={e => setLmStudioUrl(e.target.value)} placeholder="http://127.0.0.1:1234/v1" />
+                            </Field>
+                            <Field label="Modelo local do LM Studio" hint="Nome do modelo carregado no LM Studio">
+                              <input className={FIELD_STYLE} value={lmStudioModel} onChange={e => setLmStudioModel(e.target.value)} placeholder="local-model" />
+                            </Field>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -253,27 +346,51 @@ export default function ConfiguracoesPage() {
                         Configure a chave da API Groq e o modelo de linguagem para o agente de IA.
                       </p>
                     </div>
-                    <Field label="GROQ API Key" hint="Sua chave privada da plataforma Groq">
-                      <div className="relative">
-                        <input
-                          type={showKey ? 'text' : 'password'}
-                          className={`${FIELD_STYLE} pr-10`}
-                          value={groqKey}
-                          onChange={e => setGroqKey(e.target.value)}
-                          placeholder="gsk_••••••••••••••••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowKey(v => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                        >
-                          {showKey ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
-                        </button>
+                    {provider === 'groq' && (
+                      <>
+                        <Field label="GROQ API Key" hint="Sua chave privada da plataforma Groq">
+                          <div className="relative">
+                            <input
+                              type={showKey ? 'text' : 'password'}
+                              className={`${FIELD_STYLE} pr-10`}
+                              value={groqKey}
+                              onChange={e => setGroqKey(e.target.value)}
+                              placeholder="gsk_••••••••••••••••••••••"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowKey(v => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                            >
+                              {showKey ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </Field>
+                        <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
+                          <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
+                        </Field>
+                      </>
+                    )}
+
+                    {(provider === 'google' || provider === 'openai' || provider === 'anthropic') && (
+                      <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+                        Configure a chave e o modelo do provedor selecionado acima. O envio para a API real será feito no backend quando esta opção estiver ativa.
                       </div>
-                    </Field>
-                    <Field label="Modelo Groq" hint="Ex: llama-3.3-70b-versatile, mixtral-8x7b-32768">
-                      <input className={FIELD_STYLE} value={groqModel} onChange={e => setGroqModel(e.target.value)} placeholder="llama-3.3-70b-versatile" />
-                    </Field>
+                    )}
+
+                    {provider === 'lmstudio' && (
+                      <>
+                        <Field label="API Key do LM Studio" hint="Opcional em ambiente local; geralmente use 'lm-studio'">
+                          <input className={FIELD_STYLE} value={lmStudioApiKey} onChange={e => setLmStudioApiKey(e.target.value)} placeholder="lm-studio" />
+                        </Field>
+                        <Field label="URL do LM Studio" hint="Ex: http://127.0.0.1:1234/v1">
+                          <input className={FIELD_STYLE} value={lmStudioUrl} onChange={e => setLmStudioUrl(e.target.value)} placeholder="http://127.0.0.1:1234/v1" />
+                        </Field>
+                        <Field label="Modelo local do LM Studio" hint="Nome do modelo carregado no LM Studio">
+                          <input className={FIELD_STYLE} value={lmStudioModel} onChange={e => setLmStudioModel(e.target.value)} placeholder="local-model" />
+                        </Field>
+                      </>
+                    )}
                     <div className="pt-1 border-t border-slate-200 dark:border-white/5" />
                     <Field label="Webhook URL" hint="URL para receber notificações de eventos do sistema">
                       <div className="relative">

@@ -61,6 +61,22 @@ export default function DevKanbanPage() {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [data, boardLoading]);
 
+  const loadBoard = useCallback(async (projectId?: number | null) => {
+    setBoardLoading(true);
+    try {
+      const url = projectId ? `/api/kanban?projectId=${projectId}` : '/api/kanban';
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.ok) {
+        const p = await res.json() as KanbanResponse;
+        setData(p);
+        if (p.project?.id && !selectedProjectId) {
+          setSelectedProjectId(Number(p.project.id));
+        }
+      }
+    } catch {}
+    setBoardLoading(false);
+  }, [selectedProjectId]);
+
   // Load all projects for selector
   useEffect(() => {
     (async () => {
@@ -70,29 +86,25 @@ export default function DevKanbanPage() {
         const meData = await me.json() as { role?: string };
         if (meData.role !== 'admin') { setError('Acesso restrito.'); setLoading(false); return; }
 
-        const res = await fetch('/api/projects', { credentials: 'include' });
+        const res = await fetch('/api/projects?all=1', { credentials: 'include' });
         if (res.ok) {
-          const p = await res.json() as { projects?: Project[] };
-          const list = p.projects ?? [];
+          const p = await res.json() as { projects?: Project[]; project?: Project };
+          const list = p.projects ?? (p.project ? [p.project] : []);
           setProjects(list);
-          if (list.length > 0) setSelectedProjectId(list[0].id);
+          if (list.length > 0) {
+            const firstId = Number(list[0].id);
+            setSelectedProjectId(firstId);
+            await loadBoard(firstId);
+          } else {
+            await loadBoard(null);
+          }
+        } else {
+          await loadBoard(null);
         }
       } catch { setError('Erro ao carregar projetos.'); }
       setLoading(false);
     })();
-  }, []);
-
-  const loadBoard = useCallback(async (projectId: number) => {
-    setBoardLoading(true);
-    try {
-      const res = await fetch(`/api/kanban?projectId=${projectId}`, { credentials: 'include' });
-      if (res.ok) {
-        const p = await res.json() as KanbanResponse;
-        setData(p);
-      }
-    } catch {}
-    setBoardLoading(false);
-  }, []);
+  }, [loadBoard]);
 
   useEffect(() => {
     if (selectedProjectId) void loadBoard(selectedProjectId);

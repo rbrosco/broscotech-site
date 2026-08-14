@@ -51,7 +51,7 @@ export function requireAuth(headers: HeaderLike): DecodedUser {
   if (!token) return null;
 
   try {
-    const secret = process.env.JWT_SECRET || 'dev-secret';
+    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET ?? 'dev-secret';
     const decoded = jwt.verify(token, secret) as unknown;
     return (decoded as DecodedUser) || null;
   } catch {

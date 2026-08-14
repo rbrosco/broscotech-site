@@ -2,7 +2,7 @@ const { Client } = require('pg');
 
 async function migrate() {
   const client = new Client({
-    connectionString: 'postgres://postgres:kR9tW2mX7vL4qZ1bP8jY3%40nM6x9Z4wK2hK9mR3vW2p_X7zL4fB9jT1nY8x6w-L3mK7pQ@127.0.0.1:5432/easyprojects_db',
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:F2Wgk8qLrT7mXvYpQ9nCz3d@127.0.0.1:5432/postgres',
   });
   await client.connect();
   console.log('Connected.');

@@ -1,0 +1,59 @@
+{
+  "sorted_middleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/_be702585._.js",
+        "server/edge/chunks/[root-of-the-server]__8978dbac._.js",
+        "server/edge/chunks/turbopack-edge-wrapper_38c6865c.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/dashboard/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/dashboard/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/iaagent{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/iaagent"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/iaagent/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/iaagent/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/perfil{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/perfil"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/perfil/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/perfil/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/iaagent/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/api/iaagent/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/kanban/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/api/kanban/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/profile/:path*{(\\.json|\\.rsc|\\.segments/.+\\.segment\\.rsc)}?",
+          "originalSource": "/api/profile/:path*"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "qWQPNh/2a/Dim0wC8XMJwZLm4Hbf/5Inf9TWBNuXwlM=",
+        "__NEXT_PREVIEW_MODE_ID": "1b9e9da792bb159780ca86fcb4f03053",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "600a1153171aeb2a7bef2c45208dc67ce54eb99579ba7482d6ebe0a0cda6cc12",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7885e08297467f97927881dea0f23dbce12a22d08d2e289471cb90367bba3d38"
+      }
+    }
+  },
+  "instrumentation": null,
+  "functions": {}
+}

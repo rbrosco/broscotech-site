@@ -270,10 +270,16 @@ export default function ProjetoPage() {
   const handleDeleteProject = async (projectId: number) => {
     if (!window.confirm('Tem certeza que deseja apagar este projeto?')) return;
     try {
-      await fetch(`/api/projects?projectId=${projectId}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`/api/projects?projectId=${projectId}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(payload.message || 'Falha ao apagar projeto.');
+      }
       setProjectsList(prev => prev.filter(p => p.id !== projectId));
       setSaveMessage('Projeto apagado com sucesso.');
-    } catch { setSaveMessage('Erro ao apagar projeto.'); }
+    } catch (e) {
+      setSaveMessage(e instanceof Error ? e.message : 'Erro ao apagar projeto.');
+    }
   };
 
   const handleSendToDev = async (projectId: number, projectStatus: string) => {

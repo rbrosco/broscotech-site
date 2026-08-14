@@ -52,10 +52,10 @@ export default function IAAgentPage() {
       try {
         const res = await fetch('/api/projects?all=1', { credentials: 'include' });
         if (res.ok) {
-          const p = await res.json() as { projects?: { id: number; title: string }[] };
-          const list = p.projects ?? [];
+          const p = await res.json() as { projects?: { id: number; title: string }[]; project?: { id: number; title: string } };
+          const list = p.projects ?? (p.project ? [p.project] : []);
           setProjects(list);
-          if (list.length > 0) setSelectedProjectId(list[0].id);
+          if (list.length > 0) setSelectedProjectId(Number(list[0].id));
         }
       } catch {}
     })();
@@ -63,9 +63,9 @@ export default function IAAgentPage() {
 
   // Load sessions
   const loadSessions = useCallback(async () => {
-    if (!selectedProjectId) return;
     try {
-      const res = await fetch(`/api/iaagent/sessions?projectId=${selectedProjectId}`, { credentials: 'include' });
+      const url = selectedProjectId ? `/api/iaagent/sessions?projectId=${selectedProjectId}` : '/api/iaagent/sessions';
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const p = await res.json() as { sessions?: Session[] };
         const newSessions = p.sessions ?? [];
@@ -79,7 +79,7 @@ export default function IAAgentPage() {
     } catch {}
   }, [selectedProjectId]);
 
-  useEffect(() => { if (authed && selectedProjectId) void loadSessions(); }, [authed, selectedProjectId, loadSessions]);
+  useEffect(() => { if (authed) void loadSessions(); }, [authed, loadSessions]);
 
   const [newTitle, setNewTitle] = useState('');
   const [showNewModal, setShowNewModal] = useState(false);
@@ -153,13 +153,33 @@ export default function IAAgentPage() {
           ? `[Contexto Oculto]: O cliente atual está conversando com você sobre o projeto dele chamado "${projTitle}". Baseie-se nisso para ajudar o cliente e se ele quiser algo vinculado ao projeto você saberá do que ele está falando.\n\n${baseSystemPrompt}`
           : baseSystemPrompt;
 
+        const provider = localStorage.getItem('IA_PROVIDER') ?? 'groq';
         const aiRes = await fetch('/api/iaagent', {
           method: 'POST', credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             messages: historyForAI,
+            provider,
             apiKey: localStorage.getItem('GROQ_API_KEY') ?? undefined,
-            model: localStorage.getItem('GROQ_MODEL') ?? undefined,
+            groqKey: localStorage.getItem('GROQ_API_KEY') ?? undefined,
+            groqModel: localStorage.getItem('GROQ_MODEL') ?? undefined,
+            openAiKey: localStorage.getItem('OPENAI_API_KEY') ?? undefined,
+            openAiModel: localStorage.getItem('OPENAI_MODEL') ?? 'gpt-4o-mini',
+            anthropicKey: localStorage.getItem('ANTHROPIC_API_KEY') ?? undefined,
+            anthropicModel: localStorage.getItem('ANTHROPIC_MODEL') ?? 'claude-3-5-sonnet-20241022',
+            googleKey: localStorage.getItem('GOOGLE_API_KEY') ?? undefined,
+            googleModel: localStorage.getItem('GOOGLE_MODEL') ?? 'gemini-1.5-flash',
+            lmStudioApiKey: localStorage.getItem('LMSTUDIO_API_KEY') ?? 'lm-studio',
+            model: provider === 'lmstudio'
+              ? (localStorage.getItem('LMSTUDIO_MODEL') || 'local-model')
+              : provider === 'openai'
+                ? (localStorage.getItem('OPENAI_MODEL') || 'gpt-4o-mini')
+                : provider === 'anthropic'
+                  ? (localStorage.getItem('ANTHROPIC_MODEL') || 'claude-3-5-sonnet-20241022')
+                  : provider === 'google'
+                    ? (localStorage.getItem('GOOGLE_MODEL') || 'gemini-1.5-flash')
+                    : (localStorage.getItem('GROQ_MODEL') ?? undefined),
+            baseUrl: provider === 'lmstudio' ? (localStorage.getItem('LMSTUDIO_BASE_URL') || 'http://127.0.0.1:1234/v1') : undefined,
             systemPrompt: systemPromptWithContext,
           }),
         });
@@ -191,13 +211,35 @@ export default function IAAgentPage() {
   };
 
   const handleNewSession = async () => {
-    if (!selectedProjectId) return;
+    let projectId = selectedProjectId;
+
+    if (!projectId) {
+      try {
+        const projectRes = await fetch('/api/projects', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: 'Meu Projeto' }),
+        });
+
+        if (projectRes.ok) {
+          const projectPayload = await projectRes.json() as { project?: { id: number; title: string } };
+          if (projectPayload.project) {
+            setProjects(prev => [projectPayload.project!, ...prev]);
+            projectId = projectPayload.project.id;
+            setSelectedProjectId(projectId);
+          }
+        }
+      } catch {}
+    }
+
+    if (!projectId) return;
+
     const title = newTitle.trim() || `Sessão ${new Date().toLocaleString('pt-BR')}`;
     try {
       const res = await fetch('/api/iaagent/sessions', {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, projectId: selectedProjectId }),
+        body: JSON.stringify({ title, projectId }),
       });
       if (res.ok) {
         const p = await res.json() as { session?: Session };
@@ -262,7 +304,6 @@ export default function IAAgentPage() {
                   onClick={() => setShowNewModal(true)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 hover:scale-105 shadow-sm"
                   title="Nova sessão"
-                  disabled={!selectedProjectId}
                 >
                   <FiPlus className="w-4 h-4" />
                 </button>

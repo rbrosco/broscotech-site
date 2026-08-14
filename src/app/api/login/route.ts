@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     console.log(`[LOGIN] Sucesso: user id=${user.id}, login=${user.login}, email=${user.email}`);
 
-    const secret = process.env.JWT_SECRET || 'dev-secret';
+    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET ?? 'dev-secret';
     const token = jwt.sign(
       {
         id: user.id,

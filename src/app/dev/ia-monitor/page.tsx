@@ -37,7 +37,52 @@ export default function IAMonitorPage() {
     } catch {}
   }, []);
 
+  const ensureDemoSession = useCallback(async () => {
+    if (sessions.length > 0) return;
+
+    try {
+      let projectId: number | null = null;
+      const projectList = await fetch('/api/projects?all=1', { credentials: 'include' });
+      if (projectList.ok) {
+        const payload = await projectList.json() as { projects?: { id: number; title: string }[] };
+        if (Array.isArray(payload.projects) && payload.projects.length > 0) {
+          projectId = payload.projects[0].id;
+        }
+      }
+
+      if (!projectId) {
+        const createProject = await fetch('/api/projects', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: 'Projeto de monitoramento IA' }),
+        });
+
+        if (createProject.ok) {
+          const projectPayload = await createProject.json() as { project?: { id: number; title: string } };
+          projectId = projectPayload.project?.id ?? null;
+        }
+      }
+
+      if (!projectId) return;
+
+      const createSession = await fetch('/api/iaagent/sessions', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Sessão de monitoramento', projectId }),
+      });
+
+      if (createSession.ok) {
+        const sessionPayload = await createSession.json() as { session?: Session };
+        if (sessionPayload.session) {
+          setSessions(prev => [sessionPayload.session!, ...prev]);
+          setSelected(sessionPayload.session!);
+        }
+      }
+    } catch {}
+  }, [sessions.length]);
+
   useEffect(() => { void loadSessions(); }, [loadSessions]);
+  useEffect(() => { if (sessions.length === 0) { void ensureDemoSession(); } }, [sessions.length, ensureDemoSession]);
 
   // Load messages for selected session
   const loadMessages = useCallback(async () => {
