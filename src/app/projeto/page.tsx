@@ -389,7 +389,7 @@ export default function ProjetoPage() {
               <button
                 onClick={openNewModal}
                 className="group relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)] shrink-0"
-                style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
+                style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
                 <FiPlus className="w-4 h-4 relative z-10" />
@@ -478,7 +478,7 @@ export default function ProjetoPage() {
                         <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-900 shadow-inner overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-1000 ease-out relative"
-                            style={{ width: `${project.progress}%`, background: `linear-gradient(90deg,#4f46e5,${st.dot})` }}
+                            style={{ width: `${project.progress}%`, background: `linear-gradient(90deg,#004aad,${st.dot})` }}
                           >
                             <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
                           </div>
@@ -641,7 +641,7 @@ export default function ProjetoPage() {
                     onClick={() => { void onSave(); setEditMode(false); setShowModal(false); }}
                     disabled={saving}
                     className="group relative overflow-hidden px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                    style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
+                    style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
                     <span className="relative z-10">{saving ? 'Salvando…' : 'Salvar Projeto'}</span>
@@ -650,7 +650,7 @@ export default function ProjetoPage() {
                   <button
                     onClick={() => setEditMode(true)}
                     className="group relative overflow-hidden px-8 py-3 rounded-xl text-sm font-black text-white transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                    style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
+                    style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
                   >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
                     <span className="relative z-10">Solicitar projeto</span>

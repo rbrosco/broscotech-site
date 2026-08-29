@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { FiLock } from 'react-icons/fi';
 import Header from '../../component/Header';
 
 export default function LoginPage() {
@@ -12,6 +13,12 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const identifierRef = useRef<HTMLInputElement>(null);
+
+  // Foco no primeiro campo ao montar
+  useEffect(() => {
+    identifierRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

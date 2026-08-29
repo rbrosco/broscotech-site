@@ -101,7 +101,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setShowModal(true)}
                 className="group relative flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)]"
-                style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
+                style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
                 <FiPlus className="w-4 h-4 relative z-10" />
@@ -159,7 +159,7 @@ export default function DashboardPage() {
               <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-900 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5">
                 <div
                   className="h-full rounded-full transition-all duration-1000 ease-out relative"
-                  style={{ width: `${selectedProject.progress}%`, background: 'linear-gradient(90deg,#4f46e5,#06b6d4)' }}
+                  style={{ width: `${selectedProject.progress}%`, background: 'linear-gradient(90deg,#004aad,#00d4aa)' }}
                 >
                   <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
                 </div>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                 onClick={handleCreate}
                 disabled={creating || !form.title.trim()}
                 className="group relative w-full overflow-hidden mt-3 py-4 rounded-2xl font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-[0_10px_30px_-10px_rgba(6,182,212,0.5)]"
-                style={{ background: 'linear-gradient(135deg,#4f46e5,#06b6d4)' }}
+                style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
                 <span className="relative z-10 flex items-center justify-center gap-2">

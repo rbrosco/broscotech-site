@@ -192,7 +192,7 @@ export default function PlanejamentoPage() {
                       {isExpanded && typeof project.progress === 'number' && project.progress > 0 && (
                         <div className="px-6 pb-4">
                           <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-900 shadow-inner overflow-hidden border border-slate-200 dark:border-white/5">
-                            <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${project.progress}%`, background: 'linear-gradient(90deg,#4f46e5,#06b6d4)' }}>
+                            <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${project.progress}%`, background: 'linear-gradient(90deg,#004aad,#00d4aa)' }}>
                                <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
                             </div>
                           </div>

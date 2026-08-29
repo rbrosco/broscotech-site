@@ -5,23 +5,19 @@ import { FiCpu, FiGitBranch, FiLayers, FiMessageSquare, FiShield, FiTrendingUp, 
 const Sobre: React.FC = () => {
   const valuesData = [
     {
-      // Ícone: Lâmpada (Inovação)
-      icon: "💡",
+      Icon: FiZap,
       text: "Inovação com propósito",
     },
     {
-      // Ícone: Escudo com Check (Qualidade)
-      icon: "🤝",
+      Icon: FiShield,
       text: "Entrega e compromisso",
     },
     {
-      // Ícone: Folha/Planta (Sustentabilidade)
-      icon: "🌱",
+      Icon: FiLayers,
       text: "Ética e transparência",
     },
     {
-      // Ícone: Globo (Impacto Social)
-      icon: "🌍",
+      Icon: FiTrendingUp,
       text: "Impacto real no negócio",
     }
   ];
@@ -120,7 +116,7 @@ const Sobre: React.FC = () => {
                     className="flex flex-col items-start justify-between p-5 rounded-3xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-[1.01] group bg-white/60 hover:bg-white/50 border border-black/10 shadow-sm dark:bg-white/10 dark:hover:bg-white/15 dark:border-white/15"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl transition-transform duration-300 group-hover:scale-110">{value.icon}</div>
+                      <value.Icon className="h-7 w-7 text-slate-900 dark:text-white transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
                       <div className="h-px flex-1 bg-white/50 dark:bg-white/10" />
                     </div>
                     <p className="mt-4 text-base font-semibold text-slate-900 dark:text-white">{value.text}</p>

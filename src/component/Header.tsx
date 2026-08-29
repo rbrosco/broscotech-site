@@ -20,7 +20,7 @@ type NotificationItem = {
   timestamp?: number;
   read?: boolean;
 };
-import { FiBell } from "react-icons/fi";
+import { FiBell, FiX } from "react-icons/fi";
 import { motion } from "framer-motion";
 import LoginModal from "./LoginModal";
 
@@ -541,13 +541,13 @@ const Header: React.FC = () => {
             {isLoggedIn && (
               <button
                 onClick={toggleNotificationDropdown}
-                className="relative p-1.5 rounded-full text-slate-700 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-black/10 transition-colors duration-200 dark:text-white/80 dark:hover:bg-white/10 dark:focus:ring-white/10"
-                aria-label="View notifications"
+                className="relative p-1.5 rounded-full text-slate-700 hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] transition-colors duration-200 dark:text-white/80 dark:hover:bg-white/10"
+                aria-label="Ver notificações"
               >
                 <FiBell className="h-5 w-5 sm:h-6 sm:w-6" />
                 {hasNewNotifications && (
                   <span className="absolute top-0.5 right-0.5 block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ring-2 ring-white dark:ring-gray-900 bg-red-500">
-                    <span className="sr-only">New notifications</span>
+                    <span className="sr-only">Novas notificações</span>
                   </span>
                 )}
               </button>
@@ -720,7 +720,13 @@ const Header: React.FC = () => {
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Informações do Projeto</h3>
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Detalhes relacionados à notificação selecionada.</p>
               </div>
-              <button onClick={() => { setIsProjectModalOpen(false); setSelectedNotification(null); }} className="text-slate-500 hover:text-slate-700 dark:hover:text-white">✕</button>
+              <button
+                onClick={() => { setIsProjectModalOpen(false); setSelectedNotification(null); }}
+                className="text-slate-500 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+                aria-label="Fechar"
+              >
+                <FiX className="w-4 h-4" aria-hidden="true" />
+              </button>
             </div>
 
             <div className="p-4 max-h-72 overflow-y-auto">

@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import type { IconType } from 'react-icons';
-import { FiCpu, FiLayout, FiMessageSquare, FiShield, FiTrendingUp, FiZap } from 'react-icons/fi';
+import { FiCheck, FiCpu, FiLayout, FiMessageSquare, FiShield, FiTrendingUp, FiZap } from 'react-icons/fi';
 
 interface IconBannerProps {
   icons: {
@@ -156,13 +156,14 @@ const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
 
                 {/* Floating notification */}
                 <div
-                  className="absolute -left-10 bottom-14 rounded-2xl px-3 py-2 shadow-xl text-xs border border-[#00b09b]/30 bg-white dark:bg-[rgba(10,15,30,0.92)] text-slate-800 dark:text-white"
+                  className="absolute -left-10 bottom-14 rounded-2xl px-3 py-2 shadow-xl text-xs border border-[#00b09b]/30 bg-white dark:bg-[rgba(10,15,30,0.92)] text-slate-800 dark:text-white flex items-center gap-1.5"
                   style={{ whiteSpace: 'nowrap', backdropFilter: 'blur(8px)' }}
                 >
-                  <span style={{ color: '#00d4aa' }}>✓</span> Deploy concluído
+                  <FiCheck className="w-3.5 h-3.5 text-[#00d4aa]" aria-hidden="true" />
+                  <span>Deploy concluído</span>
                 </div>
 
-                <p className="mt-3 text-center text-[11px] font-medium" style={{ color: 'var(--color-accent)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                <p className="mt-3 text-center text-xs font-medium" style={{ color: 'var(--color-accent)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                   EasyDev • App
                 </p>
               </div>

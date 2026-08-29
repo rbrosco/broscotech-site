@@ -1,5 +1,5 @@
-import React from 'react';
-import { FiCheckCircle, FiXCircle, FiUser, FiMail, FiPhone, FiCalendar, FiFileText, FiHash, FiTrash2 } from 'react-icons/fi';
+import React, { useEffect } from 'react';
+import { FiCheckCircle, FiXCircle, FiUser, FiMail, FiPhone, FiCalendar, FiFileText, FiHash, FiTrash2, FiX } from 'react-icons/fi';
 
 type ProjectDetails = {
   title?: string;
@@ -43,13 +43,39 @@ const PopupPlanejamento: React.FC<PopupPlanejamentoProps> = ({
   onDelete,
 }) => {
   const handleDelete = onDelete || (() => {});
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open || !update) return null;
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-50 flex items-start justify-center bg-white/80 animate-fade-in">
-      <div className="mt-10 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 w-full max-w-2xl relative animate-fade-in-up border border-blue-100 dark:border-gray-800" style={{ fontSize: '1.1em' }}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-blue-700 dark:hover:text-slate-900 dark:text-white transition">×</button>
-        <h2 className="text-3xl font-extrabold mb-2 flex items-center gap-2 text-blue-900 dark:text-blue-200">
-          <FiFileText className="inline-block text-blue-400" /> Detalhes do Planejamento
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/60 dark:bg-black/75 backdrop-blur-sm overflow-y-auto pt-10 pb-10 px-4 animate-fade-in"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="popup-planejamento-title"
+    >
+      <div
+        className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 w-full max-w-2xl relative border border-slate-200 dark:border-gray-800 my-auto"
+        style={{ fontSize: '1.1em' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+          aria-label="Fechar"
+        >
+          <FiX className="w-5 h-5" aria-hidden="true" />
+        </button>
+        <h2 id="popup-planejamento-title" className="text-2xl sm:text-3xl font-extrabold mb-2 flex items-center gap-2 text-slate-900 dark:text-blue-200">
+          <FiFileText className="inline-block text-[#00b09b]" /> Detalhes do Planejamento
         </h2>
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
           <FiCalendar /> {new Date(update.created_at).toLocaleString()}
