@@ -77,6 +77,24 @@ html:not(.dark) .tooltip {
   --ia-bubble-contrast: #040d1a;
 }
 
+/* Form elements theme adaptation */
+select,
+input,
+textarea {
+  color-scheme: light dark;
+}
+
+html.dark select option,
+.dark select option {
+  background-color: #071324 !important;
+  color: #f8fafc !important;
+}
+
+html:not(.dark) select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-bg-surface: var(--bg-surface);

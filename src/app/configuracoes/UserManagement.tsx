@@ -100,7 +100,7 @@ export default function UserManagement({ type }: { type: 'client' | 'team' }) {
     }
   };
 
-  const inputClass = "w-full rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/25 outline-none transition focus:ring-1 focus:ring-[#00b09b] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10";
+  const inputClass = "w-full bg-white dark:bg-[#071324] border border-slate-200 dark:border-white/15 text-sm rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--color-accent)] [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#071324] dark:[&>option]:text-white shadow-sm";
 
   return (
     <div className="flex flex-col gap-5 w-full">
