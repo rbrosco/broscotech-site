@@ -221,10 +221,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ reply });
     }
 
-    const finalGroqKey = groqKey || apiKey;
+    const finalGroqKey = groqKey || apiKey || process.env.GROQ_API_KEY;
     if (!finalGroqKey) {
       return NextResponse.json(
-        { reply: 'Erro: API Key da Groq não configurada. Configure no seu Painel (Configurações > IA Agent).' },
+        { reply: 'Erro: API Key da Groq não configurada. Configure no seu Painel (Configurações > IA Agent) ou defina GROQ_API_KEY no servidor.' },
         { status: 400 }
       );
     }
