@@ -85,6 +85,7 @@ function DevKanbanContent() {
   const [boardLoading, setBoardLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [currentDevName, setCurrentDevName] = useState<string>('');
 
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [dragging, setDragging] = useState<{ cardId: number; fromColumnId: number } | null>(null);
@@ -134,12 +135,13 @@ function DevKanbanContent() {
           setLoading(false);
           return;
         }
-        const meData = (await me.json()) as { role?: string };
+        const meData = (await me.json()) as { role?: string; name?: string };
         if (meData.role !== 'admin') {
           setError('Acesso restrito.');
           setLoading(false);
           return;
         }
+        setCurrentDevName(meData.name || '');
 
         const res = await fetch('/api/projects?all=1', { credentials: 'include' });
         if (res.ok) {
@@ -191,7 +193,7 @@ function DevKanbanContent() {
   };
 
   function openCreateCard(columnId: number) {
-    setCardForm(EMPTY_CARD_FORM);
+    setCardForm({ ...EMPTY_CARD_FORM, responsavel: currentDevName });
     setCardModal({ mode: 'create', columnId });
   }
 
@@ -199,7 +201,7 @@ function DevKanbanContent() {
     setCardForm({
       title: card.title,
       description: card.description || '',
-      responsavel: card.responsavel || '',
+      responsavel: card.responsavel || currentDevName,
       dueDate: card.due_date ? String(card.due_date).slice(0, 10) : '',
       priority: (card.priority as CardFormState['priority']) || '',
     });
@@ -571,8 +573,19 @@ function DevKanbanContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider block mb-1.5 text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <FiUser className="w-3 h-3" /> Responsável
+                  <label className="text-xs font-bold uppercase tracking-wider mb-1.5 text-slate-700 dark:text-slate-300 flex items-center justify-between gap-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <FiUser className="w-3 h-3" /> Responsável
+                    </span>
+                    {currentDevName && cardForm.responsavel !== currentDevName && (
+                      <button
+                        type="button"
+                        onClick={() => setCardForm((f) => ({ ...f, responsavel: currentDevName }))}
+                        className="text-[10px] font-bold normal-case text-[var(--color-accent)] hover:underline"
+                      >
+                        Assumir para mim
+                      </button>
+                    )}
                   </label>
                   <input
                     value={cardForm.responsavel}
