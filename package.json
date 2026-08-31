@@ -7,15 +7,13 @@
     "build": "next build",
     "start": "next start --port 4000",
     "lint": "next lint",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:generate -d src/lib/data-source.ts src/lib/typeorm-migrations/migration",
+    "db:migrate": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:run -d src/lib/data-source.ts",
+    "db:revert": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:revert -d src/lib/data-source.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.34.3",
     "groq-sdk": "^0.37.0",
     "jose": "^6.2.10",
@@ -36,11 +34,12 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
     "lodash": "^4.17.23",
     "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.8.3"
   }
 }

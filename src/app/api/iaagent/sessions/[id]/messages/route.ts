@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { ai_messages, ai_sessions } from '@/lib/schema';
-import { eq, asc } from 'drizzle-orm';
+import { getDataSource } from '@/lib/typeorm';
+import { AiMessageEntity, AiSessionEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
 import { randomUUID } from 'crypto';
 
@@ -11,21 +10,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!auth || !auth.id) return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
 
     const resolvedParams = await params;
-    
+    const dataSource = await getDataSource();
+
     // Validar se a sessão existe
-    const sessionExists = await db.select().from(ai_sessions).where(eq(ai_sessions.id, resolvedParams.id)).limit(1);
-    if (!sessionExists.length) {
+    const sessionExists = await dataSource.getRepository(AiSessionEntity).findOne({ where: { id: resolvedParams.id } });
+    if (!sessionExists) {
       return NextResponse.json({ message: 'Sessão não encontrada' }, { status: 404 });
     }
 
-    const dbMessages = await db.select().from(ai_messages).where(eq(ai_messages.session_id, resolvedParams.id)).orderBy(asc(ai_messages.created_at));
-    
+    const dbMessages = await dataSource.getRepository(AiMessageEntity).find({
+      where: { session_id: resolvedParams.id },
+      order: { created_at: 'ASC' },
+    });
+
     const messages = dbMessages.map(m => ({
       id: m.id,
       text: m.content,
       from: m.role,
       imageUrl: m.image_url,
-      timestamp: m.created_at
+      timestamp: m.created_at,
     }));
 
     return NextResponse.json({ messages });
@@ -42,32 +45,36 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const resolvedParams = await params;
     const body = await request.json();
-    
-    const sessionExists = await db.select().from(ai_sessions).where(eq(ai_sessions.id, resolvedParams.id)).limit(1);
-    if (!sessionExists.length) {
+
+    const dataSource = await getDataSource();
+    const sessionExists = await dataSource.getRepository(AiSessionEntity).findOne({ where: { id: resolvedParams.id } });
+    if (!sessionExists) {
       return NextResponse.json({ message: 'Sessão não encontrada' }, { status: 404 });
     }
-    
+
     const from = body.from || (body.role === 'assistant' ? 'agent' : 'client');
     const text = body.text || body.content || '';
     const imageUrl = body.imageUrl || null;
-    
+
     const newId = randomUUID();
 
-    const [created] = await db.insert(ai_messages).values({
-      id: newId,
-      session_id: resolvedParams.id,
-      role: from,
-      content: text,
-      image_url: imageUrl
-    }).returning();
+    const repo = dataSource.getRepository(AiMessageEntity);
+    const created = await repo.save(
+      repo.create({
+        id: newId,
+        session_id: resolvedParams.id,
+        role: from,
+        content: text,
+        image_url: imageUrl,
+      })
+    );
 
     const message = {
       id: created.id,
       text: created.content,
       from: created.role,
       imageUrl: created.image_url,
-      timestamp: created.created_at
+      timestamp: created.created_at,
     };
 
     return NextResponse.json({ message });

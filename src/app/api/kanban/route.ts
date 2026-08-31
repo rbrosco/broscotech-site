@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { kanban_cards, kanban_columns, projects } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { KanbanCardEntity, KanbanColumnEntity, ProjectEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { asc, eq, inArray } from 'drizzle-orm';
+import { In } from 'typeorm';
 
 // Pipeline padrão de colunas
 const DEFAULT_PIPELINE = [
@@ -17,12 +17,12 @@ const DEFAULT_PIPELINE = [
   'Não aceito'
 ];
 
-async function ensureProjectHasColumns(projectId: number) {
-  const existingCols = await db
-    .select()
-    .from(kanban_columns)
-    .where(eq(kanban_columns.project_id, projectId));
-  
+async function ensureProjectHasColumns(dataSource: Awaited<ReturnType<typeof getDataSource>>, projectId: number) {
+  const columnRepo = dataSource.getRepository(KanbanColumnEntity);
+  const cardRepo = dataSource.getRepository(KanbanCardEntity);
+
+  const existingCols = await columnRepo.find({ where: { project_id: projectId } });
+
   if (existingCols.length === 0) {
     const defaultCardsMap: Record<string, Array<{ title: string; description: string }>> = {
       'Inicio (Do Projeto)': [{ title: 'Alinhamento inicial do projeto', description: 'Reunião de kickoff e levantamento de necessidades.' }],
@@ -35,44 +35,36 @@ async function ensureProjectHasColumns(projectId: number) {
 
     for (let i = 0; i < DEFAULT_PIPELINE.length; i++) {
       const title = DEFAULT_PIPELINE[i];
-      const [col] = await db
-        .insert(kanban_columns)
-        .values({ project_id: projectId, title, position: i })
-        .returning();
+      const col = await columnRepo.save(columnRepo.create({ project_id: projectId, title, position: i }));
 
       const initialCards = defaultCardsMap[title];
       if (initialCards && col) {
         for (let j = 0; j < initialCards.length; j++) {
-          await db.insert(kanban_cards).values({
+          await cardRepo.save(cardRepo.create({
             column_id: Number(col.id),
             title: initialCards[j].title,
             description: initialCards[j].description,
             position: j,
-          });
+          }));
         }
       }
     }
   }
 }
 
-async function getOrCreateProjectForUser(userId: number) {
-  const existing = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.user_id, userId))
-    .orderBy(projects.id)
-    .limit(1);
+async function getOrCreateProjectForUser(dataSource: Awaited<ReturnType<typeof getDataSource>>, userId: number) {
+  const projectRepo = dataSource.getRepository(ProjectEntity);
+
+  const existing = await projectRepo.find({ where: { user_id: userId }, order: { id: 'ASC' }, take: 1 });
 
   let project = existing[0];
   if (!project) {
-    const [created] = await db
-      .insert(projects)
-      .values({ user_id: userId, title: 'Seu Projeto', status: 'Em planejamento', progress: 0 })
-      .returning();
-    project = created;
+    project = await projectRepo.save(
+      projectRepo.create({ user_id: userId, title: 'Seu Projeto', status: 'Em planejamento', progress: 0 })
+    );
   }
 
-  await ensureProjectHasColumns(Number(project.id));
+  await ensureProjectHasColumns(dataSource, Number(project.id));
   return project;
 }
 
@@ -87,44 +79,45 @@ export async function GET(request: NextRequest) {
     const isAdmin = ((auth as { role?: string }).role === 'admin');
     const url = new URL(request.url);
     const projectIdParam = url.searchParams.get('projectId');
-    let project = null;
+
+    const dataSource = await getDataSource();
+    const projectRepo = dataSource.getRepository(ProjectEntity);
+
+    let project: ProjectEntity | null = null;
     if (projectIdParam) {
       // Admins can load any project; clients can only load their own
-      const found = await db
-        .select()
-        .from(projects)
-        .where(eq(projects.id, Number(projectIdParam)))
-        .limit(1);
-      if (found[0] && (isAdmin || found[0].user_id === userId)) {
-        project = found[0];
-        await ensureProjectHasColumns(Number(project.id));
+      const found = await projectRepo.findOne({ where: { id: Number(projectIdParam) } });
+      if (found && (isAdmin || found.user_id === userId)) {
+        project = found;
+        await ensureProjectHasColumns(dataSource, Number(project.id));
       } else {
         return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
       }
     } else {
       // Fallback: return the user's first project
-      project = await getOrCreateProjectForUser(userId);
+      project = await getOrCreateProjectForUser(dataSource, userId);
     }
 
-    const columns = await db
-      .select()
-      .from(kanban_columns)
-      .where(eq(kanban_columns.project_id, Number(project.id)))
-      .orderBy(asc(kanban_columns.position));
+    const columnRepo = dataSource.getRepository(KanbanColumnEntity);
+    const cardRepo = dataSource.getRepository(KanbanCardEntity);
+
+    const columns = await columnRepo.find({
+      where: { project_id: Number(project.id) },
+      order: { position: 'ASC' },
+    });
 
     // Buscar apenas os cards das colunas deste projeto
     const columnIds = columns.map((col) => Number(col.id));
-    let cards: Array<Record<string, unknown>> = [];
+    let cards: KanbanCardEntity[] = [];
     if (columnIds.length > 0) {
-      cards = await db
-        .select()
-        .from(kanban_cards)
-        .where(inArray(kanban_cards.column_id, columnIds))
-        .orderBy(asc(kanban_cards.position));
+      cards = await cardRepo.find({
+        where: { column_id: In(columnIds) },
+        order: { position: 'ASC' },
+      });
     }
 
     // Garantir que card.column_id e col.id são number
-    const cardsByColumn = new Map<number, Array<Record<string, unknown>>>();
+    const cardsByColumn = new Map<number, KanbanCardEntity[]>();
     for (const card of cards) {
       const colId = Number(card.column_id);
       if (!cardsByColumn.has(colId)) cardsByColumn.set(colId, []);
@@ -157,12 +150,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const type = String(body.type ?? '');
 
+    const dataSource = await getDataSource();
+    const columnRepo = dataSource.getRepository(KanbanColumnEntity);
+    const cardRepo = dataSource.getRepository(KanbanCardEntity);
+
     let projectIdToUse: number;
     if (body.projectId) {
       projectIdToUse = Number(body.projectId);
     } else {
       const userId = Number(auth.id);
-      const project = await getOrCreateProjectForUser(userId);
+      const project = await getOrCreateProjectForUser(dataSource, userId);
       projectIdToUse = Number(project.id);
     }
 
@@ -170,16 +167,10 @@ export async function POST(request: NextRequest) {
       const title = String(body.title ?? '').trim();
       if (!title) return NextResponse.json({ message: 'Título da coluna é obrigatório.' }, { status: 400 });
 
-      const existingCols = await db
-        .select()
-        .from(kanban_columns)
-        .where(eq(kanban_columns.project_id, projectIdToUse));
+      const existingCols = await columnRepo.find({ where: { project_id: projectIdToUse } });
 
       const position = existingCols.length;
-      const [created] = await db
-        .insert(kanban_columns)
-        .values({ project_id: projectIdToUse, title, position })
-        .returning();
+      const created = await columnRepo.save(columnRepo.create({ project_id: projectIdToUse, title, position }));
 
       return NextResponse.json({ column: created, message: 'Coluna criada.' });
     }
@@ -192,16 +183,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Dados do card inválidos.' }, { status: 400 });
       }
 
-      const existingCards = await db
-        .select()
-        .from(kanban_cards)
-        .where(eq(kanban_cards.column_id, Number(columnId)));
+      const existingCards = await cardRepo.find({ where: { column_id: Number(columnId) } });
 
       const position = existingCards.length;
-      const [created] = await db
-        .insert(kanban_cards)
-        .values({ column_id: Number(columnId), title, description, position })
-        .returning();
+      const created = await cardRepo.save(cardRepo.create({ column_id: Number(columnId), title, description, position }));
 
       return NextResponse.json({ card: created, message: 'Card criado.' });
     }
@@ -233,33 +218,26 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'Parâmetros inválidos.' }, { status: 400 });
     }
 
-    const [card] = await db
-      .select()
-      .from(kanban_cards)
-      .where(eq(kanban_cards.id, Number(cardId)))
-      .limit(1);
+    const dataSource = await getDataSource();
+    const cardRepo = dataSource.getRepository(KanbanCardEntity);
+
+    const card = await cardRepo.findOne({ where: { id: Number(cardId) } });
 
     if (!card) {
       return NextResponse.json({ message: 'Card não encontrado.' }, { status: 404 });
     }
 
-    await db
-      .update(kanban_cards)
-      .set({ column_id: Number(toColumnId) })
-      .where(eq(kanban_cards.id, Number(cardId)));
+    await cardRepo.update({ id: Number(cardId) }, { column_id: Number(toColumnId) });
 
-    const cardsInColumn = await db
-      .select()
-      .from(kanban_cards)
-      .where(eq(kanban_cards.column_id, Number(toColumnId)))
-      .orderBy(asc(kanban_cards.position));
+    const cardsInColumn = await cardRepo.find({
+      where: { column_id: Number(toColumnId) },
+      order: { position: 'ASC' },
+    });
 
     const reordered = cardsInColumn.map((c, index) => ({ ...c, position: index }));
 
     await Promise.all(
-      reordered.map((c) =>
-        db.update(kanban_cards).set({ position: c.position }).where(eq(kanban_cards.id, Number(c.id)))
-      )
+      reordered.map((c) => cardRepo.update({ id: Number(c.id) }, { position: c.position }))
     );
 
     return NextResponse.json({ message: 'Card movido.' });
@@ -287,14 +265,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'cardId inválido.' }, { status: 400 });
     }
 
-    const [deleted] = await db
-      .delete(kanban_cards)
-      .where(eq(kanban_cards.id, Number(cardId)))
-      .returning();
+    const dataSource = await getDataSource();
+    const cardRepo = dataSource.getRepository(KanbanCardEntity);
 
-    if (!deleted) {
+    const existing = await cardRepo.findOne({ where: { id: Number(cardId) } });
+    if (!existing) {
       return NextResponse.json({ message: 'Card não encontrado.' }, { status: 404 });
     }
+
+    await cardRepo.delete({ id: Number(cardId) });
 
     return NextResponse.json({ message: 'Card excluído.' });
   } catch (error) {

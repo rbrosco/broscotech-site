@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { projects } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { ProjectEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { eq as drizzleEq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,14 +14,19 @@ export async function POST(req: NextRequest) {
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
     }
-    // Atualiza o status do projeto para 'enviado'
-    const [updated] = await db.update(projects)
-      .set({ status: 'enviado', updated_at: new Date().toISOString() })
-      .where(drizzleEq(projects.id, Number(projectId)))
-      .returning();
-    if (!updated) {
+
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(ProjectEntity);
+
+    const existing = await repo.findOne({ where: { id: Number(projectId) } });
+    if (!existing) {
       return NextResponse.json({ error: 'Projeto não encontrado.' }, { status: 404 });
     }
+
+    // Atualiza o status do projeto para 'enviado'
+    await repo.update({ id: Number(projectId) }, { status: 'enviado', updated_at: new Date().toISOString() });
+    const updated = await repo.findOneOrFail({ where: { id: Number(projectId) } });
+
     return NextResponse.json({ success: true, project: updated });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido.';

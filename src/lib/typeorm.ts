@@ -17,7 +17,7 @@ declare global {
   var __typeormDataSource: DataSource | undefined;
 }
 
-function buildDataSourceOptions() {
+export function buildDataSourceOptions() {
   const connectionString = process.env.DATABASE_URL;
 
   const entities = [
