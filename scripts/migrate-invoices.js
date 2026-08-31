@@ -1,9 +1,13 @@
 const { Client } = require('pg');
 
 async function migrate() {
-  const client = new Client({
-    connectionString: 'postgres://postgres:kR9tW2mX7vL4qZ1bP8jY3%40nM6x9Z4wK2hK9mR3vW2p_X7zL4fB9jT1nY8x6w-L3mK7pQ@127.0.0.1:5432/easyprojects_db',
-  });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    console.error('DATABASE_URL não definido. Ex: DATABASE_URL=postgres://USER:PASS@HOST:5432/DB node scripts/migrate-invoices.js');
+    process.exit(1);
+  }
+
+  const client = new Client({ connectionString });
   
   await client.connect();
 
