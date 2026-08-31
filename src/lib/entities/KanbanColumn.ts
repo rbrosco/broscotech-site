@@ -7,12 +7,12 @@ export class KanbanColumnEntity {
   @Generated('increment')
   id!: number;
 
-  @Column({ type: 'bigint', transformer: bigintNumberTransformer })
-  project_id!: number;
+  @Column({ type: 'bigint', nullable: true, transformer: bigintNumberTransformer })
+  project_id?: number | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title?: string | null;
+  @Column({ type: 'text' })
+  title!: string;
 
-  @Column({ type: 'int', nullable: true })
-  position?: number | null;
+  @Column({ type: 'int' })
+  position!: number;
 }

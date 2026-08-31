@@ -7,15 +7,24 @@ export class KanbanCardEntity {
   @Generated('increment')
   id!: number;
 
-  @Column({ type: 'bigint', transformer: bigintNumberTransformer })
-  column_id!: number;
+  @Column({ type: 'bigint', nullable: true, transformer: bigintNumberTransformer })
+  column_id?: number | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title?: string | null;
+  @Column({ type: 'text' })
+  title!: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string | null;
 
-  @Column({ type: 'int', nullable: true })
-  position?: number | null;
+  @Column({ type: 'int' })
+  position!: number;
+
+  // Colunas presentes no banco (schema legado) mas ainda não usadas pela
+  // aplicação. Mapeadas para não quebrar o synchronize; podem ser ligadas
+  // a uma feature de "responsável pelo card" futuramente.
+  @Column({ type: 'bigint', nullable: true, transformer: bigintNumberTransformer })
+  assignee_id?: number | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  created_at?: string | null;
 }

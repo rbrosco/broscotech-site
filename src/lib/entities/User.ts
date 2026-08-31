@@ -7,22 +7,22 @@ export class UserEntity {
   @Generated('increment')
   id!: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   name!: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   login!: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   email!: string;
 
   @Column({ type: 'text' })
   password!: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'text', nullable: true })
   phone?: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'text', nullable: true })
   role?: string | null;
 
   @Column({ type: 'timestamp', nullable: true })

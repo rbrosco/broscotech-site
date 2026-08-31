@@ -10,12 +10,12 @@ export class ProjectUpdateEntity {
   @Column({ type: 'bigint', transformer: bigintNumberTransformer })
   project_id!: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'text', nullable: true })
   kind?: string | null;
 
   @Column({ type: 'text', nullable: true })
   message?: string | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   created_at?: string | null;
 }

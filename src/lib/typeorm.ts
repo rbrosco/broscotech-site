@@ -33,7 +33,7 @@ export function buildDataSourceOptions() {
     AiMessageEntity,
   ];
 
-  const sync = process.env.TYPEORM_SYNCHRONIZE === 'false' ? false : true;
+  const sync = process.env.TYPEORM_SYNCHRONIZE === 'true';
 
   if (connectionString) {
     return { type: 'postgres' as const, url: connectionString, entities, synchronize: sync, logging: false, driver: pg };
