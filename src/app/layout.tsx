@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import ConditionalFooter from "../component/ConditionalFooter";
 import ThemeProvider from "../component/ThemeProvider";
@@ -20,6 +20,12 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
+});
+
+const pressStart2P = Press_Start_2P({
+  variable: "--font-pixel",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -51,7 +57,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased min-h-screen flex flex-col relative`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${pressStart2P.variable} antialiased min-h-screen flex flex-col relative`}>
         <div
           aria-hidden="true"
           className="fixed inset-0 z-0 pointer-events-none select-none bg-[url('/images/bg-circuit.png?v=2')] bg-center bg-cover bg-fixed bg-no-repeat opacity-[0.04] dark:opacity-[0.06] w-screen h-screen"

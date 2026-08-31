@@ -92,6 +92,7 @@ html:not(.dark) .tooltip {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-instrument);
+  --font-pixel: var(--font-pixel);
 }
 
 /* Accessibility: Focus ring global */
@@ -227,16 +228,6 @@ body {
 }
 
 
-/* Oculta a marca d'água do Chatwoot (se necessário) */
-/* Esconde links de branding sem quebrar o widget inteiro */
-a[href*="chatwoot"], div[title="Chatwoot"] {
-  display: none !important;
-}
-
-/* Posiciona o widget do Chatwoot acima da bolha verde da IA */
-.woot-widget-bubble, .woot-widget-holder {
-  bottom: 90px !important;
-}
 
 /* Animação para o IconBanner */
 @keyframes scroll {
@@ -313,6 +304,11 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
 .font-display {
   font-family: var(--font-instrument), Georgia, serif;
   font-style: italic;
+}
+
+/* 8-bit Nerd/Retro typeface helper */
+.font-pixel {
+  font-family: var(--font-pixel), "Courier New", monospace;
 }
 
 /* Gradient text helper */

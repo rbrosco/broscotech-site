@@ -1,14 +1,36 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Sidebar from '../../component/Sidebar';
 import DashboardNav from '../../component/DashboardNav';
 import KanbanBoard from '../../component/KanbanBoard';
-import { FiPlus, FiFolder, FiTrendingUp, FiCheckCircle, FiX, FiArrowRight, FiZap } from 'react-icons/fi';
+import {
+  FiPlus,
+  FiFolder,
+  FiTrendingUp,
+  FiCheckCircle,
+  FiX,
+  FiArrowRight,
+  FiZap,
+  FiCpu,
+  FiServer,
+  FiLayers,
+  FiActivity,
+  FiMessageSquare,
+  FiCode,
+} from 'react-icons/fi';
+import {
+  SiNextdotjs,
+  SiPostgresql,
+  SiN8N,
+  SiTypescript,
+  SiTailwindcss,
+} from 'react-icons/si';
 
-type Project = { id: number; title: string; status: string | null; progress: number | null };
+type Project = { id: number; title: string; status: string | null; progress: number | null; project_type?: string | null };
 type User = { name: string; email: string; role: string | null };
 
-const PROJECT_TYPES = ['Web App', 'Mobile', 'API / Back-end', 'Automação', 'E-commerce', 'Landing Page', 'Outro'];
+const PROJECT_TYPES = ['Web App SaaS', 'Mobile (React Native)', 'API & Back-end', 'Automação n8n', 'IA & Chatbot', 'Landing Page'];
 
 function greeting() {
   const h = new Date().getHours();
@@ -28,27 +50,34 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetch('/api/me', { credentials: 'include' })
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         if (d.name) {
           setUser(d);
-          try { localStorage.setItem('userData', JSON.stringify(d)); } catch {}
+          try {
+            localStorage.setItem('userData', JSON.stringify(d));
+          } catch {}
         }
-      }).catch(() => {});
+      })
+      .catch(() => {});
 
     fetch('/api/projects?all=1', { credentials: 'include' })
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         if (Array.isArray(d.projects)) {
           const arr = d.projects as Project[];
           setProjects(arr);
           if (arr.length > 0) setSelectedProjectId(arr[0].id);
         }
-      }).catch(() => {});
+      })
+      .catch(() => {});
   }, []);
 
   const handleCreate = async () => {
-    if (!form.title.trim()) { setCreateError('Informe o nome do projeto.'); return; }
+    if (!form.title.trim()) {
+      setCreateError('Informe o nome do projeto.');
+      return;
+    }
     setCreating(true);
     setCreateError('');
     const res = await fetch('/api/projects', {
@@ -59,7 +88,7 @@ export default function DashboardPage() {
     });
     const d = await res.json();
     if (res.ok && d.project) {
-      setProjects(prev => [d.project, ...prev]);
+      setProjects((prev) => [d.project, ...prev]);
       setSelectedProjectId(d.project.id);
       setShowModal(false);
       setForm({ title: '', type: '', description: '' });
@@ -69,9 +98,9 @@ export default function DashboardPage() {
     setCreating(false);
   };
 
-  const selectedProject = projects.find(p => p.id === selectedProjectId);
-  const activeProjects = projects.filter(p => p.status && !p.status.toLowerCase().includes('conclu'));
-  const doneProjects = projects.filter(p => p.status && p.status.toLowerCase().includes('conclu'));
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+  const activeProjects = projects.filter((p) => p.status && !p.status.toLowerCase().includes('conclu'));
+  const doneProjects = projects.filter((p) => p.status && p.status.toLowerCase().includes('conclu'));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
@@ -80,66 +109,166 @@ export default function DashboardPage() {
       <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
 
-        <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
+        <main className="flex-1 px-4 md:px-8 pt-[70px] pb-12">
+          {/* Cyber Command Welcome Hero */}
+          <div className="relative overflow-hidden rounded-[2rem] mt-4 px-7 sm:px-9 py-8 bg-white/90 dark:bg-[#071324]/85 border border-black/10 dark:border-white/10 shadow-2xl backdrop-blur-2xl group">
+            {/* Ambient Background Glows */}
+            <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-cyan-500/20 blur-[90px] pointer-events-none group-hover:bg-cyan-400/25 transition-colors duration-700" />
+            <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-indigo-500/20 blur-[90px] pointer-events-none group-hover:bg-indigo-400/25 transition-colors duration-700" />
 
-          {/* ── Welcome Hero ── */}
-          <div className="relative overflow-hidden rounded-3xl mt-4 px-8 py-10 bg-white dark:bg-transparent bg-gradient-to-br from-indigo-50 via-cyan-50 to-emerald-50 dark:from-indigo-600/10 dark:via-cyan-500/5 dark:to-emerald-500/10 border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-2xl group">
-            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-[80px] pointer-events-none group-hover:bg-cyan-400/20 transition-colors duration-700" />
-            <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-indigo-500/20 blur-[80px] pointer-events-none group-hover:bg-indigo-400/20 transition-colors duration-700" />
+            {/* Corner Tech Decorator */}
+            <div className="absolute top-4 right-6 hidden sm:flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Pipeline Ativo
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 dark:text-white/40">SYS.CRM v2.4</span>
+            </div>
 
-            <div className="relative flex flex-wrap items-center justify-between gap-5">
+            <div className="relative flex flex-wrap items-center justify-between gap-6">
               <div>
-                <span className="text-sm font-semibold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase">{greeting()},</span>
-                <h1 className="mt-1 text-3xl md:text-4xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="font-pixel text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-500 dark:bg-cyan-400/20 dark:text-cyan-300 border border-cyan-500/30 uppercase">
+                    EASYDEV CRM
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-400">•</span>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    {greeting()}
+                  </span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tight">
                   {user?.name ?? 'Cliente'}
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_15px_rgba(34,211,238,0.6)]" />
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-[var(--color-accent)] animate-pulse shadow-[0_0_15px_rgba(0,212,170,0.8)]" />
                 </h1>
-                <p className="mt-2 text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
-                  Acompanhe seu projeto, veja onde está no pipeline e solicite novos desenvolvimentos.
+
+                <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
+                  Gerencie o fluxo de entrega dos seus projetos, visualize cards do Kanban em tempo real e acelere novos desenvolvimentos com nossa stack.
                 </p>
               </div>
-              <button
-                onClick={() => setShowModal(true)}
-                className="group relative flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)]"
-                style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
-                <FiPlus className="w-4 h-4 relative z-10" />
-                <span className="relative z-10">Solicitar projeto</span>
-              </button>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/iaagent"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold border border-[var(--color-accent)]/30 bg-[var(--color-accent-dim)] text-[var(--color-accent)] hover:bg-[var(--color-accent)]/20 transition-all shadow-sm"
+                >
+                  <FiCpu className="w-4 h-4" />
+                  Briefing com IA
+                </Link>
+
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="group relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_25px_rgba(0,176,155,0.4)]"
+                  style={{ background: 'linear-gradient(135deg, #004aad 0%, #00b09b 60%, #00d4aa 100%)' }}
+                >
+                  <FiPlus className="w-4 h-4" />
+                  <span>Novo Projeto</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* ── Stats ── */}
-          <div className="grid grid-cols-3 gap-3 mt-4">
+          {/* Stats Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
             {[
-              { label: 'Total de projetos', value: projects.length, Icon: FiFolder, accent: 'text-indigo-400', bgAccent: 'bg-indigo-400/10' },
-              { label: 'Em andamento', value: activeProjects.length, Icon: FiTrendingUp, accent: 'text-cyan-400', bgAccent: 'bg-cyan-400/10' },
-              { label: 'Concluídos', value: doneProjects.length, Icon: FiCheckCircle, accent: 'text-emerald-400', bgAccent: 'bg-emerald-400/10' },
-            ].map(({ label, value, Icon, accent, bgAccent }) => (
+              {
+                label: 'Total de Projetos',
+                value: projects.length,
+                Icon: FiFolder,
+                accent: 'text-indigo-500',
+                bgAccent: 'bg-indigo-500/10 border-indigo-500/20',
+                desc: 'Iniciativas cadastradas',
+              },
+              {
+                label: 'Sprints em Andamento',
+                value: activeProjects.length,
+                Icon: FiTrendingUp,
+                accent: 'text-[var(--color-accent)]',
+                bgAccent: 'bg-[var(--color-accent-dim)] border-[var(--color-accent)]/20',
+                desc: 'Cards no pipeline Kanban',
+              },
+              {
+                label: 'Entregas Concluídas',
+                value: doneProjects.length,
+                Icon: FiCheckCircle,
+                accent: 'text-emerald-500',
+                bgAccent: 'bg-emerald-500/10 border-emerald-500/20',
+                desc: 'Deploy em produção',
+              },
+            ].map(({ label, value, Icon, accent, bgAccent, desc }) => (
               <div
                 key={label}
-                className="group rounded-2xl px-6 py-5 flex items-center gap-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/10 dark:hover:border-white/10 transition-all duration-300 hover:-translate-y-1 shadow-sm dark:shadow-lg"
+                className="group rounded-2xl p-5 bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[var(--color-accent)]/40 transition-all duration-300 hover:-translate-y-0.5 shadow-sm backdrop-blur-xl flex items-center justify-between"
               >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${bgAccent} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
-                  <Icon className={`w-6 h-6 ${accent}`} />
-                </div>
                 <div>
-                  <p className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{value}</p>
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
+                    {value}
+                  </p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mt-1">
+                    {label}
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 ${bgAccent} transition-transform group-hover:scale-110`}>
+                  <Icon className={`w-6 h-6 ${accent}`} />
                 </div>
               </div>
             ))}
           </div>
 
-          {/* ── Project selector tabs (if multiple) ── */}
+          {/* Stack Ecosystem Banner (Tecnologias que entregamos) */}
+          <div className="mt-5 rounded-2xl p-4 sm:p-5 bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-[var(--color-accent-dim)] text-[var(--color-accent)] flex items-center justify-center font-bold shrink-0">
+                <FiZap className="w-5 h-5" />
+              </span>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  Ecossistema Tecnológico de Alta Performance
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Aplicações com React 19, Next.js 15, PostgreSQL, n8n, Groq/AI e deploy contínuo em Docker.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { name: 'Next.js 15', icon: SiNextdotjs },
+                { name: 'TypeScript', icon: SiTypescript },
+                { name: 'PostgreSQL', icon: SiPostgresql },
+                { name: 'n8n Workflows', icon: SiN8N },
+                { name: 'Tailwind CSS', icon: SiTailwindcss },
+              ].map((tech, idx) => {
+                const TechIcon = tech.icon;
+                return (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10"
+                  >
+                    <TechIcon className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                    {tech.name}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Project selector tabs */}
           {projects.length > 1 && (
-            <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1">
-              {projects.map(p => (
+            <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2 shrink-0">
+                Selecione o Projeto:
+              </span>
+              {projects.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => setSelectedProjectId(p.id)}
-                  className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 border ${selectedProjectId === p.id ? 'bg-cyan-50 text-cyan-600 border-cyan-200 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/30 dark:shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'}`}
+                  className={`shrink-0 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 border ${
+                    selectedProjectId === p.id
+                      ? 'bg-[var(--color-accent-dim)] text-[var(--color-accent)] border-[var(--color-accent)]/40 shadow-sm font-extrabold'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-400 dark:border-white/10 dark:hover:bg-white/10'
+                  }`}
                 >
                   {p.title}
                 </button>
@@ -147,109 +276,114 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── Progress bar ── */}
+          {/* Progress bar */}
           {selectedProject && typeof selectedProject.progress === 'number' && selectedProject.progress > 0 && (
-            <div
-              className="mt-6 rounded-2xl px-6 py-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Progresso geral</span>
-                <span className="text-sm font-black text-cyan-600 dark:text-cyan-400">{selectedProject.progress}%</span>
+            <div className="mt-5 rounded-2xl p-5 bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-md">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                  <FiActivity className="w-4 h-4 text-[var(--color-accent)]" />
+                  Progresso do Projeto ({selectedProject.title})
+                </span>
+                <span className="text-sm font-black text-[var(--color-accent)]">{selectedProject.progress}% Concluído</span>
               </div>
               <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-900 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5">
                 <div
                   className="h-full rounded-full transition-all duration-1000 ease-out relative"
-                  style={{ width: `${selectedProject.progress}%`, background: 'linear-gradient(90deg,#004aad,#00d4aa)' }}
+                  style={{ width: `${selectedProject.progress}%`, background: 'linear-gradient(90deg, #004aad, #00b09b, #00d4aa)' }}
                 >
-                  <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
+                  <div className="absolute inset-0 bg-white/25 mix-blend-overlay animate-pulse" />
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── Kanban Pipeline ── */}
-          <div
-            className="mt-6 rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)] relative"
-          >
+          {/* Kanban Pipeline Section */}
+          <div className="mt-6 rounded-[2rem] overflow-hidden bg-white/80 dark:bg-[#071324]/90 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-2xl relative">
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent" />
             {selectedProjectId ? (
               <KanbanBoard projectId={selectedProjectId} />
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 gap-5">
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative">
-                  <div className="absolute inset-0 bg-cyan-400 blur-xl opacity-20 rounded-3xl animate-pulse" />
-                  <FiZap className="w-10 h-10 text-cyan-400 relative z-10" />
+              <div className="flex flex-col items-center justify-center py-20 gap-5">
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-[var(--color-accent-dim)] border border-[var(--color-accent)]/30 shadow-[0_0_30px_rgba(0,212,170,0.2)] relative">
+                  <FiZap className="w-10 h-10 text-[var(--color-accent)] relative z-10 animate-pulse" />
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">Nenhum projeto encontrado.</p>
+                <div className="text-center max-w-sm">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhum projeto selecionado</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Crie sua primeira solicitação para iniciar o acompanhamento no Kanban.</p>
+                </div>
                 <button
                   onClick={() => setShowModal(true)}
-                  className="group flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
                 >
-                  <FiPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
-                  Solicitar meu primeiro projeto
-                  <FiArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <FiPlus className="w-4 h-4" />
+                  Solicitar Meu Primeiro Projeto
                 </button>
               </div>
             )}
           </div>
-
         </main>
       </div>
 
-      {/* ── Request project modal ── */}
+      {/* Request project modal */}
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
           onClick={() => setShowModal(false)}
         >
           <div
-            className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl px-6 sm:px-10 pt-10 pb-12 relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-[0_0_60px_rgba(0,0,0,0.6)]"
-            onClick={e => e.stopPropagation()}
+            className="w-full max-w-lg rounded-[2rem] p-7 sm:p-9 relative bg-white dark:bg-[#071324] border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag handle on mobile */}
-            <div className="sm:hidden w-12 h-1.5 rounded-full mx-auto mb-8 bg-slate-200 dark:bg-white/10" />
-
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10"
+              className="absolute top-5 right-5 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/10 transition-colors"
             >
-              <FiX className="w-5 h-5" />
+              <FiX className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-lg shadow-cyan-500/20">
-                <FiZap className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3.5 mb-6">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md"
+                style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+              >
+                <FiZap className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Solicitar novo projeto</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Nossa equipe alinhará o escopo com você.</p>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Solicitar Novo Projeto</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Nossa equipe estruturará o escopo no Kanban.</p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-2 text-slate-500 dark:text-slate-400">
-                  Nome do projeto <span className="text-cyan-600 dark:text-cyan-400">*</span>
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5 text-slate-700 dark:text-slate-300">
+                  Nome do Projeto <span className="text-[var(--color-accent)]">*</span>
                 </label>
                 <input
                   value={form.title}
-                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder="Ex: App de agendamento, Loja virtual..."
-                  className="w-full rounded-2xl px-5 py-4 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/10"
-                  onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="Ex: SaaS de Gestão, Portal E-commerce, App Mobile..."
+                  className="w-full rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider block mb-2 text-slate-500 dark:text-slate-400">
-                  Tipo de projeto
+                <label className="text-xs font-bold uppercase tracking-wider block mb-1.5 text-slate-700 dark:text-slate-300">
+                  Tipo de Solução
                 </label>
-                <div className="flex flex-wrap gap-2.5">
-                  {PROJECT_TYPES.map(t => (
+                <div className="flex flex-wrap gap-2">
+                  {PROJECT_TYPES.map((t) => (
                     <button
                       key={t}
-                      onClick={() => setForm(f => ({ ...f, type: f.type === t ? '' : t }))}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${form.type === t ? 'bg-cyan-50 text-cyan-600 border-cyan-200 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/40 dark:shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400 dark:border-white/5 dark:hover:bg-white/10 dark:hover:text-white'}`}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, type: f.type === t ? '' : t }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                        form.type === t
+                          ? 'bg-[var(--color-accent-dim)] text-[var(--color-accent)] border-[var(--color-accent)]/50 font-extrabold'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
+                      }`}
                     >
                       {t}
                     </button>
@@ -257,20 +391,16 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {createError && (
-                <p className="text-sm font-bold text-red-400 mt-1">{createError}</p>
-              )}
+              {createError && <p className="text-xs font-bold text-red-500 mt-1">{createError}</p>}
 
               <button
                 onClick={handleCreate}
                 disabled={creating || !form.title.trim()}
-                className="group relative w-full overflow-hidden mt-3 py-4 rounded-2xl font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed shadow-[0_10px_30px_-10px_rgba(6,182,212,0.5)]"
-                style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
+                className="w-full mt-3 py-3.5 rounded-xl font-bold text-sm text-white transition-all hover:scale-[1.01] hover:opacity-95 disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg"
+                style={{ background: 'linear-gradient(135deg, #004aad 0%, #00b09b 60%, #00d4aa 100%)' }}
               >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {creating ? 'Criando projeto...' : <>Confirmar solicitação <FiArrowRight className="w-4 h-4" /></>}
-                </span>
+                {creating ? 'Criando Projeto...' : 'Confirmar Solicitação'}
+                <FiArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

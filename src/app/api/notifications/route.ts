@@ -39,8 +39,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ notifications: filteredList });
-  } catch (error) {
-    console.error('Erro GET /api/notifications:', error);
+  } catch (error: any) {
+    if (error?.code !== 'ECONNREFUSED') {
+      console.warn('GET /api/notifications:', error?.message || error);
+    }
     return NextResponse.json({ notifications: [] });
   }
 }

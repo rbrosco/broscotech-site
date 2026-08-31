@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+import pg from 'pg';
 import {
   UserEntity,
   ProjectEntity,
@@ -32,8 +33,10 @@ export function buildDataSourceOptions() {
     AiMessageEntity,
   ];
 
+  const sync = process.env.TYPEORM_SYNCHRONIZE === 'false' ? false : true;
+
   if (connectionString) {
-    return { type: 'postgres' as const, url: connectionString, entities, synchronize: false, logging: false };
+    return { type: 'postgres' as const, url: connectionString, entities, synchronize: sync, logging: false, driver: pg };
   }
 
   const host = process.env.PGHOST ?? process.env.POSTGRES_HOST ?? 'localhost';
@@ -43,7 +46,7 @@ export function buildDataSourceOptions() {
   const portRaw = process.env.PGPORT ?? process.env.POSTGRES_PORT;
   const port = portRaw ? Number(portRaw) : 5432;
 
-  return { type: 'postgres' as const, host, port, username, password, database, entities, synchronize: false, logging: false };
+  return { type: 'postgres' as const, host, port, username, password, database, entities, synchronize: sync, logging: false, driver: pg };
 }
 
 function createDataSource(): DataSource {
@@ -55,8 +58,7 @@ let initPromise: Promise<DataSource> | null = null;
 /**
  * Retorna o DataSource já inicializado (conectado). Reaproveita a mesma
  * instância entre requisições (e entre reloads do HMR em dev, via
- * globalThis) para não abrir uma conexão nova a cada chamada de rota —
- * mesmo padrão que src/lib/db.ts usava com o pool do `pg`.
+ * globalThis) para não abrir uma conexão nova a cada chamada de rota.
  */
 export async function getDataSource(): Promise<DataSource> {
   if (globalThis.__typeormDataSource?.isInitialized) {
@@ -65,12 +67,19 @@ export async function getDataSource(): Promise<DataSource> {
 
   if (!initPromise) {
     const ds = globalThis.__typeormDataSource ?? createDataSource();
-    initPromise = ds.initialize().then((initialized) => {
-      if (process.env.NODE_ENV !== 'production') {
-        globalThis.__typeormDataSource = initialized;
-      }
-      return initialized;
-    });
+    initPromise = ds
+      .initialize()
+      .then((initialized) => {
+        if (process.env.NODE_ENV !== 'production') {
+          globalThis.__typeormDataSource = initialized;
+        }
+        return initialized;
+      })
+      .catch((err) => {
+        initPromise = null;
+        globalThis.__typeormDataSource = undefined;
+        throw err;
+      });
   }
 
   return initPromise;

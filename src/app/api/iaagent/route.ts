@@ -159,7 +159,6 @@ async function callGoogle({ messages, apiKey, model, systemPrompt }: { messages:
 export async function POST(request: NextRequest) {
   try {
     const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
-    if (!auth || !auth.id) return NextResponse.json({ reply: 'Não autenticado.' }, { status: 401 });
 
     const body = await request.json();
     const {

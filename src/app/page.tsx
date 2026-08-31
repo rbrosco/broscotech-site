@@ -72,7 +72,6 @@ import ContactFormModal from '../component/ContactFormModal';
 import Header from "../component/Header";
 import VCard from "../component/VCard";
 import IAHomeBanner from "../component/IAHomeBanner";
-import Chatbot from "../component/ChatBot";
 import Servicos from "../component/Servicos";
 import Planos from "../component/Planos";
 import Sobre from "../component/Sobre";
@@ -277,7 +276,8 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-center items-stretch gap-6">
             <VCard
               name="Adriano Neco"
-              image="/images/Perfil_Adriano.png"
+              image="https://github.com/adrianoneco.png"
+              githubUrl="https://github.com/adrianoneco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
               bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
@@ -285,7 +285,8 @@ export default function Home() {
             />
             <VCard
               name="Rogger Brosco"
-              image="/images/Perfil_Rogger.png"
+              image="https://github.com/rbrosco.png"
+              githubUrl="https://github.com/rbrosco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
               bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
@@ -293,10 +294,6 @@ export default function Home() {
             />
           </div>
         </div>
-
-
-
-        <Chatbot />
       </div>
       <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
       <PrivacyModal 

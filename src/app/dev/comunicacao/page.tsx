@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DashboardNav from '../../../component/DashboardNav';
 import DevSidebar from '../../../component/DevSidebar';
-import { FiSend, FiRefreshCw } from 'react-icons/fi';
+import { FiSend, FiRefreshCw, FiMessageSquare, FiInfo, FiTag, FiClock } from 'react-icons/fi';
 
 interface Project {
   id: number;
@@ -22,14 +22,14 @@ interface Update {
 }
 
 const KIND_OPTIONS = [
-  { value: 'update', label: 'Atualização', color: '#00b09b' },
-  { value: 'milestone', label: 'Marco', color: '#004aad' },
-  { value: 'note', label: 'Nota', color: '#a855f7' },
-  { value: 'alert', label: 'Alerta', color: '#f59e0b' },
+  { value: 'update', label: 'Atualização', color: '#00b09b', bg: 'rgba(0,176,155,0.15)' },
+  { value: 'milestone', label: 'Marco Alcançado', color: '#6366f1', bg: 'rgba(99,102,241,0.15)' },
+  { value: 'note', label: 'Nota Técnica', color: '#a855f7', bg: 'rgba(168,85,247,0.15)' },
+  { value: 'alert', label: 'Alerta / Bloqueio', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
 ];
 
 function kindConfig(kind: string) {
-  return KIND_OPTIONS.find(k => k.value === kind) ?? KIND_OPTIONS[0];
+  return KIND_OPTIONS.find((k) => k.value === kind) ?? KIND_OPTIONS[0];
 }
 
 function DevComunicacaoContent() {
@@ -46,25 +46,21 @@ function DevComunicacaoContent() {
 
   useEffect(() => {
     fetch('/api/projects?all=1', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         if (Array.isArray(data.projects)) {
           setProjects(data.projects);
           const qid = Number(searchParams.get('projectId'));
-          const initial = Number.isFinite(qid) && qid > 0
-            ? qid
-            : (data.projects[0]?.id ?? null);
+          const initial = Number.isFinite(qid) && qid > 0 ? qid : data.projects[0]?.id ?? null;
           setSelectedProjectId(initial);
         }
       })
       .catch(() => setError('Erro ao carregar projetos.'));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!selectedProjectId) return;
     loadUpdates();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProjectId]);
 
   async function loadUpdates() {
@@ -112,159 +108,209 @@ function DevComunicacaoContent() {
     }
   }
 
-  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0a0f1e]" >
+    <div className="min-h-screen bg-slate-50 dark:bg-[#040d1a] text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
       <DevSidebar />
-      <div className="flex-1 flex flex-col min-w-0 md:pl-sidebar transition-[padding] duration-300">
+      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
         <DashboardNav />
-        <main className="flex-1 overflow-auto px-6 md:px-8 pt-[85px] pb-8">
-          <div className="w-full mx-auto flex flex-col gap-6">
-            {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Comunicação com Clientes</h1>
-              <p className="text-slate-500 dark:text-gray-400 text-sm mt-1">Envie atualizações e marcos para seus clientes.</p>
-            </div>
 
-            {/* Project selector */}
-            <div className="rounded-xl p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white dark:bg-[#0d1224] border border-slate-200 dark:border-[#1e2a4a]">
-              <div className="flex-1">
-                <label className="block text-xs text-slate-500 dark:text-gray-400 mb-1">Projeto</label>
-                <select
-                  className="w-full rounded-lg px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none bg-slate-50 dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3555]"
-                  value={selectedProjectId ?? ''}
-                  onChange={e => setSelectedProjectId(Number(e.target.value))}
-                >
-                  {projects.length === 0 && <option value="">Nenhum projeto encontrado</option>}
-                  {projects.map(p => (
-                    <option key={p.id} value={p.id}>{p.title}</option>
-                  ))}
-                </select>
+        <main className="flex-1 px-4 md:px-8 pt-[70px] pb-12">
+          {/* Header */}
+          <div className="relative overflow-hidden rounded-[2rem] mt-4 px-7 py-7 bg-white/90 dark:bg-[#071324]/90 border border-black/10 dark:border-white/10 shadow-2xl backdrop-blur-2xl">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md"
+                style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+              >
+                <FiMessageSquare className="w-6 h-6" />
               </div>
-              {selectedProject && (
-                <div className="text-sm text-slate-500 dark:text-gray-400">
-                  <span className="text-slate-400 dark:text-gray-500">Cliente: </span>
-                  <span className="text-slate-900 dark:text-white">{selectedProject.client_name || 'Não informado'}</span>
-                  {selectedProject.client_email && (
-                    <span className="ml-3 text-slate-400 dark:text-gray-500">
-                      {selectedProject.client_email}
-                    </span>
-                  )}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-pixel text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-500 dark:bg-cyan-400/20 dark:text-cyan-300 border border-cyan-500/30 uppercase">
+                    MENSAGERIA DEV
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400">•</span>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Updates de Projeto
+                  </span>
                 </div>
-              )}
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Hub de Comunicação com Clientes
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  Envie atualizações, marcos e notas técnicas diretamente para a área do cliente.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Container */}
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Project Picker & Details */}
+            <div className="rounded-[2rem] p-6 bg-white/80 dark:bg-[#071324]/85 border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-xl flex flex-col justify-between h-fit">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  Selecione o Projeto
+                </label>
+                <div className="relative">
+                  <select
+                    className="w-full rounded-xl px-4 py-3 text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[var(--color-accent)] appearance-none cursor-pointer"
+                    value={selectedProjectId ?? ''}
+                    onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+                  >
+                    {projects.length === 0 && <option value="">Nenhum projeto encontrado</option>}
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedProject && (
+                  <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/10 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Cliente:</span>
+                      <span className="font-bold text-slate-800 dark:text-white">
+                        {selectedProject.client_name || 'Não informado'}
+                      </span>
+                    </div>
+                    {selectedProject.client_email && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400">E-mail:</span>
+                        <span className="font-mono text-slate-600 dark:text-slate-300">
+                          {selectedProject.client_email}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Status:</span>
+                      <span className="font-bold text-[var(--color-accent)]">{selectedProject.status || 'Ativo'}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={loadUpdates}
-                className="p-2 rounded-lg transition-colors bg-slate-50 dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3555] text-[#00b09b]"
-                title="Recarregar"
+                disabled={loading}
+                className="mt-6 w-full py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
               >
-                <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                Atualizar Histórico
               </button>
             </div>
 
-            {error && (
-              <div className="rounded-lg px-4 py-3 text-sm text-red-300 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20">
-                {error}
+            {/* Updates Feed & Sender */}
+            <div className="lg:col-span-2 rounded-[2rem] overflow-hidden bg-white/80 dark:bg-[#071324]/85 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-xl flex flex-col min-h-[500px]">
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Histórico de Atualizações ({updates.length})
+                </span>
+                <span className="text-[10px] font-mono text-slate-400">Canal do Projeto #{selectedProjectId}</span>
               </div>
-            )}
 
-            {/* Messages feed */}
-            <div className="rounded-xl flex flex-col bg-white dark:bg-[#0d1224] border border-slate-200 dark:border-[#1e2a4a]">
-              <div className="px-5 py-3 border-b" >
-                <span className="text-slate-900 dark:text-white font-medium text-sm">Histórico de atualizações</span>
-                <span className="ml-2 text-slate-400 dark:text-gray-500 text-xs">{updates.length} registro{updates.length !== 1 ? 's' : ''}</span>
-              </div>
-              <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3" style={{ minHeight: 280, maxHeight: 440 }}>
-                {loading && (
-                  <div className="flex items-center justify-center h-32">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
+              {/* Feed */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-3.5 max-h-[380px] scrollbar-thin scrollbar-thumb-white/10">
+                {loading && updates.length === 0 ? (
+                  <div className="py-20 flex justify-center">
+                    <div className="w-8 h-8 rounded-full border-[3px] animate-spin border-[var(--color-accent)] border-t-transparent" />
                   </div>
-                )}
-                {!loading && updates.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-32 text-slate-400 dark:text-gray-500">
-                    <FiSend size={28} className="mb-2 opacity-30" />
-                    <p className="text-sm">Nenhuma atualização enviada ainda.</p>
+                ) : updates.length === 0 ? (
+                  <div className="py-20 text-center text-xs text-slate-400">
+                    Nenhuma atualização enviada ainda para este projeto.
                   </div>
-                )}
-                {!loading && updates.map(u => {
-                  const cfg = kindConfig(u.kind ?? 'update');
-                  const date = u.created_at
-                    ? new Date(u.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
-                    : '';
-                  let parsedObj = null;
-                  if (u.message && u.message.startsWith('{')) {
-                    try { parsedObj = JSON.parse(u.message); } catch {}
-                  }
+                ) : (
+                  updates.map((u) => {
+                    const cfg = kindConfig(u.kind);
+                    const date = u.created_at ? new Date(u.created_at).toLocaleString('pt-BR') : '';
 
-                  return (
-                    <div key={u.id} className="rounded-lg p-4 bg-white dark:bg-[#0a0f1e] border border-slate-200 dark:border-[#1a2240]">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded"
-                          style={{ background: `${cfg.color}20`, color: cfg.color }}>
-                          {cfg.label}
-                        </span>
-                        {date && <span className="text-xs text-slate-400 dark:text-gray-500">{date}</span>}
-                      </div>
-                      {parsedObj && parsedObj.texto ? (
-                        <div className="text-sm text-slate-700 dark:text-gray-200">
-                          <p className="whitespace-pre-wrap">{parsedObj.texto}</p>
-                          {parsedObj.observacoes && (
-                            <div className="mt-2 p-3 bg-slate-50 dark:bg-[#1a2035] rounded border border-slate-200 dark:border-[#2a3555]">
-                              <p className="text-xs font-semibold text-slate-500 mb-1">Observações:</p>
-                              <p className="whitespace-pre-wrap">{parsedObj.observacoes}</p>
-                            </div>
-                          )}
+                    let parsedObj = null;
+                    if (u.message && u.message.startsWith('{')) {
+                      try {
+                        parsedObj = JSON.parse(u.message);
+                      } catch {}
+                    }
+
+                    return (
+                      <div
+                        key={u.id}
+                        className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                            style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}
+                          >
+                            {cfg.label}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">{date}</span>
                         </div>
-                      ) : (
-                        <p className="text-sm text-slate-700 dark:text-gray-200 whitespace-pre-wrap">{u.message}</p>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {parsedObj && parsedObj.texto ? (
+                          <div className="text-xs text-slate-800 dark:text-slate-200">
+                            <p className="whitespace-pre-wrap leading-relaxed">{parsedObj.texto}</p>
+                            {parsedObj.observacoes && (
+                              <div className="mt-2 p-3 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 text-[11px] text-slate-500">
+                                <p className="font-semibold mb-0.5">Observações:</p>
+                                <p className="whitespace-pre-wrap">{parsedObj.observacoes}</p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                            {u.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
                 <div ref={bottomRef} />
               </div>
-            </div>
 
-            {/* Compose */}
-            <form onSubmit={handleSend} className="rounded-xl p-5 flex flex-col gap-4 bg-white dark:bg-[#0d1224] border border-slate-200 dark:border-[#1e2a4a]">
-              <div className="flex flex-wrap gap-2">
-                {KIND_OPTIONS.map(k => (
+              {/* Message Composer Form */}
+              <form onSubmit={handleSend} className="p-5 border-t border-slate-200 dark:border-white/10 space-y-3 bg-white/40 dark:bg-white/5">
+                {/* Kind Selector Pills */}
+                <div className="flex flex-wrap gap-2">
+                  {KIND_OPTIONS.map((k) => (
+                    <button
+                      key={k.value}
+                      type="button"
+                      onClick={() => setKind(k.value)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
+                        kind === k.value
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent-dim)] text-[var(--color-accent)]'
+                          : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      {k.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Escreva a atualização ou relatório técnico para o cliente..."
+                    rows={2}
+                    className="flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm bg-white dark:bg-[#071324] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
+                  />
                   <button
-                    type="button"
-                    key={k.value}
-                    onClick={() => setKind(k.value)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      kind === k.value
-                        ? 'bg-[#00b09b]/10 text-[#00b09b] dark:text-[#00d4aa] border border-[#00b09b]'
-                        : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-[#6b7280]'
-                    }`}
+                    type="submit"
+                    disabled={sending || !message.trim() || !selectedProjectId}
+                    className="px-5 py-4 rounded-xl font-bold text-xs text-white shadow-md transition-all hover:scale-105 disabled:opacity-40 disabled:scale-100 flex items-center justify-center gap-2 shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
                   >
-                    {k.label}
+                    <FiSend className="w-4 h-4" />
+                    <span>Enviar</span>
                   </button>
-                ))}
-              </div>
-              <textarea
-                className="w-full rounded-lg px-4 py-3 text-slate-900 dark:text-white text-sm resize-none focus:outline-none focus:ring-1 bg-white dark:bg-[#1a2035] border border-slate-200 dark:border-[#2a3555] min-h-[100px]"
-                placeholder="Escreva uma atualização para o cliente..."
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend(e as unknown as React.FormEvent);
-                }}
-              />
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400 dark:text-gray-500">Ctrl+Enter para enviar</span>
-                <button
-                  type="submit"
-                  disabled={sending || !message.trim() || !selectedProjectId}
-                  className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg, #00b09b, #004aad)', color: 'white' }}
-                >
-                  <FiSend size={15} />
-                  {sending ? 'Enviando...' : 'Enviar'}
-                </button>
-              </div>
-            </form>
+                </div>
+              </form>
+            </div>
           </div>
         </main>
       </div>
@@ -274,7 +320,13 @@ function DevComunicacaoContent() {
 
 export default function DevComunicacaoPage() {
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 dark:bg-[#040d1a] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-[3px] animate-spin border-cyan-500 border-t-transparent" />
+        </div>
+      }
+    >
       <DevComunicacaoContent />
     </Suspense>
   );

@@ -67,9 +67,9 @@ const Header: React.FC = () => {
     { label: "Home", href: "/#Home" },
     { label: "Serviços", href: "/#Servicos" },
     { label: "Planos", href: "/#Planos" },
+    { label: "Portfólio", href: "/#Portfolio" },
     { label: "Sobre", href: "/#Sobre" },
     { label: "Depoimentos", href: "/#Depoimentos" },
-    
   ];
 
   return (
@@ -94,11 +94,16 @@ const Header: React.FC = () => {
               className="cursor-pointer"
             />
           </Link>
-          <Link href="/">
+          <Link href="/" className="flex items-center gap-1.5 group">
             <span
-              className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-cyan-500 dark:from-indigo-400 dark:via-purple-400 dark:to-cyan-400 hover:opacity-80 transition-all hover:scale-[1.02] inline-block drop-shadow-sm"
+              className="font-pixel text-[11px] sm:text-sm md:text-base lg:text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-400 to-cyan-400 dark:from-indigo-400 dark:via-purple-300 dark:to-cyan-300 hover:opacity-90 transition-all inline-block drop-shadow-sm"
             >
-              EASYDEV
+              EasyDev
+            </span>
+            <span
+              className="font-pixel text-[9px] sm:text-[11px] md:text-xs px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-500 dark:bg-cyan-400/20 dark:text-cyan-300 border border-cyan-500/30 tracking-widest uppercase shadow-[0_0_8px_rgba(6,182,212,0.25)] group-hover:scale-105 transition-transform"
+            >
+              CRM
             </span>
           </Link>
         </div>
