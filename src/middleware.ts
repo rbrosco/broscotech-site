@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
+import { getJwtSecret } from '@/lib/jwtSecret';
 
 function extractToken(request: NextRequest) {
   const cookieToken = request.cookies.get('token')?.value;
@@ -12,23 +14,25 @@ function extractToken(request: NextRequest) {
   return parts[1];
 }
 
-function isJwtExpired(token: string): boolean {
+/**
+ * Verifica a assinatura e a expiração do token com `jose` (compatível com o
+ * Edge Runtime). Antes, este middleware apenas decodificava o payload em
+ * base64 sem checar a assinatura — um token com payload adulterado (ex.:
+ * role: 'admin') passava sem ser detectado aqui. As rotas de API já faziam
+ * a verificação correta via `requireAuth` (jsonwebtoken), mas o middleware
+ * era a única barreira para as páginas do dashboard.
+ */
+async function verifyToken(token: string): Promise<{ role?: string } | null> {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return true;
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    const json = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
-    const payload = JSON.parse(json) as { exp?: number } | null;
-    if (!payload || typeof payload.exp !== 'number') return false;
-    const now = Math.floor(Date.now() / 1000);
-    return payload.exp < now;
+    const secret = getJwtSecret();
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    return payload as { role?: string };
   } catch {
-    return true;
+    return null;
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas protegidas para admin
@@ -55,24 +59,16 @@ export function middleware(request: NextRequest) {
   if (!pageProtected && !apiProtected) return NextResponse.next();
 
   const token = extractToken(request);
-  if (!token || isJwtExpired(token)) {
+  const payload = token ? await verifyToken(token) : null;
+
+  if (!payload) {
     if (pageProtected) return NextResponse.redirect(new URL('/login', request.url));
     return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
   }
 
-  // Protege rotas admin: decodifica o JWT e verifica o campo role
+  // Protege rotas admin: usa o payload já verificado (assinatura + exp) acima
   if (adminRoutes.some(route => pathname.startsWith(route))) {
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) return NextResponse.redirect(new URL('/dashboard', request.url));
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-      const json = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
-      const payload = JSON.parse(json) as { role?: string } | null;
-      if (!payload || payload.role !== 'admin') {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
-    } catch {
+    if (payload.role !== 'admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

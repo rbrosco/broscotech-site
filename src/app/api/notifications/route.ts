@@ -44,6 +44,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) return NextResponse.json({ ok: false, message: 'Não autenticado.' }, { status: 401 });
+
     const body = await request.json();
     const id = String(body.timestamp ?? Date.now()) + '-' + String(Math.random()).slice(2,8);
     const item = { 
@@ -80,6 +83,9 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) return NextResponse.json({ ok: false, message: 'Não autenticado.' }, { status: 401 });
+
     const body = await request.json();
     if (!body.id || !body.updates) {
       return NextResponse.json({ ok: false, message: 'Invalid body' }, { status: 400 });

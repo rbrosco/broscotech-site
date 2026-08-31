@@ -56,8 +56,14 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const auth = requireAuth(req.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
+
+    const isAdmin = ((auth as { role?: string }).role === 'admin');
+    if (!isAdmin) return NextResponse.json({ message: 'Não autorizado.' }, { status: 403 });
+
     const body = await req.json();
     const { project_id, client_name, value, issue_date, due_date, status, description, asaas_url } = body;
     

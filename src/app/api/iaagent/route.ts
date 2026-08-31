@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { requireAuth } from '@/lib/middlewareAuth';
 
 function normalizeBaseUrl(raw?: string) {
   const value = (raw || process.env.LMSTUDIO_BASE_URL || 'http://127.0.0.1:1234/v1').trim();
+  // Só permite endpoints locais (loopback) para evitar SSRF: qualquer host
+  // arbitrário enviado pelo cliente seria buscado pelo servidor.
+  let host = '';
+  try {
+    host = new URL(value.endsWith('/v1') ? value : `${value.replace(/\/$/, '')}/v1`).hostname;
+  } catch {
+    return 'http://127.0.0.1:1234/v1';
+  }
+  const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (!isLoopback) return 'http://127.0.0.1:1234/v1';
   if (!value) return 'http://127.0.0.1:1234/v1';
   return value.endsWith('/v1') ? value : `${value.replace(/\/$/, '')}/v1`;
 }
@@ -147,6 +158,9 @@ async function callGoogle({ messages, apiKey, model, systemPrompt }: { messages:
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = requireAuth(request.headers as unknown as { get(name: string): string | null });
+    if (!auth || !auth.id) return NextResponse.json({ reply: 'Não autenticado.' }, { status: 401 });
+
     const body = await request.json();
     const {
       messages,

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '@/lib/jwtSecret';
 
 type DecodedUser = { id?: string | number; name?: string; login?: string; email?: string } | null;
 
@@ -51,7 +52,7 @@ export function requireAuth(headers: HeaderLike): DecodedUser {
   if (!token) return null;
 
   try {
-    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET ?? 'dev-secret';
+    const secret = getJwtSecret();
     const decoded = jwt.verify(token, secret) as unknown;
     return (decoded as DecodedUser) || null;
   } catch {
