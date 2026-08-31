@@ -85,7 +85,7 @@ const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
         {/* Scrolling Icons Banner End */}
 
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-5xl mx-auto rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm dark:bg-black/10 dark:border-white/15 dark:backdrop-blur-md">
+          <div className="max-w-7xl mx-auto rounded-3xl bg-white border border-slate-200 p-5 sm:p-6 shadow-sm dark:bg-black/10 dark:border-white/15 dark:backdrop-blur-md">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white">Experiência do cliente</h3>

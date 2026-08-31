@@ -32,7 +32,7 @@ const depoimentos = [
 function DepoimentosBlock() {
   return (
     <section id="Depoimentos" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-accent)' }}>
             Depoimentos

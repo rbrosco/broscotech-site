@@ -72,7 +72,7 @@ const Servicos: React.FC = () => {
         </div>
 
         {/* CTA card */}
-        <div className="max-w-5xl mx-auto mb-10 rounded-2xl border border-black/8 bg-white/70 backdrop-blur-sm p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+        <div className="max-w-7xl mx-auto mb-10 rounded-2xl border border-black/8 bg-white/70 backdrop-blur-sm p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-5">
             <div className="text-left">
               <p className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--color-accent)' }}>
@@ -113,7 +113,7 @@ const Servicos: React.FC = () => {
         </div>
 
         {/* Service cards */}
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {servicesData.map((service, index) => (
             <div
               key={index}

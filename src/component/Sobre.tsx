@@ -75,7 +75,7 @@ const Sobre: React.FC = () => {
         </div>
 
         {/* Missão e Valores */}
-        <div className="max-w-6xl mx-auto mt-12">
+        <div className="max-w-7xl mx-auto mt-12">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl font-semibold mb-4 animate__animated animate__fadeIn text-foreground">
               Nossa Missão e Valores
@@ -131,7 +131,7 @@ const Sobre: React.FC = () => {
         </div>
 
         {/* O que fazemos */}
-        <div className="max-w-6xl mx-auto mt-14">
+        <div className="max-w-7xl mx-auto mt-14">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl font-semibold mb-4 animate__animated animate__fadeIn text-foreground">
               O que fazemos
