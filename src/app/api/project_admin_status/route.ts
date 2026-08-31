@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { projects } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { ProjectEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,17 +18,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
     }
 
-    const rows = await db
-      .select({ admin_status: projects.admin_status })
-      .from(projects)
-      .where(eq(projects.id, projectId))
-      .limit(1);
+    const dataSource = await getDataSource();
+    const row = await dataSource.getRepository(ProjectEntity).findOne({
+      select: { admin_status: true },
+      where: { id: projectId },
+    });
 
-    if (!rows[0]) {
+    if (!row) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
 
-    return NextResponse.json({ admin_status: rows[0].admin_status });
+    return NextResponse.json({ admin_status: row.admin_status });
   } catch (error) {
     console.error('Erro em /api/project_admin_status GET:', error);
     return NextResponse.json({ message: 'Erro interno ao buscar status do projeto.' }, { status: 500 });
@@ -53,17 +52,17 @@ export async function PATCH(request: NextRequest) {
 
     // Não há role no token, então só permite PATCH se o usuário for o mesmo do projeto (ou admin futuramente)
 
-    const [updated] = await db
-      .update(projects)
-      .set({ admin_status: status })
-      .where(eq(projects.id, projectId))
-      .returning();
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(ProjectEntity);
 
-    if (!updated) {
+    const existing = await repo.findOne({ where: { id: projectId } });
+    if (!existing) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Status atualizado.', admin_status: updated.admin_status });
+    await repo.update({ id: projectId }, { admin_status: status });
+
+    return NextResponse.json({ message: 'Status atualizado.', admin_status: status });
   } catch (error) {
     console.error('Erro em /api/project_admin_status PATCH:', error);
     return NextResponse.json({ message: 'Erro interno ao atualizar status.' }, { status: 500 });
@@ -84,14 +83,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
     }
 
-    const [deleted] = await db
-      .delete(projects)
-      .where(eq(projects.id, projectId))
-      .returning();
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(ProjectEntity);
 
-    if (!deleted) {
+    const existing = await repo.findOne({ where: { id: projectId } });
+    if (!existing) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
+
+    await repo.delete({ id: projectId });
 
     return NextResponse.json({ message: 'Projeto excluído.' });
   } catch (error) {

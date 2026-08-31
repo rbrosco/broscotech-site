@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { db } from '@/lib/drizzle';
-import { users } from '@/lib/schema';
-import { eq } from 'drizzle-orm';
+import { getDataSource } from '@/lib/typeorm';
+import { UserEntity } from '@/lib/entities';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +13,8 @@ export async function GET(request: Request) {
 
   // Busca o role direto do banco (independe do JWT ter o campo role)
   try {
-    const rows = await db.select().from(users).where(eq(users.id, Number(user.id))).limit(1);
-    const row = rows[0];
+    const dataSource = await getDataSource();
+    const row = await dataSource.getRepository(UserEntity).findOne({ where: { id: Number(user.id) } });
     if (!row) return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
 
     return NextResponse.json({
@@ -25,7 +24,7 @@ export async function GET(request: Request) {
       email: row.email,
       role: row.role ?? 'user',
       avatar: (row as { avatar?: string | null }).avatar ?? null,
-      phone: (row as { phone?: string | null }).phone ?? null,
+      phone: row.phone ?? null,
     });
   } catch {
     // Fallback: usa dado do JWT se banco falhar

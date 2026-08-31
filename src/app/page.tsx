@@ -74,6 +74,7 @@ import VCard from "../component/VCard";
 import IAHomeBanner from "../component/IAHomeBanner";
 import Chatbot from "../component/ChatBot";
 import Servicos from "../component/Servicos";
+import Planos from "../component/Planos";
 import Sobre from "../component/Sobre";
 import LoadingSpinner from '../component/LoadingSpinner';
 import PrivacyModal from '../component/PrivacyModal';
@@ -257,6 +258,9 @@ export default function Home() {
 
         {/* SERVIÇOS (logo após o hero) */}
         <Servicos />
+
+        {/* PLANOS (serviço mensal / recorrência) */}
+        <Planos />
 
         {/* STACK / PROVA SOCIAL */}
         <IconBanner icons={iconBannerData} speed="55s" />

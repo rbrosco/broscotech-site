@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '@/lib/drizzle';
-import { users } from '@/lib/schema';
-import { eq, or } from 'drizzle-orm';
+import { getDataSource } from '@/lib/typeorm';
+import { UserEntity } from '@/lib/entities';
 import { getJwtSecret } from '@/lib/jwtSecret';
 
 export async function POST(request: Request) {
@@ -15,15 +14,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Login ou e-mail e senha são obrigatórios.' }, { status: 400 });
     }
 
-
     // Busca usuário por login OU email
-    const rows = await db
-      .select()
-      .from(users)
-      .where(or(eq(users.login, identifier), eq(users.email, identifier)))
-      .limit(1);
+    const dataSource = await getDataSource();
+    const user = await dataSource.getRepository(UserEntity).findOne({
+      where: [{ login: identifier }, { email: identifier }],
+    });
 
-    const user = rows[0];
     if (!user) {
       return NextResponse.json({ message: 'Credenciais inválidas.' }, { status: 401 });
     }

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { projects, project_updates, kanban_columns, kanban_cards, ai_sessions, ai_messages, notifications, invoices } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import {
+  ProjectEntity, ProjectUpdateEntity, KanbanColumnEntity, KanbanCardEntity,
+  AiSessionEntity, AiMessageEntity, NotificationEntity, InvoiceEntity,
+} from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { and, desc, eq as drizzleEq, inArray } from 'drizzle-orm';
+import { In } from 'typeorm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,9 +27,11 @@ export async function POST(request: NextRequest) {
     const framework = (body.framework ?? null) as string | null;
     const integrations = (body.integrations ?? null) as string | null;
 
-    const [created] = await db
-      .insert(projects)
-      .values({
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(ProjectEntity);
+
+    const created = await repo.save(
+      repo.create({
         user_id: userId,
         title,
         client_name: clientName,
@@ -40,13 +45,27 @@ export async function POST(request: NextRequest) {
         progress: 0,
         status: 'Em planejamento',
       })
-      .returning();
+    );
 
     return NextResponse.json({ project: created, message: 'Projeto criado.' });
   } catch (error) {
     console.error('Erro em /api/projects POST:', error);
     return NextResponse.json({ message: 'Erro interno ao criar projeto.' }, { status: 500 });
   }
+}
+
+async function withUpdates(dataSource: Awaited<ReturnType<typeof getDataSource>>, project: ProjectEntity) {
+  const rawUpdates = await dataSource.getRepository(ProjectUpdateEntity).find({
+    where: { project_id: project.id },
+    order: { created_at: 'DESC' },
+  });
+  const updates = rawUpdates.map(u => ({
+    id: Number(u.id),
+    kind: u.kind ?? 'update',
+    message: u.message ?? '',
+    created_at: u.created_at ?? '',
+  }));
+  return { ...project, updates };
 }
 
 export async function GET(request: NextRequest) {
@@ -60,79 +79,42 @@ export async function GET(request: NextRequest) {
     const all = url.searchParams.get('all');
 
     const userId = Number(auth.id);
+    const dataSource = await getDataSource();
+    const projectRepo = dataSource.getRepository(ProjectEntity);
 
     // Se for admin, retorna todos os projetos e todos os updates
     const isAdmin = ((auth as { role?: string }).role === 'admin');
     if (isAdmin) {
-      const list = await db
-        .select()
-        .from(projects)
-        .orderBy(desc(projects.updated_at));
-      // Para cada projeto, busca os updates
-      const projectsWithUpdates = await Promise.all(list.map(async (project) => {
-        const rawUpdates = await db
-          .select()
-          .from(project_updates)
-          .where(drizzleEq(project_updates.project_id, project.id))
-          .orderBy(desc(project_updates.created_at));
-        const updates = rawUpdates.map(u => ({
-          id: Number(u.id),
-          kind: u.kind ?? 'update',
-          message: u.message ?? '',
-          created_at: u.created_at ?? ''
-        }));
-        return { ...project, updates };
-      }));
+      const list = await projectRepo.find({ order: { updated_at: 'DESC' } });
+      const projectsWithUpdates = await Promise.all(list.map((project) => withUpdates(dataSource, project)));
       return NextResponse.json({ projects: projectsWithUpdates });
     }
 
     if (all === '1') {
-      const list = await db
-        .select()
-        .from(projects)
-        .where(drizzleEq(projects.user_id, userId))
-        .orderBy(desc(projects.updated_at));
-
-      const projectsWithUpdates = await Promise.all(
-        list.map(async (project) => {
-          const rawUpdates = await db
-            .select()
-            .from(project_updates)
-            .where(drizzleEq(project_updates.project_id, project.id))
-            .orderBy(desc(project_updates.created_at));
-          const updates = rawUpdates.map((u) => ({
-            id: Number(u.id),
-            kind: u.kind ?? 'update',
-            message: u.message ?? '',
-            created_at: u.created_at ?? '',
-          }));
-          return { ...project, updates };
-        })
-      );
+      const list = await projectRepo.find({ where: { user_id: userId }, order: { updated_at: 'DESC' } });
+      const projectsWithUpdates = await Promise.all(list.map((project) => withUpdates(dataSource, project)));
       return NextResponse.json({ projects: projectsWithUpdates });
     }
 
-    const list = await db
-      .select()
-      .from(projects)
-      .where(drizzleEq(projects.user_id, userId))
-      .orderBy(desc(projects.updated_at))
-      .limit(1);
+    const list = await projectRepo.find({
+      where: { user_id: userId },
+      order: { updated_at: 'DESC' },
+      take: 1,
+    });
 
     const project = list[0] ?? null;
 
     let updates: Array<{ id: number; kind: string; message: string; created_at: string }> = [];
     if (project) {
-      const rawUpdates = await db
-        .select()
-        .from(project_updates)
-        .where(drizzleEq(project_updates.project_id, project.id))
-        .orderBy(desc(project_updates.created_at));
+      const rawUpdates = await dataSource.getRepository(ProjectUpdateEntity).find({
+        where: { project_id: project.id },
+        order: { created_at: 'DESC' },
+      });
       updates = rawUpdates.map(u => ({
         id: Number(u.id),
         kind: u.kind ?? 'update',
         message: u.message ?? '',
-        created_at: u.created_at ?? ''
+        created_at: u.created_at ?? '',
       }));
     }
 
@@ -167,26 +149,27 @@ export async function PATCH(request: NextRequest) {
     const framework = (body.framework ?? null) as string | null;
     const integrations = (body.integrations ?? null) as string | null;
 
-    const [updated] = await db
-      .update(projects)
-      .set({
-        title: title ?? undefined,
-        client_name: clientName ?? undefined,
-        client_email: clientEmail ?? undefined,
-        client_phone: clientPhone ?? undefined,
-        project_type: projectType ?? undefined,
-        final_date: finalDate ?? undefined,
-        language: language ?? undefined,
-        framework: framework ?? undefined,
-        integrations: integrations ?? undefined,
-        updated_at: new Date().toISOString(),
-      })
-      .where(and(drizzleEq(projects.id, projectId), drizzleEq(projects.user_id, userId)))
-      .returning();
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(ProjectEntity);
 
-    if (!updated) {
+    const existing = await repo.findOne({ where: { id: projectId, user_id: userId } });
+    if (!existing) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
     }
+
+    const patch: Partial<ProjectEntity> = { updated_at: new Date().toISOString() };
+    if (title !== null) patch.title = title;
+    if (clientName !== null) patch.client_name = clientName;
+    if (clientEmail !== null) patch.client_email = clientEmail;
+    if (clientPhone !== null) patch.client_phone = clientPhone;
+    if (projectType !== null) patch.project_type = projectType;
+    if (finalDate !== null) patch.final_date = finalDate;
+    if (language !== null) patch.language = language;
+    if (framework !== null) patch.framework = framework;
+    if (integrations !== null) patch.integrations = integrations;
+
+    await repo.update({ id: projectId, user_id: userId }, patch);
+    const updated = await repo.findOneOrFail({ where: { id: projectId } });
 
     return NextResponse.json({ project: updated, message: 'Projeto atualizado.' });
   } catch (error) {
@@ -214,12 +197,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'ID do projeto é obrigatório.' }, { status: 400 });
     }
 
+    const dataSource = await getDataSource();
+    const projectRepo = dataSource.getRepository(ProjectEntity);
+
     // Busca o projeto para verificar permissão
-    const [project] = await db
-      .select()
-      .from(projects)
-      .where(drizzleEq(projects.id, projectId))
-      .limit(1);
+    const project = await projectRepo.findOne({ where: { id: projectId } });
 
     if (!project) {
       return NextResponse.json({ message: 'Projeto não encontrado.' }, { status: 404 });
@@ -231,29 +213,31 @@ export async function DELETE(request: NextRequest) {
 
     // Excluir registros vinculados em ordem de dependência (com try/catch por tabela)
     try {
-      const sessions = await db.select({ id: ai_sessions.id }).from(ai_sessions).where(drizzleEq(ai_sessions.project_id, projectId));
+      const sessionRepo = dataSource.getRepository(AiSessionEntity);
+      const sessions = await sessionRepo.find({ select: { id: true }, where: { project_id: projectId } });
       const sessionIds = sessions.map(s => s.id);
       if (sessionIds.length > 0) {
-        await db.delete(ai_messages).where(inArray(ai_messages.session_id, sessionIds));
+        await dataSource.getRepository(AiMessageEntity).delete({ session_id: In(sessionIds) });
       }
-      await db.delete(ai_sessions).where(drizzleEq(ai_sessions.project_id, projectId));
+      await sessionRepo.delete({ project_id: projectId });
     } catch {}
 
     try {
-      const cols = await db.select({ id: kanban_columns.id }).from(kanban_columns).where(drizzleEq(kanban_columns.project_id, projectId));
+      const columnRepo = dataSource.getRepository(KanbanColumnEntity);
+      const cols = await columnRepo.find({ select: { id: true }, where: { project_id: projectId } });
       const colIds = cols.map(c => Number(c.id));
       if (colIds.length > 0) {
-        await db.delete(kanban_cards).where(inArray(kanban_cards.column_id, colIds));
+        await dataSource.getRepository(KanbanCardEntity).delete({ column_id: In(colIds) });
       }
-      await db.delete(kanban_columns).where(drizzleEq(kanban_columns.project_id, projectId));
+      await columnRepo.delete({ project_id: projectId });
     } catch {}
 
-    try { await db.delete(project_updates).where(drizzleEq(project_updates.project_id, projectId)); } catch {}
-    try { await db.delete(notifications).where(drizzleEq(notifications.project_id, projectId)); } catch {}
-    try { await db.delete(invoices).where(drizzleEq(invoices.project_id, projectId)); } catch {}
+    try { await dataSource.getRepository(ProjectUpdateEntity).delete({ project_id: projectId }); } catch {}
+    try { await dataSource.getRepository(NotificationEntity).delete({ project_id: projectId }); } catch {}
+    try { await dataSource.getRepository(InvoiceEntity).delete({ project_id: projectId }); } catch {}
 
     // 4. projeto
-    await db.delete(projects).where(drizzleEq(projects.id, projectId));
+    await projectRepo.delete({ id: projectId });
 
     return NextResponse.json({ message: 'Projeto excluído com sucesso.' });
   } catch (error) {
