@@ -122,3 +122,143 @@ export function parseEvolutionWebhookMessage(body: any): { phone: string; text: 
   const phone = remoteJid.split('@')[0];
   return { phone, text, pushName: data.pushName };
 }
+
+// ─── Gerenciamento de instância (conectar via QR code) ────────────────────
+//
+// Fluxo de conexão usado pela tela Configurações > WhatsApp:
+//   1. connectionState(instance) — descobre se já está 'open' (conectado).
+//   2. Se não estiver conectada: ensureInstanceExists() cria a instância na
+//      Evolution (idempotente — se já existir, ignora o erro de duplicidade)
+//      com o webhook já configurado para /api/webhooks/evolution/{instance}.
+//   3. fetchQrCode(instance) — retorna o base64 do QR para o admin escanear.
+//   4. O front faz polling de connectionState() até virar 'open'.
+
+export type EvolutionConnectionState = 'open' | 'connecting' | 'close' | 'unknown';
+
+/** Consulta o estado atual da conexão da instância ('open' = conectada). */
+export async function getConnectionState(instance: string): Promise<{ ok: true; state: EvolutionConnectionState } | { ok: false; error: string }> {
+  const config = getEvolutionConfig();
+  if (!config) return { ok: false, error: 'Evolution API não configurada.' };
+
+  try {
+    const res = await fetch(`${config.baseUrl}/instance/connectionState/${encodeURIComponent(instance)}`, {
+      headers: { apikey: config.apiKey },
+    });
+    if (res.status === 404) {
+      // Instância ainda não existe na Evolution.
+      return { ok: true, state: 'close' };
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const message = data?.message || `Evolution retornou HTTP ${res.status}`;
+      return { ok: false, error: Array.isArray(message) ? message.join('; ') : String(message) };
+    }
+    const state = (data?.instance?.state as string) || 'unknown';
+    return { ok: true, state: (['open', 'connecting', 'close'].includes(state) ? state : 'unknown') as EvolutionConnectionState };
+  } catch (error: any) {
+    return { ok: false, error: error?.message || 'Falha de rede ao consultar status da instância.' };
+  }
+}
+
+/**
+ * Garante que a instância existe na Evolution (cria se necessário), já
+ * apontando o webhook para nossa rota de recebimento de mensagens.
+ * Idempotente: se a instância já existir, a Evolution retorna 403/409 —
+ * tratamos como sucesso silencioso.
+ */
+async function ensureInstanceExists(instance: string, publicBaseUrl?: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const config = getEvolutionConfig();
+  if (!config) return { ok: false, error: 'Evolution API não configurada.' };
+
+  const webhookUrl = publicBaseUrl ? `${publicBaseUrl.replace(/\/+$/, '')}/api/webhooks/evolution/${encodeURIComponent(instance)}` : undefined;
+
+  try {
+    const res = await fetch(`${config.baseUrl}/instance/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: config.apiKey },
+      body: JSON.stringify({
+        instanceName: instance,
+        qrcode: true,
+        integration: 'WHATSAPP-BAILEYS',
+        ...(webhookUrl
+          ? { webhook: { enabled: true, url: webhookUrl, events: ['MESSAGES_UPSERT'] } }
+          : {}),
+      }),
+    });
+
+    if (res.ok || res.status === 201) return { ok: true };
+
+    const data = await res.json().catch(() => null);
+    const message = String(data?.message || data?.response?.message || '');
+    // Já existe — não é erro para o nosso fluxo.
+    if (res.status === 403 || res.status === 409 || /already|exist|em uso/i.test(message)) {
+      return { ok: true };
+    }
+    return { ok: false, error: message || `Evolution retornou HTTP ${res.status} ao criar instância.` };
+  } catch (error: any) {
+    return { ok: false, error: error?.message || 'Falha de rede ao criar instância na Evolution.' };
+  }
+}
+
+type QrCodeResult = { ok: true; base64: string | null; state: EvolutionConnectionState } | { ok: false; error: string };
+
+/**
+ * Retorna o QR code (base64, pronto para <img src="...">) para conectar a
+ * instância. Cria a instância automaticamente se ela ainda não existir.
+ * Se já estiver conectada ('open'), retorna base64: null e state: 'open' —
+ * quem chama deve tratar isso como "já conectado, nada a escanear".
+ */
+export async function fetchQrCode(instance: string, publicBaseUrl?: string): Promise<QrCodeResult> {
+  const config = getEvolutionConfig();
+  if (!config) return { ok: false, error: 'Evolution API não configurada (EVOLUTION_API_URL/EVOLUTION_API_KEY ausentes).' };
+
+  const stateCheck = await getConnectionState(instance);
+  if (stateCheck.ok && stateCheck.state === 'open') {
+    return { ok: true, base64: null, state: 'open' };
+  }
+
+  const created = await ensureInstanceExists(instance, publicBaseUrl);
+  if (!created.ok) return { ok: false, error: created.error };
+
+  try {
+    const res = await fetch(`${config.baseUrl}/instance/connect/${encodeURIComponent(instance)}`, {
+      headers: { apikey: config.apiKey },
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const message = data?.message || `Evolution retornou HTTP ${res.status}`;
+      return { ok: false, error: Array.isArray(message) ? message.join('; ') : String(message) };
+    }
+
+    // Já conectada nesse meio tempo.
+    if (data?.instance?.state === 'open' || data?.state === 'open') {
+      return { ok: true, base64: null, state: 'open' };
+    }
+
+    const base64 = data?.base64 || data?.qrcode?.base64 || null;
+    return { ok: true, base64, state: base64 ? 'connecting' : 'unknown' };
+  } catch (error: any) {
+    return { ok: false, error: error?.message || 'Falha de rede ao obter QR code.' };
+  }
+}
+
+/** Desconecta (logout) a instância — o admin precisa escanear o QR de novo depois. */
+export async function logoutInstance(instance: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const config = getEvolutionConfig();
+  if (!config) return { ok: false, error: 'Evolution API não configurada.' };
+
+  try {
+    const res = await fetch(`${config.baseUrl}/instance/logout/${encodeURIComponent(instance)}`, {
+      method: 'DELETE',
+      headers: { apikey: config.apiKey },
+    });
+    if (!res.ok && res.status !== 404) {
+      const data = await res.json().catch(() => null);
+      const message = data?.message || `Evolution retornou HTTP ${res.status}`;
+      return { ok: false, error: Array.isArray(message) ? message.join('; ') : String(message) };
+    }
+    return { ok: true };
+  } catch (error: any) {
+    return { ok: false, error: error?.message || 'Falha de rede ao desconectar instância.' };
+  }
+}

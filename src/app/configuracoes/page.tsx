@@ -23,11 +23,13 @@ import {
 import DashboardNav from "@/component/DashboardNav";
 import Sidebar from "@/component/Sidebar";
 import UserManagement from "./UserManagement";
+import WhatsAppSettings from "./WhatsAppSettings";
 
-type Section = 'iaagent' | 'clientes' | 'equipe' | 'perfil' | 'notificacoes' | 'seguranca';
+type Section = 'iaagent' | 'clientes' | 'equipe' | 'perfil' | 'notificacoes' | 'seguranca' | 'whatsapp';
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode; desc: string }[] = [
   { id: 'iaagent', label: 'IA & LLM Gateway', icon: <FiCpu />, desc: 'Modelos, URLs customizadas, tokens e prompts' },
+  { id: 'whatsapp', label: 'WhatsApp', icon: <FiZap />, desc: 'Conecte o WhatsApp via QR code e envie atualizações' },
   { id: 'clientes', label: 'Clientes', icon: <FiUsers />, desc: 'Gerenciamento de contas de clientes' },
   { id: 'equipe', label: 'Equipe', icon: <FiBriefcase />, desc: 'Gerenciamento de membros da equipe' },
   { id: 'perfil', label: 'Perfil', icon: <FiUser />, desc: 'Informações da conta e preferências' },
@@ -939,6 +941,9 @@ export default function ConfiguracoesPage() {
                 {/* ─── CLIENTES ─── */}
                 {activeSection === 'clientes' && <UserManagement type="client" />}
 
+                {/* ─── WHATSAPP (EVOLUTION API) ─── */}
+                {activeSection === 'whatsapp' && <WhatsAppSettings />}
+
                 {/* ─── EQUIPE ─── */}
                 {activeSection === 'equipe' && <UserManagement type="team" />}
 
@@ -1072,23 +1077,25 @@ export default function ConfiguracoesPage() {
               </div>
 
               {/* Panel Footer */}
-              <div className="px-7 py-4 flex items-center justify-between border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
-                {saved ? (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    <FiCheckCircle className="w-4 h-4" /> Configurações salvas com sucesso!
-                  </div>
-                ) : (
-                  <span />
-                )}
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="ml-auto flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white transition hover:scale-[1.01] hover:opacity-95 shadow-md"
-                  style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
-                >
-                  <FiSave className="w-4 h-4" /> Salvar Configurações
-                </button>
-              </div>
+              {activeSection !== 'whatsapp' && activeSection !== 'clientes' && activeSection !== 'equipe' && (
+                <div className="px-7 py-4 flex items-center justify-between border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+                  {saved ? (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                      <FiCheckCircle className="w-4 h-4" /> Configurações salvas com sucesso!
+                    </div>
+                  ) : (
+                    <span />
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="ml-auto flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white transition hover:scale-[1.01] hover:opacity-95 shadow-md"
+                    style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+                  >
+                    <FiSave className="w-4 h-4" /> Salvar Configurações
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </main>
