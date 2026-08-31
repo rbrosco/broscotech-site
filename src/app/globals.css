@@ -378,3 +378,46 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
 @utility pl-sidebar {
   padding-left: var(--sidebar-width, 5rem);
 }
+
+/* Moeda 3D — giro no hover (usado na faixa de stack) */
+.stack-coin {
+  perspective: 300px;
+}
+
+.stack-coin-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.stack-coin:hover .stack-coin-inner {
+  animation: stack-coin-spin 1s linear infinite;
+}
+
+.stack-coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  transform: translateZ(5px);
+}
+
+.stack-coin-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  transform: translateZ(-5px) rotateY(180deg);
+}
+
+@keyframes stack-coin-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-coin:hover .stack-coin-inner {
+    animation: none;
+  }
+}

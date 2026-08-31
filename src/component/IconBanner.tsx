@@ -11,6 +11,28 @@ interface IconBannerProps {
   speed?: string; // Duração da animação, ex: '20s', '40s'
 }
 
+function StackBadge({ label, Icon }: { label: string; Icon: IconType }) {
+  return (
+    <div className="flex items-center gap-3 rounded-full border border-black/8 bg-white/80 pl-2 pr-5 py-2 whitespace-nowrap dark:border-white/10 dark:bg-white/5">
+      <span className="stack-coin inline-block w-11 h-11 shrink-0">
+        <span className="stack-coin-inner">
+          <span
+            className="stack-coin-face flex items-center justify-center shadow-md"
+            style={{ background: 'linear-gradient(145deg, var(--color-accent), var(--color-accent-600))' }}
+          >
+            <Icon className="w-5 h-5 text-white" aria-hidden="true" />
+          </span>
+          <span
+            className="stack-coin-rim"
+            style={{ background: 'var(--color-accent-600)' }}
+          />
+        </span>
+      </span>
+      <span className="text-sm font-semibold text-slate-700 dark:text-white/85">{label}</span>
+    </div>
+  );
+}
+
 const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
   // Duplicar os ícones para criar um efeito de loop contínuo e suave
   const iconsArray = Array.from(icons);
@@ -37,12 +59,7 @@ const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
             >
               {duplicatedIcons.map((icon, index) => (
                 <div key={`row1-${index}`} className="flex-shrink-0 px-3 py-3">
-                  <div className="flex items-center gap-2 rounded-full border border-black/8 bg-white/80 px-4 py-2 whitespace-nowrap dark:border-white/10 dark:bg-white/5">
-                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-full" style={{ background: 'var(--color-accent-dim)' }}>
-                      <icon.Icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} aria-hidden="true" />
-                    </span>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-white/85">{icon.label}</span>
-                  </div>
+                  <StackBadge label={icon.label} Icon={icon.Icon} />
                 </div>
               ))}
             </div>
@@ -57,12 +74,7 @@ const IconBanner: React.FC<IconBannerProps> = ({ icons, speed = '40s' }) => {
             >
               {duplicatedIcons.map((icon, index) => (
                 <div key={`row2-${index}`} className="flex-shrink-0 px-3 py-3">
-                  <div className="flex items-center gap-2 rounded-full border border-black/8 bg-white/80 px-4 py-2 whitespace-nowrap dark:border-white/10 dark:bg-white/5">
-                    <span className="inline-flex items-center justify-center w-9 h-9 rounded-full" style={{ background: 'var(--color-accent-dim)' }}>
-                      <icon.Icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} aria-hidden="true" />
-                    </span>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-white/85">{icon.label}</span>
-                  </div>
+                  <StackBadge label={icon.label} Icon={icon.Icon} />
                 </div>
               ))}
             </div>
