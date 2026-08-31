@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDataSource } from '@/lib/typeorm';
 import { ProjectUpdateEntity, ProjectEntity, NotificationEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
+import { sendWhatsappText, resolveInstanceForProject, isEvolutionConfigured } from '@/lib/evolution';
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,6 +106,40 @@ export async function POST(request: NextRequest) {
       );
     } catch (e) {
       console.error('Erro ao criar notificação do project_update:', e);
+    }
+
+    // Envia a atualização por WhatsApp (Evolution API) — best effort: se
+    // falhar ou não estiver configurado, o update já foi salvo normalmente.
+    if (isEvolutionConfigured()) {
+      try {
+        const project = await projectRepo.findOne({
+          select: { client_name: true, client_phone: true, title: true, assigned_dev: true },
+          where: { id: projectId },
+        });
+
+        if (project?.client_phone) {
+          const instance = resolveInstanceForProject(project.assigned_dev);
+          if (instance) {
+            let textoWhats = message;
+            if (message.startsWith('{')) {
+              try {
+                const parsed = JSON.parse(message);
+                if (parsed.texto) textoWhats = parsed.texto;
+              } catch {}
+            }
+            const result = await sendWhatsappText({
+              instance,
+              phone: project.client_phone,
+              text: `📌 *${project.title}*\n\n${textoWhats}`,
+            });
+            if (!result.ok) {
+              console.warn('Falha ao enviar WhatsApp para o cliente:', result.error);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao enviar notificação WhatsApp:', e);
+      }
     }
 
     return NextResponse.json({ update: created, message: 'Atualização registrada.' });

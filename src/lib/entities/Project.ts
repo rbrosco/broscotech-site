@@ -51,4 +51,10 @@ export class ProjectEntity {
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   admin_status?: string | null;
+
+  // Nome da instância Evolution API (WhatsApp) do dev responsável por este
+  // projeto — define de qual número saem as notificações automáticas.
+  // Ver EVOLUTION_DEFAULT_INSTANCE em src/lib/evolution.ts para o fallback.
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  assigned_dev?: string | null;
 }
