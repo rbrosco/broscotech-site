@@ -282,12 +282,32 @@ export default function IAAgentPage() {
         projTitle ? `O usuário está falando sobre o projeto: "${projTitle}".` : 'Este é um visitante interessado em criar ou tirar dúvidas sobre soluções digitais.'
       }\n\n${baseSystemPrompt}`;
 
+      const savedProvider = localStorage.getItem('IA_PROVIDER') || 'groq';
+      const savedCustomUrl = localStorage.getItem('IA_CUSTOM_BASE_URL') || '';
+      const savedApiKey =
+        localStorage.getItem('IA_API_KEY') ||
+        localStorage.getItem(`${savedProvider.toUpperCase()}_API_KEY`) ||
+        '';
+      const savedModel =
+        localStorage.getItem('IA_MODEL') ||
+        localStorage.getItem(`${savedProvider.toUpperCase()}_MODEL`) ||
+        '';
+      const savedTemp = parseFloat(localStorage.getItem('IA_TEMPERATURE') || '0.7');
+      const savedMaxTokens = parseInt(localStorage.getItem('IA_MAX_TOKENS') || '2048', 10);
+      const savedTopP = parseFloat(localStorage.getItem('IA_TOP_P') || '1.0');
+
       const aiRes = await fetch('/api/iaagent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: historyForAI,
-          provider: 'groq',
+          provider: savedProvider,
+          customBaseUrl: savedCustomUrl || undefined,
+          apiKey: savedApiKey || undefined,
+          model: savedModel || undefined,
+          temperature: isNaN(savedTemp) ? 0.7 : savedTemp,
+          maxTokens: isNaN(savedMaxTokens) ? 2048 : savedMaxTokens,
+          topP: isNaN(savedTopP) ? 1.0 : savedTopP,
           systemPrompt: systemPromptWithContext,
         }),
       });

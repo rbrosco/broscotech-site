@@ -36,26 +36,20 @@ const Sidebar: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return localStorage.getItem('sidebarCollapsed') === 'true';
-      } catch {}
-    }
-    return false;
-  });
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('userData');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed?.role?.toLowerCase() === 'admin') setIsAdmin(true);
-          if (parsed?.name) setUserName(parsed.name);
-        }
-      } catch {}
-    }
+    try {
+      if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        setIsCollapsed(true);
+      }
+      const raw = localStorage.getItem('userData');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.role?.toLowerCase() === 'admin') setIsAdmin(true);
+        if (parsed?.name) setUserName(parsed.name);
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
