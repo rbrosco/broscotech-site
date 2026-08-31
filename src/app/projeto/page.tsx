@@ -373,7 +373,7 @@ export default function ProjetoPage() {
                 {!loading && (
                   <div className="flex flex-wrap gap-3 mt-4">
                     {[
-                      { label: 'Total', value: projectsList.length, icon: FiFolder, color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-indigo-400/20' },
+                      { label: 'Total', value: projectsList.length, icon: FiFolder, color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-[var(--color-accent)]/40/20' },
                       { label: 'Em andamento', value: activeCount, icon: FiClock, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
                       { label: 'Enviados', value: sentCount, icon: FiCheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
                     ].map(({ label, value, icon: Icon, color, bg, border }) => (
@@ -570,7 +570,7 @@ export default function ProjetoPage() {
             {/* Modal header */}
             <div className="px-8 py-6 flex items-center justify-between shrink-0 border-b border-slate-200 dark:border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-cyan-500/20">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-lg shadow-cyan-500/20">
                   <FiFolder className="w-5 h-5 text-white" />
                 </div>
                 <div>

@@ -187,7 +187,7 @@ export default function DevPage() {
                 )}
                 {projects.map(p => (
                   <div key={p.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-slate-900 dark:text-white bg-gradient-to-br from-indigo-500 to-cyan-500">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-slate-900 dark:text-white bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)]">
                       {p.title[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -198,7 +198,7 @@ export default function DevPage() {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="w-24 h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-white/10">
-                        <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500" style={{ width: `${p.progress ?? 0}%` }} />
+                        <div className="h-full rounded-full bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)]" style={{ width: `${p.progress ?? 0}%` }} />
                       </div>
                       <span className="text-xs font-semibold w-8 text-right text-slate-500 dark:text-slate-400">{p.progress ?? 0}%</span>
                       <span

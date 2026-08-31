@@ -371,7 +371,7 @@ export default function IAAgentPage() {
                   </div>
                   <button
                     onClick={() => setShowNewModal(true)}
-                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-indigo-500 to-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
+                    className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-105 bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
                   >
                     <FiPlus className="w-5 h-5" /> Nova sessão
                   </button>
@@ -433,7 +433,7 @@ export default function IAAgentPage() {
                             relative px-6 py-4 max-w-full lg:max-w-3xl
                             ${isIncoming 
                               ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-3xl rounded-tl-none shadow-sm' 
-                              : 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white rounded-3xl rounded-tr-none shadow-md'
+                              : 'bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] text-white rounded-3xl rounded-tr-none shadow-md'
                             }
                           `}>
                             {(m as any).imageUrl && (
@@ -485,7 +485,7 @@ export default function IAAgentPage() {
                         </div>
                       )}
 
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)] rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
                       <div className="relative flex items-end gap-3 rounded-3xl px-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 shadow-xl">
                         
                         <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
@@ -515,7 +515,7 @@ export default function IAAgentPage() {
                         <button
                           onClick={() => void handleSend()}
                           disabled={sending || (!input.trim() && !attachedImage)}
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:hover:shadow-none hover:scale-105 bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] mb-0"
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 disabled:opacity-50 disabled:scale-100 disabled:hover:shadow-none hover:scale-105 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] mb-0"
                         >
                           {sending ? <FiLoader className="w-5 h-5 animate-spin" /> : <FiSend className="w-5 h-5 ml-1" />}
                         </button>
@@ -556,7 +556,7 @@ export default function IAAgentPage() {
               </button>
               <button
                 onClick={() => void handleNewSession()}
-                className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-[1.02] bg-gradient-to-r from-indigo-500 to-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white transition-all hover:scale-[1.02] bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-[0_0_20px_rgba(6,182,212,0.3)]"
               >
                 Criar sessão
               </button>

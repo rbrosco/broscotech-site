@@ -415,7 +415,7 @@ export default function ConfiguracoesPage() {
                 {activeSection === 'perfil' && (
                   <div className="flex flex-col gap-5 w-full">
                     <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shrink-0 bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-sm">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shrink-0 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-sm">
                         {profileName ? profileName[0].toUpperCase() : 'A'}
                       </div>
                       <div>
@@ -447,7 +447,7 @@ export default function ConfiguracoesPage() {
                         </div>
                         <button
                           onClick={() => set(v => !v)}
-                          className={`w-11 h-6 rounded-full transition-all shrink-0 relative ${state ? 'bg-gradient-to-r from-indigo-500 to-cyan-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                          className={`w-11 h-6 rounded-full transition-all shrink-0 relative ${state ? 'bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)]' : 'bg-slate-200 dark:bg-slate-700'}`}
                         >
                           <span
                             className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-sm ${state ? 'left-[22px]' : 'left-[2px]'}`}
@@ -488,7 +488,7 @@ export default function ConfiguracoesPage() {
                 ) : <span />}
                 <button
                   onClick={handleSave}
-                  className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-md"
+                  className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-md"
                 >
                   <FiSave className="w-4 h-4" /> Salvar alterações
                 </button>

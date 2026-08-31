@@ -217,7 +217,7 @@ export default function DashboardPage() {
             </button>
 
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-cyan-500/20">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] shadow-lg shadow-cyan-500/20">
                 <FiZap className="w-6 h-6 text-white" />
               </div>
               <div>
