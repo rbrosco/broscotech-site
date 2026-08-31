@@ -285,6 +285,32 @@ export default function ProjetoPage() {
 
   const handleSendToDev = async (projectId: number, projectStatus: string) => {
     if (projectStatus === 'enviado') { alert('Este projeto já foi enviado para o desenvolvedor!'); return; }
+
+    // Bloqueia o envio se faltar dado essencial de contato do cliente —
+    // sem isso o dev não consegue falar com o cliente (nome e telefone
+    // são o mínimo pro WhatsApp automático funcionar; e-mail é opcional).
+    const project = projectsList.find(p => p.id === projectId);
+    const missing: string[] = [];
+    if (!project?.client_name?.trim()) missing.push('Nome do cliente');
+    if (!project?.client_phone?.trim()) missing.push('Telefone');
+    if (missing.length > 0) {
+      alert(`Complete os dados do cliente antes de enviar ao desenvolvedor:\n\n• ${missing.join('\n• ')}\n\nAbrindo o formulário para você preencher.`);
+      setEditMode(true);
+      setEditProjectId(project?.id ?? null);
+      setProjectName(project?.title || '');
+      setClientName(project?.client_name || '');
+      setClientEmail(project?.client_email || '');
+      setClientPhone(project?.client_phone || '');
+      setProjectType(project?.project_type || '');
+      setFinalDate(project?.final_date ? String(project.final_date).slice(0, 10) : '');
+      setLanguage(project?.language || '');
+      setFramework(project?.framework || '');
+      setIntegrationsField(project?.integrations || '');
+      setSaveMessage(null);
+      setShowModal(true);
+      return;
+    }
+
     let projectData: Record<string, unknown> = {};
     try {
       const res = await fetch(`/api/projects?projectId=${projectId}`, { credentials: 'include' });
