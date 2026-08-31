@@ -27,4 +27,16 @@ export class KanbanCardEntity {
 
   @Column({ type: 'timestamptz', nullable: true })
   created_at?: string | null;
+
+  // Nome livre do responsável pela tarefa (exibido no card).
+  @Column({ type: 'text', nullable: true })
+  responsavel?: string | null;
+
+  // Prazo da tarefa.
+  @Column({ type: 'date', nullable: true })
+  due_date?: string | null;
+
+  // 'baixa' | 'media' | 'alta'
+  @Column({ type: 'text', nullable: true })
+  priority?: string | null;
 }

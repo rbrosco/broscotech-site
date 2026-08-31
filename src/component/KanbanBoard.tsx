@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FiUser, FiCalendar, FiX, FiCheck, FiAlertTriangle } from 'react-icons/fi';
+import { FiUser, FiCalendar, FiX, FiCheck, FiAlertTriangle, FiFlag } from 'react-icons/fi';
 
 export type KanbanCard = {
   id: number;
@@ -8,6 +8,8 @@ export type KanbanCard = {
   description: string | null;
   responsavel?: string | null;
   data?: string | null;
+  due_date?: string | null;
+  priority?: 'baixa' | 'media' | 'alta' | null;
   position: number;
 };
 
@@ -20,9 +22,24 @@ export type KanbanColumn = {
 };
 
 type KanbanData = {
-  project: { id: number; title: string };
+  project: { id: number; title: string; progress?: number };
   columns: KanbanColumn[];
 };
+
+const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
+  alta: { label: 'Alta', color: '#ef4444' },
+  media: { label: 'Média', color: '#f59e0b' },
+  baixa: { label: 'Baixa', color: '#6366f1' },
+};
+
+function formatDate(iso?: string | null) {
+  if (!iso) return null;
+  try {
+    return new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  } catch {
+    return null;
+  }
+}
 
 const PIPELINE_COLORS: Record<string, string> = {
   'Backlog': '#64748b',
@@ -185,6 +202,9 @@ function KanbanBoard({ projectId }: { projectId: number }) {
       <div className="px-6 pt-5 pb-2 flex items-center gap-2.5">
         <span className="w-2.5 h-2.5 rounded-full animate-pulse bg-[#00b09b] shrink-0 inline-block" aria-hidden="true" />
         <h2 className="font-bold text-slate-900 dark:text-white text-base">{data.project.title}</h2>
+        {typeof data.project.progress === 'number' && (
+          <span className="text-xs font-black text-[var(--color-accent)] tabular-nums">{data.project.progress}%</span>
+        )}
         {activeStageIdx >= 0 && (
           <span
             className="ml-auto text-xs font-semibold px-3 py-1 rounded-full"
@@ -234,7 +254,10 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                     Sem tarefas
                   </div>
                 )}
-                {col.cards.map(card => (
+                {col.cards.map(card => {
+                  const prio = card.priority ? PRIORITY_CONFIG[card.priority] : null;
+                  const dueLabel = formatDate(card.due_date || card.data);
+                  return (
                   <div
                     key={card.id}
                     onDoubleClick={() => setSelectedCard(card)}
@@ -242,22 +265,39 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                     role="button"
                     aria-label={`Ver detalhes: ${card.title}`}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedCard(card); } }}
-                    className="group rounded-xl px-3.5 py-3 border transition-all duration-150 bg-white border-slate-200 shadow-sm hover:shadow-md dark:bg-white/10 dark:border-white/10 dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none cursor-pointer"
-                    style={{ animationName: 'fadeInCard', animationDuration: '0.3s', animationFillMode: 'both' }}
+                    className="group rounded-xl px-3.5 py-3 border transition-all duration-150 bg-white border-slate-200 shadow-sm hover:shadow-md dark:bg-white/10 dark:border-white/10 dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none cursor-pointer relative overflow-hidden"
+                    style={{ animationName: 'fadeInCard', animationDuration: '0.3s', animationFillMode: 'both', borderLeftWidth: prio ? 3 : undefined, borderLeftColor: prio ? prio.color : undefined }}
                   >
-                    <div className="font-semibold text-[13px] text-slate-800 dark:text-white/90 leading-snug">{card.title}</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-semibold text-[13px] text-slate-800 dark:text-white/90 leading-snug flex-1">{card.title}</div>
+                      {prio && (
+                        <span
+                          className="shrink-0 inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
+                          style={{ background: prio.color + '18', color: prio.color }}
+                        >
+                          <FiFlag className="w-2.5 h-2.5" aria-hidden="true" />
+                          {prio.label}
+                        </span>
+                      )}
+                    </div>
                     {card.description && (
                       <div className="mt-1 text-xs leading-relaxed line-clamp-2 text-slate-500 dark:text-white/45">{card.description}</div>
                     )}
-                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
                       {card.responsavel && (
-                        <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-white/35">
-                          <FiUser className="w-3 h-3" aria-hidden="true" />{card.responsavel}
+                        <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-white/50">
+                          <span
+                            className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black text-white shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+                          >
+                            {card.responsavel[0]?.toUpperCase()}
+                          </span>
+                          {card.responsavel}
                         </span>
                       )}
-                      {card.data && (
+                      {dueLabel && (
                         <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-white/35">
-                          <FiCalendar className="w-3 h-3" aria-hidden="true" />{card.data}
+                          <FiCalendar className="w-3 h-3" aria-hidden="true" />{dueLabel}
                         </span>
                       )}
                       <span
@@ -268,7 +308,8 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                       </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
@@ -305,6 +346,15 @@ function KanbanBoard({ projectId }: { projectId: number }) {
               <FiX className="w-4 h-4" aria-hidden="true" />
             </button>
             <h3 id="kanban-card-modal-title" className="font-bold text-lg text-slate-900 dark:text-white pr-10 leading-snug">{selectedCard.title}</h3>
+            {selectedCard.priority && PRIORITY_CONFIG[selectedCard.priority] && (
+              <span
+                className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
+                style={{ background: PRIORITY_CONFIG[selectedCard.priority].color + '18', color: PRIORITY_CONFIG[selectedCard.priority].color }}
+              >
+                <FiFlag className="w-3 h-3" aria-hidden="true" />
+                Prioridade {PRIORITY_CONFIG[selectedCard.priority].label}
+              </span>
+            )}
             <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-white/55">{selectedCard.description || 'Sem descrição.'}</p>
             <div className="mt-4 flex flex-col gap-2">
               {selectedCard.responsavel && (
@@ -312,9 +362,9 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                   <FiUser className="w-3.5 h-3.5" aria-hidden="true" /> Responsável: {selectedCard.responsavel}
                 </div>
               )}
-              {selectedCard.data && (
+              {(selectedCard.due_date || selectedCard.data) && (
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/35">
-                  <FiCalendar className="w-3.5 h-3.5" aria-hidden="true" /> Data: {selectedCard.data}
+                  <FiCalendar className="w-3.5 h-3.5" aria-hidden="true" /> Prazo: {formatDate(selectedCard.due_date || selectedCard.data)}
                 </div>
               )}
             </div>
