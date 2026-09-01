@@ -1,5 +1,6 @@
 'use client';
-import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import DevSidebar from '../../../component/DevSidebar';
 import DashboardNav from '../../../component/DashboardNav';
@@ -85,6 +86,9 @@ function DevKanbanContent() {
   const [boardLoading, setBoardLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [pickerPos, setPickerPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const pickerButtonRef = React.useRef<HTMLButtonElement>(null);
   const [currentDevName, setCurrentDevName] = useState<string>('');
 
   const [newColumnTitle, setNewColumnTitle] = useState('');
@@ -108,6 +112,30 @@ function DevKanbanContent() {
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
   }, [data, boardLoading]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Reposiciona o dropdown do seletor de projeto sempre que ele abre
+  // (e ao rolar/redimensionar) — renderizado via portal para não ficar
+  // por trás das colunas do Kanban (que têm seu próprio stacking context
+  // por causa do backdrop-blur + overflow-x-auto).
+  useEffect(() => {
+    if (!showProjectPicker) return;
+    const updatePos = () => {
+      const rect = pickerButtonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPickerPos({ top: rect.bottom + 8, left: rect.right - 288, width: 288 });
+    };
+    updatePos();
+    window.addEventListener('scroll', updatePos, true);
+    window.addEventListener('resize', updatePos);
+    return () => {
+      window.removeEventListener('scroll', updatePos, true);
+      window.removeEventListener('resize', updatePos);
+    };
+  }, [showProjectPicker]);
 
   const loadBoard = useCallback(async (projectId?: number | null) => {
     setBoardLoading(true);
@@ -334,6 +362,7 @@ function DevKanbanContent() {
             {/* Project Picker */}
             <div className="relative">
               <button
+                ref={pickerButtonRef}
                 onClick={() => setShowProjectPicker((v) => !v)}
                 className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-white/5 hover:border-[var(--color-accent)]/50 transition-all text-xs font-bold text-slate-900 dark:text-white shadow-sm"
               >
@@ -342,10 +371,13 @@ function DevKanbanContent() {
                 <FiChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
-              {showProjectPicker && (
+              {mounted && showProjectPicker && pickerPos && createPortal(
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowProjectPicker(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#0b1728] border border-slate-200 dark:border-white/15 shadow-2xl p-2 z-50">
+                  <div
+                    className="fixed rounded-2xl bg-white dark:bg-[#0b1728] border border-slate-200 dark:border-white/15 shadow-2xl p-2 z-50"
+                    style={{ top: pickerPos.top, left: pickerPos.left, width: pickerPos.width }}
+                  >
                     <div className="max-h-72 overflow-y-auto space-y-1">
                       {projects.map((p) => (
                         <button
@@ -366,7 +398,8 @@ function DevKanbanContent() {
                       ))}
                     </div>
                   </div>
-                </>
+                </>,
+                document.body
               )}
             </div>
           </div>

@@ -3,9 +3,23 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getDataSource } from '@/lib/typeorm';
 import { UserEntity } from '@/lib/entities';
+import { consumeRateLimit, getClientIp } from '@/lib/rateLimit';
+
+const REGISTER_ATTEMPTS_PER_IP = 5;
+const REGISTER_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting: evita criação de contas em massa por automação.
+    const ip = getClientIp(request.headers);
+    const limit = consumeRateLimit(`register:ip:${ip}`, REGISTER_ATTEMPTS_PER_IP, REGISTER_WINDOW_MS);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { message: 'Muitas tentativas de cadastro. Aguarde um momento e tente novamente.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const { name, login, email, password, phone } = body ?? {};
 

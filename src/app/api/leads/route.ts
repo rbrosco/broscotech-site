@@ -3,6 +3,10 @@ import { getDataSource } from '@/lib/typeorm';
 import { LeadEntity, NotificationEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
 import { isEvolutionConfigured, getDefaultEvolutionInstance, sendWhatsappText } from '@/lib/evolution';
+import { consumeRateLimit, getClientIp } from '@/lib/rateLimit';
+
+const LEAD_ATTEMPTS_PER_IP = 10;
+const LEAD_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
 
 /**
  * GET /api/leads — lista os leads captados pelo site (CTAs de Serviços e
@@ -34,6 +38,16 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: endpoint público sem auth, alvo fácil de spam/bot.
+    const ip = getClientIp(request.headers);
+    const limit = consumeRateLimit(`leads:ip:${ip}`, LEAD_ATTEMPTS_PER_IP, LEAD_WINDOW_MS);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { message: 'Muitas solicitações. Aguarde um momento e tente novamente.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json().catch(() => null);
     const { name, phone, email, message, interest_type, interest_id, interest_label } = body ?? {};
 
