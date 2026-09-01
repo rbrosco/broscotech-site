@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { FiEdit2, FiTrash2, FiPlus, FiX } from "react-icons/fi";
 
 type User = {
@@ -17,6 +18,7 @@ export default function UserManagement({ type }: { type: 'client' | 'team' }) {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -27,6 +29,7 @@ export default function UserManagement({ type }: { type: 'client' | 'team' }) {
   const [role, setRole] = useState(type === 'client' ? 'client' : 'admin');
 
   useEffect(() => {
+    setMounted(true);
     loadUsers();
   }, [type]);
 
@@ -173,7 +176,7 @@ export default function UserManagement({ type }: { type: 'client' | 'team' }) {
         </div>
       </div>
 
-      {modalOpen && (
+      {mounted && modalOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-white/10">
@@ -228,7 +231,8 @@ export default function UserManagement({ type }: { type: 'client' | 'team' }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

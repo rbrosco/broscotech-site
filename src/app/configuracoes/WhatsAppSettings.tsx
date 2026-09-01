@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FiSmartphone,
   FiCheckCircle,
@@ -31,6 +32,7 @@ export default function WhatsAppSettings() {
   const [error, setError] = useState<string | null>(null);
 
   const [qrModal, setQrModal] = useState<{ instance: string; base64: string | null; loading: boolean; error: string | null } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadStatus = useCallback(async () => {
@@ -53,6 +55,7 @@ export default function WhatsAppSettings() {
   }, []);
 
   useEffect(() => {
+    setMounted(true);
     void loadStatus();
   }, [loadStatus]);
 
@@ -246,7 +249,7 @@ export default function WhatsAppSettings() {
       )}
 
       {/* QR Code Modal */}
-      {qrModal && (
+      {mounted && qrModal && createPortal(
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md"
           onClick={closeQrModal}
@@ -307,7 +310,8 @@ export default function WhatsAppSettings() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
