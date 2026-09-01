@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle"; // Importar o ThemeToggle
-import { FiBell, FiX } from "react-icons/fi";
+import { FiBell, FiX, FiArrowRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import LoginModal from "./LoginModal";
 import { useAuthSession } from "@/lib/hooks/useAuthSession";
@@ -32,6 +32,36 @@ const Header: React.FC = () => {
     timeAgo,
     clearForSignOut,
   } = useHeaderNotifications();
+
+  // Refs for click-outside detection
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Click outside handlers
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
+      // Close user dropdown if clicking outside
+      if (isUserDropdownOpen && userDropdownRef.current && userMenuButtonRef.current) {
+        if (!userDropdownRef.current.contains(target) && !userMenuButtonRef.current.contains(target)) {
+          setIsUserDropdownOpen(false);
+        }
+      }
+
+      // Close notification dropdown if clicking outside
+      if (isNotificationOpen && notificationDropdownRef.current && notificationButtonRef.current) {
+        if (!notificationDropdownRef.current.contains(target) && !notificationButtonRef.current.contains(target)) {
+          setIsNotificationOpen(false);
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserDropdownOpen, isNotificationOpen]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -129,6 +159,7 @@ const Header: React.FC = () => {
             // User Avatar and Dropdown (Desktop)
             <div className="relative hidden lg:flex items-center">
               <button
+                ref={userMenuButtonRef}
                 type="button"
                 className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
                 id="user-menu-button"
@@ -147,6 +178,7 @@ const Header: React.FC = () => {
               </button>
               {/* Dropdown menu */}
               {userData && ( <div
+                ref={userDropdownRef}
                 className={`z-50 ${isUserDropdownOpen ? 'block' : 'hidden'} absolute top-full right-0 mt-2 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-800 dark:divide-gray-700`}
                 id="user-dropdown"
                 style={{ minWidth: '12rem' }} // Ajuste a largura conforme necessário
@@ -188,6 +220,7 @@ const Header: React.FC = () => {
             {/* Notification Bell Icon (apenas quando logado) */}
             {isLoggedIn && (
               <button
+                ref={notificationButtonRef}
                 onClick={toggleNotificationDropdown}
                 className="relative p-1.5 rounded-full text-slate-700 hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] transition-colors duration-200 dark:text-white/80 dark:hover:bg-white/10"
                 aria-label="Ver notificações"
@@ -203,16 +236,40 @@ const Header: React.FC = () => {
 
           {/* Notification Dropdown */}
           <div
-            className={`absolute top-full right-0 mt-2 w-64 sm:w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20 transition-all duration-200 ease-out transform ${
+            ref={notificationDropdownRef}
+            className={`absolute top-full right-0 mt-3 w-72 sm:w-96 rounded-3xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#071324]/95 shadow-2xl backdrop-blur-2xl z-20 overflow-hidden transition-all duration-200 ease-out transform origin-top-right ${
               isNotificationOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
             }`}
           >
-            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Notificações</h3>
+            {/* glow decorativo, mesmo padrão do resto do site */}
+            <div className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[var(--color-accent-dim)] blur-[60px] -z-10" />
+
+            <div className="px-4 py-3.5 border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-gradient-to-r from-[var(--color-accent-dim)] to-transparent">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-7 h-7 rounded-xl flex items-center justify-center text-white shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+                >
+                  <FiBell className="w-3.5 h-3.5" />
+                </span>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
+                  Notificações
+                </h3>
+              </div>
+              {hasNewNotifications && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[var(--color-accent-dim)] text-[var(--color-accent)] border border-[var(--color-accent)]/25">
+                  Novas
+                </span>
+              )}
             </div>
-            <ul className="max-h-64 overflow-y-auto">
+            <ul className="max-h-72 overflow-y-auto divide-y divide-black/5 dark:divide-white/5">
                 {displayedNotifications.length === 0 ? (
-                  <li className="p-3 text-sm text-slate-600 dark:text-slate-300">Sem notificações</li>
+                  <li className="p-6 text-center">
+                    <div className="w-10 h-10 mx-auto rounded-2xl flex items-center justify-center bg-slate-100 dark:bg-white/5 text-slate-400 mb-2">
+                      <FiBell className="w-4 h-4" />
+                    </div>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Nenhuma notificação por aqui.</p>
+                  </li>
                 ) : (
                   displayedNotifications.map((n) => (
                     <li key={n.id} onClick={() => {
@@ -251,20 +308,25 @@ const Header: React.FC = () => {
                           setProjectModalLoading(false);
                         }
                       })();
-                    }} className={`p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${n.read ? 'opacity-60' : ''}`}>
-                      {n.projectTitle && <p className="text-xs text-slate-500 dark:text-slate-400">{n.projectTitle}</p>}
-                      <p className="text-sm text-slate-600 dark:text-slate-300">
-                        {(() => {
-                          if (typeof n.message === 'string' && n.message.startsWith('{')) {
-                            try {
-                              const parsed = JSON.parse(n.message);
-                              if (parsed.texto) return parsed.texto;
-                            } catch {}
-                          }
-                          return n.message;
-                        })()}
-                      </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">{timeAgo(n.timestamp)}</p>
+                    }} className={`px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5 flex flex-col gap-1 ${n.read ? 'opacity-60' : 'bg-[var(--color-accent-dim)]/40'}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          {n.projectTitle && <p className="text-[11px] font-semibold text-[var(--color-accent)] mb-0.5 truncate">{n.projectTitle}</p>}
+                          <p className={`text-xs leading-relaxed text-slate-700 dark:text-slate-200 ${!n.read ? 'font-semibold' : ''}`}>
+                            {(() => {
+                              if (typeof n.message === 'string' && n.message.startsWith('{')) {
+                                try {
+                                  const parsed = JSON.parse(n.message);
+                                  if (parsed.texto) return parsed.texto;
+                                } catch {}
+                              }
+                              return n.message;
+                            })()}
+                          </p>
+                        </div>
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] shrink-0 mt-1" />}
+                      </div>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{timeAgo(n.timestamp)}</p>
                     </li>
                   ))
                 )}
@@ -362,15 +424,17 @@ const Header: React.FC = () => {
       {/* Projeto / Card Popover (próximo ao ícone de notificações) */}
       {isProjectModalOpen && (
         <div className="fixed z-60 right-4 top-16">
-          <div className="relative w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-3 border-b border-gray-100 dark:border-gray-700 flex items-start justify-between">
+          <div className="relative w-80 sm:w-96 rounded-3xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#071324]/95 shadow-2xl backdrop-blur-2xl overflow-hidden">
+            <div className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[var(--color-accent-dim)] blur-[60px] -z-10" />
+
+            <div className="px-4 py-3.5 border-b border-black/5 dark:border-white/10 flex items-start justify-between bg-gradient-to-r from-[var(--color-accent-dim)] to-transparent">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Informações do Projeto</h3>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">Detalhes relacionados à notificação selecionada.</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Informações do Projeto</h3>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Detalhes relacionados à notificação selecionada.</p>
               </div>
               <button
                 onClick={() => { setIsProjectModalOpen(false); setSelectedNotification(null); }}
-                className="text-slate-500 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
                 aria-label="Fechar"
               >
                 <FiX className="w-4 h-4" aria-hidden="true" />
@@ -379,37 +443,58 @@ const Header: React.FC = () => {
 
             <div className="p-4 max-h-72 overflow-y-auto">
               {projectModalLoading ? (
-                <div className="py-6 text-center text-sm text-slate-500">Carregando...</div>
+                <div className="py-8 flex flex-col items-center gap-2">
+                  <div className="w-6 h-6 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin" />
+                  <span className="text-xs text-slate-400">Carregando...</span>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-slate-700 dark:text-slate-200"><strong>Projeto:</strong> {projectModalData?.projectTitle || '—'}</p>
-                  <p className="text-sm text-slate-700 dark:text-slate-200"><strong>Notificação:</strong> {selectedNotification?.message}</p>
-                  <div className="pt-2">
-                    <h4 className="text-sm font-medium text-slate-800 dark:text-white">Card</h4>
+                  <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-accent)] mb-1">Projeto</p>
+                    <p className="text-sm text-slate-800 dark:text-white font-semibold">{projectModalData?.projectTitle || '—'}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-accent)] mb-1">Notificação</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200">{selectedNotification?.message}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">Card</h4>
                     {projectModalData?.card ? (
-                      <div className="mt-2 p-3 rounded-lg border border-slate-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900">
-                        <p className="font-semibold text-slate-900 dark:text-white">{projectModalData.card.title}</p>
-                        {projectModalData.card.description && <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{projectModalData.card.description}</p>}
-                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                          <div>De: {projectModalData.fromColumn || '—'}</div>
-                          <div>Para: {projectModalData.toColumn || '—'}</div>
+                      <div className="p-3.5 rounded-xl border border-[var(--color-accent)]/20 bg-[var(--color-accent-dim)]/40">
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{projectModalData.card.title}</p>
+                        {projectModalData.card.description && <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{projectModalData.card.description}</p>}
+                        <div className="mt-2.5 pt-2.5 border-t border-black/5 dark:border-white/10 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                          <span className="font-medium">{projectModalData.fromColumn || '—'}</span>
+                          <FiArrowRight className="w-3 h-3 text-[var(--color-accent)]" />
+                          <span className="font-semibold text-[var(--color-accent)]">{projectModalData.toColumn || '—'}</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">Informações do card não encontradas.</div>
+                      <div className="text-xs text-slate-400 dark:text-slate-500 italic">Informações do card não encontradas.</div>
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="p-3 flex justify-end gap-2">
-              <button onClick={() => { setIsProjectModalOpen(false); setSelectedNotification(null); }} className="px-3 py-1.5 rounded-md border border-slate-200 dark:border-gray-700 text-sm">Fechar</button>
-              <button onClick={() => {
-                if (selectedNotification?.cardId) router.push(`/dashboard?card=${selectedNotification.cardId}&toColumn=${selectedNotification.toColumnId}`);
-                setIsProjectModalOpen(false);
-                setSelectedNotification(null);
-              }} className="px-3 py-1.5 rounded-md bg-slate-900 text-white text-sm">Ver no Dashboard</button>
+            <div className="px-4 py-3.5 border-t border-black/5 dark:border-white/10 flex justify-end gap-2.5 bg-slate-50/70 dark:bg-white/[0.02]">
+              <button
+                onClick={() => { setIsProjectModalOpen(false); setSelectedNotification(null); }}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition"
+              >
+                Fechar
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedNotification?.cardId) router.push(`/dashboard?card=${selectedNotification.cardId}&toColumn=${selectedNotification.toColumnId}`);
+                  setIsProjectModalOpen(false);
+                  setSelectedNotification(null);
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:opacity-90 transition"
+                style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
+              >
+                Ver no Dashboard
+              </button>
             </div>
           </div>
         </div>

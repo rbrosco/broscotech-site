@@ -17,6 +17,7 @@ import DashboardNav from '@/component/DashboardNav';
 import Sidebar from '@/component/Sidebar';
 import Header from '@/component/Header';
 import { useIAAgentChat, timeAgo } from '@/lib/hooks/useIAAgentChat';
+import MarkdownMessage from '@/component/MarkdownMessage';
 
 export default function IAAgentPage() {
   const {
@@ -372,7 +373,7 @@ export default function IAAgentPage() {
                               />
                             </div>
                           )}
-                          <div className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{m.text}</div>
+                          <MarkdownMessage text={m.text} inverted={!isIncoming} />
                           <p
                             className={`text-xs font-medium mt-2 text-slate-400 dark:text-slate-500 ${
                               isIncoming ? 'ml-2' : 'mr-2 text-right'

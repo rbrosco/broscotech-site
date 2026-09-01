@@ -20,15 +20,23 @@ function buildTextMessages(messages: any[] = [], systemPrompt?: string) {
 
   for (const m of messages) {
     if (!m || !m.role) continue;
+    const role = m.role === 'agent' ? 'assistant' : m.role === 'client' ? 'user' : m.role;
     if (m.imageUrl) {
+      // Provedores fora do Groq não recebem visão aqui: converte a imagem
+      // em uma nota textual e NUNCA deixa a chave `imageUrl` vazar no
+      // payload (alguns endpoints OpenAI-compatible rejeitam propriedades
+      // desconhecidas em `messages[]`, ex: "property 'imageUrl' is unsupported").
       output.push({
-        role: m.role,
-        content: `${m.content || 'Imagem anexada.'} ${m.imageUrl ? `\n[Imagem: ${m.imageUrl}]` : ''}`,
+        role,
+        content: `${m.content || 'Imagem anexada.'} [O usuário anexou uma imagem que este provedor de IA não consegue visualizar; peça para ele descrever o conteúdo em texto.]`,
       });
       continue;
     }
+    // Saneamento explícito: só role + content (string) chegam ao provedor,
+    // nunca campos extras do nosso tipo interno de mensagem (ex: imageUrl,
+    // id, timestamp, from).
     output.push({
-      role: m.role,
+      role,
       content: typeof m.content === 'string' ? m.content : String(m.content ?? ''),
     });
   }
@@ -369,17 +377,22 @@ export async function POST(request: NextRequest) {
       groqMessages.push({ role: 'user', content: 'Ping. Responda apenas "OK".' });
     } else if (messages && Array.isArray(messages)) {
       const formattedMessages = messages.map((m: any) => {
-        if (m.imageUrl) {
+        const role = m?.role === 'agent' ? 'assistant' : m?.role === 'client' ? 'user' : m?.role;
+        if (m?.imageUrl) {
           hasImage = true;
           return {
-            role: m.role,
+            role,
             content: [
               { type: 'text', text: m.content || ' ' },
               { type: 'image_url', image_url: { url: m.imageUrl } },
             ],
           };
         }
-        return m;
+        // Saneamento explícito: só role + content chegam ao SDK — nunca
+        // campos extras do nosso tipo interno de mensagem (id, imageUrl:
+        // undefined, timestamp, from), que o Groq rejeita como propriedade
+        // desconhecida mesmo quando o valor é undefined.
+        return { role, content: typeof m?.content === 'string' ? m.content : String(m?.content ?? '') };
       });
       groqMessages.push(...formattedMessages);
     } else {
@@ -387,8 +400,8 @@ export async function POST(request: NextRequest) {
     }
 
     const finalModel = hasImage
-      ? 'llama-3.2-11b-vision-preview'
-      : groqModel || model || 'llama-3.3-70b-versatile';
+      ? 'meta-llama/llama-4-scout-17b-16e-instruct'
+      : groqModel || model || 'openai/gpt-oss-120b';
 
     const completion = await groq.chat.completions.create({
       messages: groqMessages,
@@ -408,10 +421,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Erro na API IA:', error);
+    const rawMessage = String(error?.message || '');
+    const isImageUnsupported = /imageUrl.*unsupported|image_url.*unsupported/i.test(rawMessage);
+    const friendlyReply = isImageUnsupported
+      ? 'O provedor de IA selecionado não consegue analisar imagens. Descreva o conteúdo em texto ou troque para um provedor com suporte a imagem (ex: Groq) em Configurações > IA & LLM Gateway.'
+      : `Erro ao se comunicar com o provedor de IA: ${rawMessage || 'Desconhecido'}`;
     return NextResponse.json(
       {
         ok: false,
-        reply: `Erro ao se comunicar com o provedor de IA: ${error?.message || 'Desconhecido'}`,
+        reply: friendlyReply,
         latencyMs: Date.now() - startTime,
       },
       { status: 500 }

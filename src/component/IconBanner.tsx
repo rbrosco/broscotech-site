@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import ContactFormModal, { LeadInterest } from './ContactFormModal';
 import type { IconType } from 'react-icons';
 import {
   FiExternalLink,
@@ -249,6 +250,9 @@ const IconBanner: React.FC<IconBannerProps> = () => {
   const [activeTab, setActiveTab] = useState<'portfolio' | 'stack' | 'architecture'>('portfolio');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'saas' | 'automacao' | 'web'>('all');
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
+  const [leadInterest, setLeadInterest] = useState<LeadInterest | null>(null);
+  const openLeadModalFor = (project: ProjectItem) =>
+    setLeadInterest({ type: 'portfolio', id: project.id, label: project.title });
 
   const filteredProjects =
     selectedCategory === 'all'
@@ -442,13 +446,14 @@ const IconBanner: React.FC<IconBannerProps> = () => {
                         <FiArrowRight className="w-3.5 h-3.5" />
                       </button>
 
-                      <a
-                        href="/register"
+                      <button
+                        type="button"
+                        onClick={() => openLeadModalFor(project)}
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white shadow transition-all hover:opacity-90 hover:shadow-md"
                         style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
                       >
                         Quero um projeto assim
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -670,19 +675,25 @@ const IconBanner: React.FC<IconBannerProps> = () => {
                   Quer uma solução personalizada sob medida para a sua empresa?
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
-                  <a
-                    href="/register"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedProject) openLeadModalFor(selectedProject);
+                      setSelectedProject(null);
+                    }}
                     className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-bold text-white text-center shadow-lg transition-all hover:opacity-95"
                     style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
                   >
                     Iniciar Projeto Agora
-                  </a>
+                  </button>
                 </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      <ContactFormModal isOpen={leadInterest !== null} onClose={() => setLeadInterest(null)} interest={leadInterest} />
     </section>
   );
 };

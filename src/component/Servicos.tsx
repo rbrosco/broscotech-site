@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from "react";
 import Link from "next/link";
-import ContactFormModal from "./ContactFormModal";
+import ContactFormModal, { LeadInterest } from "./ContactFormModal";
 import { motion } from "framer-motion";
 import {
   FiMonitor,
@@ -149,9 +149,12 @@ const servicesList: ServiceCardData[] = [
 ];
 
 const Servicos: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInterest, setSelectedInterest] = useState<LeadInterest | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'dev' | 'ai' | 'infra'>('all');
-  const closeModal = () => setIsModalOpen(false);
+  const isModalOpen = selectedInterest !== null;
+  const closeModal = () => setSelectedInterest(null);
+  const openModalFor = (service: ServiceCardData) =>
+    setSelectedInterest({ type: 'service', id: service.id, label: service.title });
 
   const filteredServices = servicesList.filter((s) => {
     if (activeFilter === 'dev') return s.id === 'saas-webapps' || s.id === 'backend-apis' || s.id === 'mobile-apps';
@@ -346,7 +349,7 @@ const Servicos: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => openModalFor(service)}
                     className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-slate-900 dark:text-white bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/10 dark:hover:bg-white/15 transition-all group-hover:bg-[var(--color-accent)] group-hover:text-white dark:group-hover:text-slate-950"
                   >
                     Solicitar Proposta para este Serviço
@@ -387,7 +390,7 @@ const Servicos: React.FC = () => {
           </div>
         </div>
 
-        <ContactFormModal isOpen={isModalOpen} onClose={closeModal} />
+        <ContactFormModal isOpen={isModalOpen} onClose={closeModal} interest={selectedInterest} />
       </div>
     </section>
   );

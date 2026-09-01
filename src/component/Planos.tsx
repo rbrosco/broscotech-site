@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { FiCheck, FiStar } from 'react-icons/fi';
-import ContactFormModal from './ContactFormModal';
+import ContactFormModal, { LeadInterest } from './ContactFormModal';
 
 type Plan = {
   name: string;
@@ -54,7 +54,7 @@ const plansData: Plan[] = [
 ];
 
 const Planos: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInterest, setSelectedInterest] = useState<LeadInterest | null>(null);
 
   return (
     <section id="Planos" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
@@ -126,7 +126,7 @@ const Planos: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setSelectedInterest({ type: 'service', id: `plano-${plan.name.toLowerCase()}`, label: `Plano ${plan.name}` })}
                 className={`mt-8 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors duration-200 cursor-pointer ${
                   plan.featured
                     ? 'bg-white text-slate-900 hover:bg-white/90'
@@ -144,7 +144,11 @@ const Planos: React.FC = () => {
         </p>
       </div>
 
-      <ContactFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ContactFormModal
+        isOpen={selectedInterest !== null}
+        onClose={() => setSelectedInterest(null)}
+        interest={selectedInterest}
+      />
     </section>
   );
 };

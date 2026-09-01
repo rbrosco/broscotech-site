@@ -11,6 +11,7 @@ import {
   NotificationEntity,
   AiSessionEntity,
   AiMessageEntity,
+  LeadEntity,
 } from './entities';
 
 declare global {
@@ -31,6 +32,7 @@ export function buildDataSourceOptions() {
     NotificationEntity,
     AiSessionEntity,
     AiMessageEntity,
+    LeadEntity,
   ];
 
   const sync = process.env.TYPEORM_SYNCHRONIZE === 'true';

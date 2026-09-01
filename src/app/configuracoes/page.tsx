@@ -23,13 +23,15 @@ import {
 import DashboardNav from "@/component/DashboardNav";
 import Sidebar from "@/component/Sidebar";
 import UserManagement from "./UserManagement";
+import LeadsManagement from "./LeadsManagement";
 import WhatsAppSettings from "./WhatsAppSettings";
 
-type Section = 'iaagent' | 'clientes' | 'equipe' | 'perfil' | 'notificacoes' | 'seguranca' | 'whatsapp';
+type Section = 'iaagent' | 'clientes' | 'equipe' | 'perfil' | 'notificacoes' | 'seguranca' | 'whatsapp' | 'leads';
 
 const SECTIONS: { id: Section; label: string; icon: React.ReactNode; desc: string }[] = [
   { id: 'iaagent', label: 'IA & LLM Gateway', icon: <FiCpu />, desc: 'Modelos, URLs customizadas, tokens e prompts' },
   { id: 'whatsapp', label: 'WhatsApp', icon: <FiZap />, desc: 'Conecte o WhatsApp via QR code e envie atualizações' },
+  { id: 'leads', label: 'Leads do Site', icon: <FiActivity />, desc: 'Solicitações recebidas pelos botões de Serviços e Portfólio' },
   { id: 'clientes', label: 'Clientes', icon: <FiUsers />, desc: 'Gerenciamento de contas de clientes' },
   { id: 'equipe', label: 'Equipe', icon: <FiBriefcase />, desc: 'Gerenciamento de membros da equipe' },
   { id: 'perfil', label: 'Perfil', icon: <FiUser />, desc: 'Informações da conta e preferências' },
@@ -55,9 +57,9 @@ const PROVIDER_CONFIGS: Record<
     name: 'Groq Cloud',
     badge: '⚡ Ultrarrápido',
     defaultUrl: 'https://api.groq.com/openai/v1',
-    defaultModel: 'llama-3.3-70b-versatile',
+    defaultModel: 'openai/gpt-oss-120b',
     placeholderKey: 'gsk_••••••••••••••••••••••••',
-    models: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'llama-3.2-11b-vision-preview'],
+    models: ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant', 'qwen/qwen3-32b', 'meta-llama/llama-4-scout-17b-16e-instruct'],
     description: 'Inferência de altíssima velocidade em hardware LPU dedicado.',
   },
   deepseek: {
@@ -940,6 +942,9 @@ export default function ConfiguracoesPage() {
 
                 {/* ─── CLIENTES ─── */}
                 {activeSection === 'clientes' && <UserManagement type="client" />}
+
+                {/* ─── LEADS DO SITE ─── */}
+                {activeSection === 'leads' && <LeadsManagement />}
 
                 {/* ─── WHATSAPP (EVOLUTION API) ─── */}
                 {activeSection === 'whatsapp' && <WhatsAppSettings />}

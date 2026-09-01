@@ -95,6 +95,14 @@ export function useHeaderNotifications() {
 
       return list.map((n) => {
         const copy = { ...n };
+        // Só reescreve a mensagem quando a notificação é realmente de um
+        // card movido no Kanban (tem cardId ou toColumnId). Notificações
+        // de outras origens (ex: novo lead do site) já vêm com uma
+        // mensagem pronta e legível — preservá-la, nunca sobrescrever
+        // com o formato "Card #? movido para ...".
+        const isKanbanMove = n.cardId != null || n.toColumnId != null;
+        if (!isKanbanMove) return copy;
+
         // If no projectId, try to extract project title from message like: Card movido em "PROJECT": ...
         if (!copy.projectId && typeof copy.message === 'string') {
           try {
@@ -122,7 +130,13 @@ export function useHeaderNotifications() {
         }
         const toLabel = copy.toColumnTitle ? (copy.projectTitle ? `${copy.toColumnTitle} (${copy.projectTitle})` : copy.toColumnTitle) : (copy.toColumnId != null ? `Coluna ${copy.toColumnId}` : '?');
         const targetLabel = copy.projectTitle ? `${copy.projectTitle}: ${toLabel}` : toLabel;
-        copy.message = cardTitle ? `Card movido: ${cardTitle} → ${targetLabel}` : `Card #${copy.cardId ?? '?'} movido para ${targetLabel}`;
+        // Só usa o fallback "Card #<id>" quando realmente temos um cardId;
+        // sem isso, mantém a mensagem original em vez de mostrar "Card #?".
+        copy.message = cardTitle
+          ? `Card movido: ${cardTitle} → ${targetLabel}`
+          : copy.cardId != null
+          ? `Card #${copy.cardId} movido para ${targetLabel}`
+          : copy.message;
         return copy;
       });
     } catch {

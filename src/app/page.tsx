@@ -295,7 +295,11 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <ContactFormModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        interest={{ type: 'service', id: 'geral', label: 'Contato Geral' }}
+      />
       <PrivacyModal 
         isOpen={isPrivacyModalOpen} 
         onClose={handleClosePrivacyModal} 

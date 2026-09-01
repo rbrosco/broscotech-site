@@ -16,6 +16,7 @@ import {
   FiExternalLink,
 } from 'react-icons/fi';
 import { useIAAgentChat, timeAgo } from '@/lib/hooks/useIAAgentChat';
+import MarkdownMessage from '@/component/MarkdownMessage';
 
 /**
  * Popup compacto do Agente de IA, aberto pelo botão flutuante
@@ -269,7 +270,7 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
                         )}
                       </div>
                       <div
-                        className={`px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap break-words ${
+                        className={`px-3.5 py-2.5 break-words ${
                           isIncoming
                             ? 'bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-sm'
                             : 'text-white rounded-2xl rounded-tr-sm'
@@ -280,7 +281,7 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={m.imageUrl} alt="Anexo" className="max-w-full max-h-40 rounded-lg mb-2 object-contain" />
                         )}
-                        {m.text}
+                        <MarkdownMessage text={m.text} inverted={!isIncoming} compact />
                       </div>
                     </div>
                   );

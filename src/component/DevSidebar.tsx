@@ -18,11 +18,13 @@ import {
   FiActivity,
   FiFileText,
   FiCpu,
+  FiTarget,
 } from 'react-icons/fi';
 
 const devItems = [
   { href: '/dev', label: 'Visão Geral', icon: FiGrid },
   { href: '/dev/kanban', label: 'Quadro Kanban', icon: FiLayers },
+  { href: '/dev/leads', label: 'Leads do Site', icon: FiTarget },
   { href: '/dev/comunicacao', label: 'Comunicação', icon: FiMessageSquare },
   { href: '/dev/clientes', label: 'Clientes', icon: FiUsers },
   { href: '/dev/faturas', label: 'Faturas', icon: FiFileText },

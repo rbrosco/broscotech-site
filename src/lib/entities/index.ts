@@ -7,3 +7,4 @@ export { InvoiceEntity } from './Invoice';
 export { NotificationEntity } from './Notification';
 export { AiSessionEntity } from './AiSession';
 export { AiMessageEntity } from './AiMessage';
+export { LeadEntity } from './Lead';
