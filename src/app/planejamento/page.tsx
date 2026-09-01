@@ -139,7 +139,7 @@ export default function PlanejamentoPage() {
             {loading ? (
               <div className="flex items-center justify-center py-24 gap-3">
                 <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
-                <span className="text-sm text-slate-500 dark:text-white/35">Carregando planejamento...</span>
+                <span className="text-sm text-slate-500 dark:text-white/50">Carregando planejamento...</span>
               </div>
             ) : error ? (
               <div className="flex items-center gap-4 rounded-2xl px-6 py-5 mt-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shadow-sm dark:shadow-lg">

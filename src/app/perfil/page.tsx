@@ -337,7 +337,7 @@ export default function PerfilPage() {
                 </div>
 
                 <div className="text-xs text-slate-500 dark:text-slate-400">
-                  Última atualização: {new Date(profile.updated_at).toLocaleString()}
+                  Última atualização: {new Date(profile.updated_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             )}

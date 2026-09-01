@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useAuthSession } from '../lib/hooks/useAuthSession';
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -33,8 +34,9 @@ const adminItems = [
 
 const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState('');
+  const { userData, resetOnSignOut } = useAuthSession();
+  const isAdmin = userData?.role?.toLowerCase() === 'admin';
+  const userName = userData?.name ?? '';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -43,18 +45,22 @@ const Sidebar: React.FC = () => {
       if (localStorage.getItem('sidebarCollapsed') === 'true') {
         setIsCollapsed(true);
       }
-      const raw = localStorage.getItem('userData');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.role?.toLowerCase() === 'admin') setIsAdmin(true);
-        if (parsed?.name) setUserName(parsed.name);
-      }
     } catch {}
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '5rem' : '16rem');
   }, [isCollapsed]);
+
+  // Fecha o drawer mobile com Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
 
   const toggleSidebar = () => {
     const val = !isCollapsed;
@@ -64,7 +70,7 @@ const Sidebar: React.FC = () => {
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-    localStorage.removeItem('userData');
+    resetOnSignOut();
     window.location.href = '/login';
   };
 
@@ -75,9 +81,11 @@ const Sidebar: React.FC = () => {
       {/* Toggle button */}
       <button
         onClick={toggleSidebar}
+        aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+        aria-expanded={!isCollapsed}
         className="hidden md:flex absolute -right-3 top-9 w-6 h-6 bg-white dark:bg-[#071324] border border-slate-200 dark:border-white/10 rounded-full items-center justify-center text-slate-500 hover:text-slate-900 dark:text-white/50 dark:hover:text-white transition-colors z-50 shadow-sm"
       >
-        {isCollapsed ? <FiChevronRight className="w-3.5 h-3.5" /> : <FiChevronLeft className="w-3.5 h-3.5" />}
+        {isCollapsed ? <FiChevronRight className="w-3.5 h-3.5" aria-hidden="true" /> : <FiChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />}
       </button>
 
       {/* Brand Header */}
@@ -195,12 +203,13 @@ const Sidebar: React.FC = () => {
           )}
           <button
             onClick={handleLogout}
+            aria-label="Sair da conta"
             className={`p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors ${
               isCollapsed ? '' : 'ml-auto'
             }`}
             title="Sair"
           >
-            <FiLogOut className="w-3.5 h-3.5" />
+            <FiLogOut className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -222,16 +231,22 @@ const Sidebar: React.FC = () => {
       <button
         className="md:hidden fixed top-3.5 left-3.5 z-40 w-10 h-10 rounded-xl flex items-center justify-center transition bg-white/90 dark:bg-[#071324]/90 border border-slate-200 dark:border-white/15 text-slate-800 dark:text-white shadow-lg backdrop-blur-md"
         onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label="Abrir Menu"
+        aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
+        aria-expanded={mobileOpen}
       >
-        {mobileOpen ? <FiX className="w-5 h-5" /> : <FiMenu className="w-5 h-5" />}
+        {mobileOpen ? <FiX className="w-5 h-5" aria-hidden="true" /> : <FiMenu className="w-5 h-5" aria-hidden="true" />}
       </button>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
         <>
-          <div className="md:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <nav className="md:hidden fixed top-0 left-0 bottom-0 w-64 z-50 bg-white border-r border-slate-200 dark:bg-[#071324] dark:border-white/10 shadow-2xl">
+          <div className="md:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+          <nav
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu de navegação"
+            className="md:hidden fixed top-0 left-0 bottom-0 w-64 z-50 bg-white border-r border-slate-200 dark:bg-[#071324] dark:border-white/10 shadow-2xl"
+          >
             <SidebarContent />
           </nav>
         </>

@@ -25,6 +25,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const existing = await repo.findOne({ where: { id: targetId } });
     if (!existing) return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 404 });
 
+    // Garante que login/email não colidam com outro usuário antes de salvar
+    if (login || email) {
+      const conflict = await repo.findOne({
+        where: [
+          ...(login ? [{ login }] : []),
+          ...(email ? [{ email }] : []),
+        ],
+      });
+      if (conflict && conflict.id !== targetId) {
+        return NextResponse.json({ message: 'Login ou e-mail já cadastrado para outro usuário.' }, { status: 409 });
+      }
+    }
+
     const updateData: Partial<UserEntity> = {};
     if (name) updateData.name = name;
     if (login) updateData.login = login;

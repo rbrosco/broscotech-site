@@ -39,6 +39,7 @@ const DashboardNav: React.FC = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   // Close when clicked outside
   useEffect(() => {
@@ -50,6 +51,19 @@ const DashboardNav: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close with Escape and return focus to the trigger button
+  useEffect(() => {
+    if (!isNotificationOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsNotificationOpen(false);
+        notificationButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isNotificationOpen]);
 
   const loadNotifications = async () => {
     try {
@@ -125,8 +139,12 @@ const DashboardNav: React.FC = () => {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={toggleDropdown}
+            ref={notificationButtonRef}
             className="w-9 h-9 relative rounded-xl flex items-center justify-center transition-all text-slate-600 dark:text-white/70 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10"
             title="Notificações"
+            aria-label={hasUnread ? 'Ver notificações (novas notificações disponíveis)' : 'Ver notificações'}
+            aria-haspopup="true"
+            aria-expanded={isNotificationOpen}
           >
             <FiBell className="w-4 h-4" />
             {hasUnread && (
@@ -135,7 +153,11 @@ const DashboardNav: React.FC = () => {
           </button>
 
           {isNotificationOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white/95 dark:bg-[#071324]/95 border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-2xl">
+            <div
+              role="dialog"
+              aria-label="Notificações do sistema"
+              className="absolute right-0 mt-2 w-80 sm:w-88 bg-white/95 dark:bg-[#071324]/95 border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-2xl"
+            >
               <div className="p-3.5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-white/5">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
                   Notificações do Sistema

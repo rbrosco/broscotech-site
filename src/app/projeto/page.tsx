@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiEdit2, FiTrash2, FiSend, FiPlus, FiCheckCircle, FiClock, FiFolder, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import DashboardNav from '../../component/DashboardNav';
@@ -40,7 +40,7 @@ function statusStyle(status: string) {
 }
 
 const FIELD_STYLE =
-  'w-full rounded-2xl px-4 py-3.5 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 placeholder:text-slate-400 dark:placeholder:text-white/30 outline-none transition-all focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/10 disabled:opacity-40';
+  'w-full rounded-2xl px-4 py-3.5 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 placeholder:text-slate-400 dark:placeholder:text-white/45 outline-none transition-all focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/10 disabled:opacity-40';
 const FIELD_BG = {}; // Handled by Tailwind classes
 
 function InputField({ label, children }: { label: string; children: React.ReactNode }) {
@@ -63,6 +63,8 @@ function DarkSelect({ value, onChange, options, placeholder, disabled }: {
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -73,26 +75,47 @@ function DarkSelect({ value, onChange, options, placeholder, disabled }: {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  // Fecha com Escape e devolve o foco ao botão que abriu a lista
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
+        ref={triggerRef}
         disabled={disabled}
         onClick={() => setOpen(o => !o)}
-        className={`w-full rounded-2xl px-4 py-3.5 text-sm text-left flex items-center justify-between outline-none transition-all focus:ring-2 focus:ring-cyan-500 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 disabled:opacity-40 ${value ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-white/30'}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`w-full rounded-2xl px-4 py-3.5 text-sm text-left flex items-center justify-between outline-none transition-all focus:ring-2 focus:ring-cyan-500 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 disabled:opacity-40 ${value ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-white/45'}`}
       >
         <span>{value || placeholder || 'Selecione'}</span>
-        <FiChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''} text-slate-400 dark:text-white/40`} />
+        <FiChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''} text-slate-400 dark:text-white/40`} aria-hidden="true" />
       </button>
       {open && (
         <div
+          id={listboxId}
+          role="listbox"
+          aria-label={placeholder || 'Opções'}
           className="absolute z-50 left-0 right-0 mt-2 rounded-2xl overflow-hidden py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
         >
           {['', ...options].map(opt => (
             <button
               key={opt}
               type="button"
-              onClick={() => { onChange(opt); setOpen(false); }}
+              role="option"
+              aria-selected={opt === value}
+              onClick={() => { onChange(opt); setOpen(false); triggerRef.current?.focus(); }}
               className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${opt === value ? 'text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10' : opt ? 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
             >
               {opt || placeholder || 'Selecione'}
@@ -403,7 +426,7 @@ export default function ProjetoPage() {
             {loading ? (
               <div className="flex items-center justify-center py-24 gap-3">
                 <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '#00b09b', borderTopColor: 'transparent' }} />
-                <span className="text-sm text-slate-500 dark:text-white/35">Carregando projetos...</span>
+                <span className="text-sm text-slate-500 dark:text-white/50">Carregando projetos...</span>
               </div>
             ) : projectsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 gap-4">

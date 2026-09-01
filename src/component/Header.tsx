@@ -63,6 +63,39 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isUserDropdownOpen, isNotificationOpen]);
 
+  // Fecha dropdowns/menu mobile com a tecla Escape e devolve o foco ao gatilho
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      if (isUserDropdownOpen) {
+        setIsUserDropdownOpen(false);
+        userMenuButtonRef.current?.focus();
+      }
+      if (isNotificationOpen) {
+        setIsNotificationOpen(false);
+        notificationButtonRef.current?.focus();
+      }
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isUserDropdownOpen, isNotificationOpen, isMobileMenuOpen, setIsNotificationOpen]);
+
+  // Fecha o popover de projeto/card com Escape
+  useEffect(() => {
+    if (!isProjectModalOpen) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsProjectModalOpen(false);
+        setSelectedNotification(null);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isProjectModalOpen]);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -179,6 +212,9 @@ const Header: React.FC = () => {
               {/* Dropdown menu */}
               {userData && ( <div
                 ref={userDropdownRef}
+                role="menu"
+                aria-label="Menu do usuário"
+                aria-hidden={!isUserDropdownOpen}
                 className={`z-50 ${isUserDropdownOpen ? 'block' : 'hidden'} absolute top-full right-0 mt-2 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-800 dark:divide-gray-700`}
                 id="user-dropdown"
                 style={{ minWidth: '12rem' }} // Ajuste a largura conforme necessário
@@ -188,10 +224,16 @@ const Header: React.FC = () => {
                   <span className="block text-sm text-slate-500 truncate dark:text-slate-400">{userData.email}</span>
                 </div>
                 <ul className="py-2" aria-labelledby="user-menu-button">
-                  <li><Link href="/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white">Dashboard</Link></li>
-                  <li><Link href="/perfil" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white">Perfil</Link></li>
-                  <li>
-                    <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white">
+                  <li role="none"><Link href="/dashboard" role="menuitem" tabIndex={isUserDropdownOpen ? 0 : -1} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">Dashboard</Link></li>
+                  <li role="none"><Link href="/perfil" role="menuitem" tabIndex={isUserDropdownOpen ? 0 : -1} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">Perfil</Link></li>
+                  <li role="none">
+                    <button
+                      onClick={handleSignOut}
+                      role="menuitem"
+                      tabIndex={isUserDropdownOpen ? 0 : -1}
+                      aria-label="Sair da conta"
+                      className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+                    >
                       Sair
                     </button>
                   </li>
@@ -237,6 +279,9 @@ const Header: React.FC = () => {
           {/* Notification Dropdown */}
           <div
             ref={notificationDropdownRef}
+            role="dialog"
+            aria-label="Notificações"
+            aria-hidden={!isNotificationOpen}
             className={`absolute top-full right-0 mt-3 w-72 sm:w-96 rounded-3xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#071324]/95 shadow-2xl backdrop-blur-2xl z-20 overflow-hidden transition-all duration-200 ease-out transform origin-top-right ${
               isNotificationOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
             }`}
@@ -424,12 +469,17 @@ const Header: React.FC = () => {
       {/* Projeto / Card Popover (próximo ao ícone de notificações) */}
       {isProjectModalOpen && (
         <div className="fixed z-60 right-4 top-16">
-          <div className="relative w-80 sm:w-96 rounded-3xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#071324]/95 shadow-2xl backdrop-blur-2xl overflow-hidden">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-popover-title"
+            className="relative w-80 sm:w-96 rounded-3xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-[#071324]/95 shadow-2xl backdrop-blur-2xl overflow-hidden"
+          >
             <div className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[var(--color-accent-dim)] blur-[60px] -z-10" />
 
             <div className="px-4 py-3.5 border-b border-black/5 dark:border-white/10 flex items-start justify-between bg-gradient-to-r from-[var(--color-accent-dim)] to-transparent">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Informações do Projeto</h3>
+                <h3 id="project-popover-title" className="text-sm font-bold text-slate-900 dark:text-white">Informações do Projeto</h3>
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Detalhes relacionados à notificação selecionada.</p>
               </div>
               <button

@@ -77,6 +77,8 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url);
     const all = url.searchParams.get('all');
+    const pageParam = url.searchParams.get('page');
+    const pageSizeParam = url.searchParams.get('pageSize');
 
     const userId = Number(auth.id);
     const dataSource = await getDataSource();
@@ -85,7 +87,33 @@ export async function GET(request: NextRequest) {
     // Se for admin, retorna todos os projetos e todos os updates
     const isAdmin = ((auth as { role?: string }).role === 'admin');
     if (isAdmin) {
-      const list = await projectRepo.find({ order: { updated_at: 'DESC' } });
+      // Paginação opcional: sem page/pageSize mantém o comportamento antigo
+      // (retorna tudo) para não quebrar consumidores existentes (dev/page.tsx
+      // e as páginas /dev/* que ainda pedem a lista inteira via ?all=1), mas
+      // com um teto de segurança para não deixar a resposta crescer sem
+      // limite conforme a base de projetos aumenta. Quem quiser paginar de
+      // verdade passa ?page=1&pageSize=20.
+      const hasPagination = pageParam !== null || pageSizeParam !== null;
+      const pageSize = Math.min(Math.max(Number(pageSizeParam) || 50, 1), 200);
+      const page = Math.max(Number(pageParam) || 1, 1);
+
+      if (hasPagination) {
+        const [list, total] = await projectRepo.findAndCount({
+          order: { updated_at: 'DESC' },
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+        });
+        const projectsWithUpdates = await Promise.all(list.map((project) => withUpdates(dataSource, project)));
+        return NextResponse.json({
+          projects: projectsWithUpdates,
+          pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+        });
+      }
+
+      // Sem paginação explícita: teto de segurança em 500 registros mais
+      // recentes, para não devolver a tabela inteira sem limite nenhum.
+      const SAFETY_CAP = 500;
+      const list = await projectRepo.find({ order: { updated_at: 'DESC' }, take: SAFETY_CAP });
       const projectsWithUpdates = await Promise.all(list.map((project) => withUpdates(dataSource, project)));
       return NextResponse.json({ projects: projectsWithUpdates });
     }

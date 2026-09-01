@@ -67,6 +67,19 @@ export async function PATCH(request: Request) {
       }
     }
 
+    // Garante que login/email não colidam com outro usuário antes de salvar
+    if (typeof login === 'string' || typeof email === 'string') {
+      const conflict = await repo.findOne({
+        where: [
+          ...(typeof login === 'string' ? [{ login }] : []),
+          ...(typeof email === 'string' ? [{ email }] : []),
+        ],
+      });
+      if (conflict && conflict.id !== userId) {
+        return NextResponse.json({ message: 'Login ou e-mail já cadastrado para outro usuário.' }, { status: 409 });
+      }
+    }
+
     const updateData: Partial<UserEntity> = {};
     if (typeof name === 'string') updateData.name = name;
     if (typeof login === 'string') updateData.login = login;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FiX, FiLock, FiMail, FiEye, FiEyeOff, FiArrowRight, FiCpu } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { safeJson } from "@/lib/apiResponse";
 
 type Props = {
   isOpen: boolean;
@@ -19,12 +20,25 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
   useEffect(() => {
     if (isOpen) {
+      triggerRef.current = document.activeElement;
       setTimeout(() => inputRef.current?.focus(), 100);
+    } else if (triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -47,16 +61,18 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         body: JSON.stringify({ identifier: identifierToSend, password: pwTrim }),
       });
 
-      const data = await res.json();
+      const data = await safeJson<{ message?: string; user?: unknown }>(res);
       if (!res.ok) {
         setError(data?.message || "Usuário ou senha inválidos.");
         setIsLoading(false);
         return;
       }
-
-      if (data.token) {
-        document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
+      if (!data) {
+        setError("O servidor retornou uma resposta inesperada. Tente novamente em instantes.");
+        setIsLoading(false);
+        return;
       }
+
       if (data.user) {
         try { localStorage.setItem('isLoggedIn', 'true'); } catch {}
         try { localStorage.setItem('userData', JSON.stringify(data.user)); } catch {}
@@ -81,6 +97,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal Box */}
@@ -88,6 +105,9 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         initial={{ opacity: 0, scale: 0.94, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 16 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
         className="relative w-full max-w-md bg-white/95 dark:bg-[#071324]/95 rounded-[2rem] shadow-2xl border border-black/10 dark:border-white/15 p-6 sm:p-8 backdrop-blur-2xl z-10 overflow-hidden"
       >
         {/* Decorative corner */}
@@ -111,7 +131,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               CRM
             </span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h3 id="login-modal-title" className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Acessar Conta
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -164,9 +184,11 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={showPassword}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-300"
               >
-                {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                {showPassword ? <FiEyeOff className="w-4 h-4" aria-hidden="true" /> : <FiEye className="w-4 h-4" aria-hidden="true" />}
               </button>
             </div>
           </div>

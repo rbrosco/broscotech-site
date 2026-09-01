@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../../component/Sidebar';
 import DashboardNav from '../../component/DashboardNav';
+import { useAuthSession } from '../../lib/hooks/useAuthSession';
 import { FiAlertCircle, FiPlus } from 'react-icons/fi';
 
 type KanbanCard = {
@@ -29,6 +30,7 @@ type KanbanResponse = {
 };
 
 export default function KanbanPage() {
+  const { userData } = useAuthSession();
   const [data, setData] = useState<KanbanResponse | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -290,7 +292,7 @@ export default function KanbanPage() {
               </div>
             </div>
 
-            {typeof window !== 'undefined' && error && localStorage.getItem('userData') && (
+            {error && userData && (
               <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-100">
                 <div className="flex items-start gap-2">
                   <FiAlertCircle className="h-5 w-5 mt-0.5" aria-hidden="true" />

@@ -4,6 +4,7 @@ import "./globals.css";
 import ConditionalFooter from "../component/ConditionalFooter";
 import ThemeProvider from "../component/ThemeProvider";
 import IAAgentButton from "../component/IAAgentButton";
+import MotionA11yProvider from "../component/MotionA11yProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,9 +65,11 @@ export default function RootLayout({
         />
         <div className="relative z-10">
           <ThemeProvider>
-            <main className="flex-1">{children}</main>
-            <IAAgentButton />
-            <ConditionalFooter />
+            <MotionA11yProvider>
+              <main className="flex-1">{children}</main>
+              <IAAgentButton />
+              <ConditionalFooter />
+            </MotionA11yProvider>
           </ThemeProvider>
         </div>
       </body>

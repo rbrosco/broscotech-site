@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export type LeadInterest = {
   /** 'service' (cards de Serviços) ou 'portfolio' (cards de Portfólio). */
@@ -27,6 +27,8 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
   // Reseta o formulário toda vez que o modal é reaberto para um novo interesse.
   useEffect(() => {
@@ -39,6 +41,26 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
       setErrorMsg('');
     }
   }, [isOpen, interest?.id]);
+
+  // Foco inicial no primeiro campo e devolução de foco ao fechar.
+  useEffect(() => {
+    if (isOpen) {
+      triggerRef.current = document.activeElement;
+      setTimeout(() => nameInputRef.current?.focus(), 50);
+    } else if (triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
+    }
+  }, [isOpen]);
+
+  // Fecha com Escape.
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -82,15 +104,18 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-form-modal-title"
         className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md dark:bg-slate-900 dark:text-white border border-black/5 dark:border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
         {status === 'success' ? (
           <div className="text-center py-6">
-            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mb-4">
+            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mb-4" aria-hidden="true">
               ✓
             </div>
-            <h3 className="text-xl font-bold mb-2">Solicitação enviada!</h3>
+            <h3 id="contact-form-modal-title" className="text-xl font-bold mb-2">Solicitação enviada!</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Recebemos seu interesse em{' '}
               <strong className="text-slate-700 dark:text-slate-200">{interest?.label ?? 'um projeto'}</strong>.
@@ -106,7 +131,7 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
           </div>
         ) : (
           <>
-            <h3 className="text-2xl font-bold text-center mb-1 text-slate-900 dark:text-white">
+            <h3 id="contact-form-modal-title" className="text-2xl font-bold text-center mb-1 text-slate-900 dark:text-white">
               Solicitar Proposta
             </h3>
             {interest?.label && (
@@ -126,6 +151,7 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
                   id="lead-name"
                   name="name"
                   required
+                  ref={nameInputRef}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all"

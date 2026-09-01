@@ -18,15 +18,6 @@ type Invoice = {
   descricao: string;
 };
 
-const MOCK_INVOICES: Invoice[] = [
-  { id: 'FAT-2026-001', projeto: 'Site Institucional EasyDev', cliente: 'EasyDev Ltda', valor: 4800, emissao: '2026-03-01', vencimento: '2026-03-15', status: 'pago', descricao: 'Desenvolvimento de site institucional completo com CMS.' },
-  { id: 'FAT-2026-002', projeto: 'App Mobile Delivery', cliente: 'FoodFast S.A.', valor: 12500, emissao: '2026-03-20', vencimento: '2026-04-05', status: 'pago', descricao: 'App Android/iOS para sistema de delivery com rastreamento.' },
-  { id: 'FAT-2026-003', projeto: 'Dashboard Analytics', cliente: 'DataViz Corp', valor: 7200, emissao: '2026-04-01', vencimento: '2026-04-20', status: 'pendente', descricao: 'Painel de analytics com gráficos em tempo real e exportação.' },
-  { id: 'FAT-2026-004', projeto: 'E-commerce Premium', cliente: 'Modas Silva', valor: 9900, emissao: '2026-04-10', vencimento: '2026-04-25', status: 'pendente', descricao: 'Loja virtual completa com integração PagSeguro e estoque.' },
-  { id: 'FAT-2026-005', projeto: 'Sistema ERP', cliente: 'Constru Max', valor: 18000, emissao: '2026-02-15', vencimento: '2026-03-01', status: 'vencido', descricao: 'Sistema de gestão integrado com módulo financeiro e RH.' },
-  { id: 'FAT-2026-006', projeto: 'API de Integração', cliente: 'TechBridge Inc', valor: 3600, emissao: '2026-04-18', vencimento: '2026-05-03', status: 'processando', descricao: 'Desenvolvimento de API REST com documentação Swagger.' },
-];
-
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; bg: string; text: string; dot: string; icon: React.ReactNode }> = {
   pago:         { label: 'Pago',         bg: 'rgba(0,176,155,0.14)',  text: '#00d4aa', dot: '#00b09b', icon: <FiCheckCircle className="w-3.5 h-3.5" /> },
   pendente:     { label: 'Pendente',     bg: 'rgba(245,158,11,0.14)', text: '#fcd34d', dot: '#f59e0b', icon: <FiClock className="w-3.5 h-3.5" /> },
@@ -56,23 +47,24 @@ export default function FaturasPage() {
     fetch('/api/invoices', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data.invoices) && data.invoices.length > 0) {
-          // Map DB keys to frontend keys
-          const mapped = data.invoices.map((inv: any) => ({
-            id: inv.id,
-            projeto: inv.projeto || 'Projeto Avulso',
-            cliente: inv.cliente,
-            valor: inv.valor,
-            emissao: inv.emissao,
-            vencimento: inv.vencimento,
-            status: inv.status,
-            descricao: inv.descricao || 'Sem descrição.',
-            asaas_url: inv.asaas_url,
-          }));
-          setInvoices(mapped);
-        } else {
-          setInvoices(MOCK_INVOICES);
-        }
+        // IMPORTANTE: nunca cair para dados de exemplo (MOCK_INVOICES) quando
+        // a API responde com sucesso, mesmo que o array venha vazio — um
+        // cliente sem faturas deve ver "nenhuma fatura", nunca faturas de
+        // outros clientes/projetos fictícios. O mock só existe para dev
+        // local sem API disponível (catch abaixo).
+        const list = Array.isArray(data.invoices) ? data.invoices : [];
+        const mapped = list.map((inv: any) => ({
+          id: inv.id,
+          projeto: inv.projeto || 'Projeto Avulso',
+          cliente: inv.cliente,
+          valor: inv.valor,
+          emissao: inv.emissao,
+          vencimento: inv.vencimento,
+          status: inv.status,
+          descricao: inv.descricao || 'Sem descrição.',
+          asaas_url: inv.asaas_url,
+        }));
+        setInvoices(mapped);
         setLoading(false);
       })
       .catch(err => {

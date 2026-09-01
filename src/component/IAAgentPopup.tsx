@@ -36,6 +36,8 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
   const [visitorNameInput, setVisitorNameInput] = useState('');
   const [visitorEmailInput, setVisitorEmailInput] = useState('');
@@ -63,6 +65,20 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  // Foco inicial no diálogo ao abrir; devolve o foco ao gatilho ao fechar.
+  useEffect(() => {
+    triggerRef.current = document.activeElement;
+    const focusable = dialogRef.current?.querySelector<HTMLElement>(
+      'input, textarea, button, [href], [tabindex]:not([tabindex="-1"])'
+    );
+    (focusable ?? dialogRef.current)?.focus();
+    return () => {
+      if (triggerRef.current instanceof HTMLElement) {
+        triggerRef.current.focus();
+      }
+    };
+  }, []);
 
   const handleVisitorSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +109,8 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Agente de IA EasyDev"
+        ref={dialogRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="w-full sm:w-[400px] h-[85vh] sm:h-[600px] max-h-[85vh] rounded-t-[2rem] sm:rounded-[1.75rem] overflow-hidden flex flex-col bg-white dark:bg-[#0b1728] border border-slate-200 dark:border-white/15 shadow-2xl relative sm:mb-[4.5rem]"
       >
@@ -106,12 +124,13 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
               onClick={() => (showSessionList ? setShowSessionList(false) : setShowSessionList(true))}
               className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/15 transition-colors shrink-0"
               title={showSessionList ? 'Voltar' : 'Ver conversas'}
+              aria-label={showSessionList ? 'Voltar' : 'Ver conversas'}
             >
-              {showSessionList ? <FiChevronLeft className="w-4 h-4" /> : <FiMessageSquare className="w-4 h-4" />}
+              {showSessionList ? <FiChevronLeft className="w-4 h-4" aria-hidden="true" /> : <FiMessageSquare className="w-4 h-4" aria-hidden="true" />}
             </button>
           ) : (
             <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/15 shrink-0">
-              <FiCpu className="w-4 h-4" />
+              <FiCpu className="w-4 h-4" aria-hidden="true" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -125,16 +144,18 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
               onClick={() => void onStartNewSession()}
               className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/15 transition-colors shrink-0"
               title="Nova conversa"
+              aria-label="Nova conversa"
             >
-              <FiPlus className="w-4 h-4" />
+              <FiPlus className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/15 transition-colors shrink-0"
             title="Fechar"
+            aria-label="Fechar chat do Agente de IA"
           >
-            <FiX className="w-4 h-4" />
+            <FiX className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -308,8 +329,8 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
                 <div className="mb-2 relative inline-block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={attachedImage} alt="Anexo" className="h-14 w-auto rounded-lg border border-slate-200 dark:border-slate-700 object-cover" />
-                  <button onClick={() => setAttachedImage(null)} className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow">
-                    <FiX className="w-2.5 h-2.5" />
+                  <button onClick={() => setAttachedImage(null)} aria-label="Remover anexo" className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow">
+                    <FiX className="w-2.5 h-2.5" aria-hidden="true" />
                   </button>
                 </div>
               )}
@@ -320,8 +341,9 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
                   disabled={sending}
                   className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
                   title="Anexar imagem"
+                  aria-label="Anexar imagem"
                 >
-                  <FiImage className="w-4 h-4" />
+                  <FiImage className="w-4 h-4" aria-hidden="true" />
                 </button>
                 <textarea
                   ref={inputRef}
@@ -341,10 +363,11 @@ export default function IAAgentPopup({ onClose }: { onClose: () => void }) {
                 <button
                   onClick={() => void handleSend()}
                   disabled={sending || (!input.trim() && !attachedImage)}
+                  aria-label="Enviar mensagem"
                   className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white transition-all disabled:opacity-40"
                   style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
                 >
-                  {sending ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiSend className="w-4 h-4" />}
+                  {sending ? <FiLoader className="w-4 h-4 animate-spin" aria-hidden="true" /> : <FiSend className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
             </div>

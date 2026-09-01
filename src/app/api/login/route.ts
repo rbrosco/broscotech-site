@@ -4,6 +4,11 @@ import jwt from 'jsonwebtoken';
 import { getDataSource } from '@/lib/typeorm';
 import { UserEntity } from '@/lib/entities';
 import { getJwtSecret } from '@/lib/jwtSecret';
+import { consumeRateLimit, getClientIp } from '@/lib/rateLimit';
+
+const LOGIN_ATTEMPTS_PER_IDENTIFIER = 8;
+const LOGIN_ATTEMPTS_PER_IP = 20;
+const LOGIN_WINDOW_MS = 5 * 60 * 1000; // 5 minutos
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +17,19 @@ export async function POST(request: Request) {
 
     if (!identifier || !password) {
       return NextResponse.json({ message: 'Login ou e-mail e senha são obrigatórios.' }, { status: 400 });
+    }
+
+    // Rate limiting: protege contra brute-force tanto num usuário específico
+    // (IP + identifier) quanto num IP tentando vários usuários em sequência.
+    const ip = getClientIp(request.headers);
+    const perIdentifier = consumeRateLimit(`login:id:${ip}:${String(identifier).toLowerCase()}`, LOGIN_ATTEMPTS_PER_IDENTIFIER, LOGIN_WINDOW_MS);
+    const perIp = consumeRateLimit(`login:ip:${ip}`, LOGIN_ATTEMPTS_PER_IP, LOGIN_WINDOW_MS);
+    if (!perIdentifier.allowed || !perIp.allowed) {
+      const retryAfterSeconds = Math.max(perIdentifier.retryAfterSeconds, perIp.retryAfterSeconds);
+      return NextResponse.json(
+        { message: 'Muitas tentativas de login. Aguarde um momento e tente novamente.' },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+      );
     }
 
     // Busca usuário por login OU email

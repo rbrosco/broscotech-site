@@ -154,7 +154,7 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
                       isActive || isPast
                         ? 'text-white'
-                        : 'border-slate-200 text-slate-400 dark:border-white/15 dark:text-white/30'
+                        : 'border-slate-200 text-slate-400 dark:border-white/15 dark:text-white/50'
                     }`}
                     style={{
                       background: isActive || isPast ? color : 'transparent',
@@ -167,7 +167,7 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                   </div>
                   <span
                     className={`text-xs font-semibold whitespace-nowrap transition-colors ${
-                      isActive || isPast ? '' : 'text-slate-400 dark:text-white/30'
+                      isActive || isPast ? '' : 'text-slate-400 dark:text-white/50'
                     }`}
                     style={isActive || isPast ? { color: isActive ? color : color + 'cc' } : {}}
                   >
@@ -250,7 +250,7 @@ function KanbanBoard({ projectId }: { projectId: number }) {
               {/* Cards */}
               <div className="px-3 pb-4 flex flex-col gap-2" style={{ minHeight: 72 }}>
                 {col.cards.length === 0 && (
-                  <div className="flex items-center justify-center py-7 text-xs rounded-xl border-2 border-dashed border-slate-300 text-slate-400 dark:border-white/10 dark:text-white/20">
+                  <div className="flex items-center justify-center py-7 text-xs rounded-xl border-2 border-dashed border-slate-300 text-slate-400 dark:border-white/10 dark:text-white/50">
                     Sem tarefas
                   </div>
                 )}
@@ -281,7 +281,7 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                       )}
                     </div>
                     {card.description && (
-                      <div className="mt-1 text-xs leading-relaxed line-clamp-2 text-slate-500 dark:text-white/45">{card.description}</div>
+                      <div className="mt-1 text-xs leading-relaxed line-clamp-2 text-slate-500 dark:text-white/60">{card.description}</div>
                     )}
                     <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
                       {card.responsavel && (
@@ -296,7 +296,7 @@ function KanbanBoard({ projectId }: { projectId: number }) {
                         </span>
                       )}
                       {dueLabel && (
-                        <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-white/35">
+                        <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-white/50">
                           <FiCalendar className="w-3 h-3" aria-hidden="true" />{dueLabel}
                         </span>
                       )}
@@ -358,12 +358,12 @@ function KanbanBoard({ projectId }: { projectId: number }) {
             <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-white/55">{selectedCard.description || 'Sem descrição.'}</p>
             <div className="mt-4 flex flex-col gap-2">
               {selectedCard.responsavel && (
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/35">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/50">
                   <FiUser className="w-3.5 h-3.5" aria-hidden="true" /> Responsável: {selectedCard.responsavel}
                 </div>
               )}
               {(selectedCard.due_date || selectedCard.data) && (
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/35">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-white/50">
                   <FiCalendar className="w-3.5 h-3.5" aria-hidden="true" /> Prazo: {formatDate(selectedCard.due_date || selectedCard.data)}
                 </div>
               )}
