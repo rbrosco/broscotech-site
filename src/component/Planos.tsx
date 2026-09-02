@@ -13,28 +13,72 @@ type Plan = {
   features: string[];
 };
 
+const FALLBACK_PLANS: Plan[] = [
+  {
+    id: 'basico',
+    name: 'Básico',
+    tagline: 'Para quem já tem o site/sistema pronto e quer tranquilidade.',
+    price: null,
+    price_note: '/mês',
+    featured: false,
+    features: [
+      'Hospedagem e infraestrutura incluídas',
+      'Pequenos ajustes e correções (até X/mês)',
+      'Monitoramento e backup automático',
+      'Acesso ao portal EasyDev CRM (acompanhamento e faturas)',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    tagline: 'Para quem quer evoluir o produto continuamente, não só mantê-lo.',
+    price: null,
+    price_note: '/mês',
+    featured: true,
+    features: [
+      'Tudo do plano Básico',
+      'Horas de desenvolvimento novo incluídas por mês',
+      'Prioridade no suporte e no agente de IA',
+      'Kanban do projeto com atualizações em tempo real',
+    ],
+  },
+  {
+    id: 'empresarial',
+    name: 'Empresarial',
+    tagline: 'Para operações maiores, com integrações e SLA dedicado.',
+    price: null,
+    price_note: '',
+    featured: false,
+    features: [
+      'Tudo do plano Pro',
+      'Integrações e automações sob medida (n8n, APIs)',
+      'SLA de suporte dedicado',
+      'Onboarding e portal EasyDev CRM personalizados',
+    ],
+  },
+];
+
 const Planos: React.FC = () => {
   const [selectedInterest, setSelectedInterest] = useState<LeadInterest | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
 
   useEffect(() => {
     let cancelled = false;
     fetch('/api/plans')
       .then((res) => res.json())
       .then((data) => {
-        if (!cancelled && Array.isArray(data?.plans)) setPlans(data.plans);
+        // Só substitui os planos padrão se a API realmente devolveu algo —
+        // banco sem a tabela 'plans' ainda (migration pendente) não deve
+        // fazer a seção inteira sumir do site.
+        if (!cancelled && Array.isArray(data?.plans) && data.plans.length > 0) {
+          setPlans(data.plans);
+        }
       })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
-
-  if (!loading && plans.length === 0) return null;
 
   return (
     <section id="Planos" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
@@ -54,16 +98,7 @@ const Planos: React.FC = () => {
         </div>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-3xl border border-black/8 dark:border-white/10 p-6 sm:p-8 animate-pulse">
-                  <div className="h-4 w-20 rounded bg-slate-200 dark:bg-white/10 mb-3" />
-                  <div className="h-3 w-full rounded bg-slate-200 dark:bg-white/10 mb-1.5" />
-                  <div className="h-3 w-3/4 rounded bg-slate-200 dark:bg-white/10 mb-6" />
-                  <div className="h-8 w-24 rounded bg-slate-200 dark:bg-white/10" />
-                </div>
-              ))
-            : plans.map((plan) => (
+          {plans.map((plan) => (
                 <div
                   key={plan.id}
                   className={`relative flex flex-col rounded-3xl border p-6 sm:p-8 transition-all duration-300 ${
@@ -79,6 +114,7 @@ const Planos: React.FC = () => {
                       Mais escolhido
                     </span>
                   )}
+
 
                   <h3 className={`text-lg font-bold ${plan.featured ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                     {plan.name}
