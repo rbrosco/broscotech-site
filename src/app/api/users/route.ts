@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { users } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { UserEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { eq, or, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
@@ -16,19 +15,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const roleFilter = searchParams.get('role');
 
+    const dataSource = await getDataSource();
     // Mapear users com senha omitida
-    const allUsers = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        login: users.login,
-        email: users.email,
-        phone: users.phone,
-        role: users.role,
-        created_at: users.created_at
-      })
-      .from(users)
-      .orderBy(desc(users.created_at));
+    const allUsers = await dataSource.getRepository(UserEntity).find({
+      select: { id: true, name: true, login: true, email: true, phone: true, role: true, created_at: true },
+      order: { created_at: 'DESC' },
+    });
 
     let filtered = allUsers;
     if (roleFilter === 'client') {
@@ -59,21 +51,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Campos obrigatórios ausentes.' }, { status: 400 });
     }
 
-    const existing = await db
-      .select()
-      .from(users)
-      .where(or(eq(users.login, login), eq(users.email, email)))
-      .limit(1);
-    
-    if (existing.length > 0) {
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(UserEntity);
+
+    const existing = await repo.findOne({ where: [{ login }, { email }] });
+    if (existing) {
       return NextResponse.json({ message: 'Login ou e-mail já cadastrado.' }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const [created] = await db
-      .insert(users)
-      .values({
+    const created = await repo.save(
+      repo.create({
         name,
         login,
         email,
@@ -81,7 +70,7 @@ export async function POST(request: NextRequest) {
         phone: phone || null,
         role,
       })
-      .returning();
+    );
 
     return NextResponse.json({
       message: 'Usuário criado com sucesso.',

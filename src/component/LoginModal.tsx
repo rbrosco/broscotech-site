@@ -1,7 +1,11 @@
-"use client";
-import React, { useState } from "react";
+'use client';
+import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiX } from "react-icons/fi";
+import { FiX, FiLock, FiMail, FiEye, FiEyeOff, FiArrowRight, FiCpu } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { safeJson } from "@/lib/apiResponse";
 
 type Props = {
   isOpen: boolean;
@@ -12,18 +16,37 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<Element | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      triggerRef.current = document.activeElement;
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else if (triggerRef.current instanceof HTMLElement) {
+      triggerRef.current.focus();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const idRaw = identifier ?? '';
-    const pwRaw = password ?? '';
-    const idTrim = idRaw.trim();
-    const pwTrim = pwRaw.trim();
+    const idTrim = (identifier ?? '').trim();
+    const pwTrim = (password ?? '').trim();
     if (!idTrim || !pwTrim) {
       setError("Preencha todos os campos.");
       return;
@@ -38,26 +61,21 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         body: JSON.stringify({ identifier: identifierToSend, password: pwTrim }),
       });
 
-      const data = await res.json();
-      console.debug('[login] response', res.status, data);
+      const data = await safeJson<{ message?: string; user?: unknown }>(res);
       if (!res.ok) {
         setError(data?.message || "Usuário ou senha inválidos.");
         setIsLoading(false);
         return;
       }
+      if (!data) {
+        setError("O servidor retornou uma resposta inesperada. Tente novamente em instantes.");
+        setIsLoading(false);
+        return;
+      }
 
-      // Define cookie de token e armazena dados locais
-      try {
-        // server should set session cookie; client-side token fallback when provided
-        if (data.token) {
-          document.cookie = `token=${data.token}; path=/; max-age=604800; secure; samesite=strict`;
-        }
-        if (data.user) {
-          try { localStorage.setItem('isLoggedIn', 'true'); } catch {}
-          try { localStorage.setItem('userData', JSON.stringify(data.user)); } catch {}
-        }
-      } catch {
-        // ignore
+      if (data.user) {
+        try { localStorage.setItem('isLoggedIn', 'true'); } catch {}
+        try { localStorage.setItem('userData', JSON.stringify(data.user)); } catch {}
       }
 
       onClose();
@@ -71,68 +89,149 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center">
-      <div className="absolute inset-0 bg-white/600" onClick={onClose} />
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <div className="relative w-full max-w-md mx-4 bg-white/95 dark:bg-gray-900/95 rounded-2xl shadow-2xl border border-black/10 dark:border-white/10 p-6">
+      {/* Modal Box */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 16 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
+        className="relative w-full max-w-md bg-white/95 dark:bg-[#071324]/95 rounded-[2rem] shadow-2xl border border-black/10 dark:border-white/15 p-6 sm:p-8 backdrop-blur-2xl z-10 overflow-hidden"
+      >
+        {/* Decorative corner */}
+        <div className="absolute top-4 left-4 text-[10px] font-mono text-[var(--color-accent)]/60 select-none">AUTH.SYS</div>
+
         <button
           aria-label="Fechar"
-          className="absolute right-3 top-3 p-2 rounded-md hover:bg-white/60 dark:hover:bg-white/5"
+          className="absolute right-4 top-4 p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/10 transition-colors"
           onClick={onClose}
         >
-          <FiX className="w-5 h-5 text-slate-700 dark:text-white/80" />
+          <FiX className="w-4 h-4" />
         </button>
 
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Entrar na sua conta</h3>
-        <p className="text-sm text-slate-600 dark:text-white/75 mb-4">Use seu login ou e-mail para acessar.</p>
+        {/* Brand */}
+        <div className="text-center mb-6 pt-2">
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <span className="font-pixel text-xs sm:text-sm tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)]">
+              EasyDev
+            </span>
+            <span className="font-pixel text-[9px] px-1 py-0.5 rounded bg-cyan-500/10 text-cyan-500 dark:bg-cyan-400/20 dark:text-cyan-300 border border-cyan-500/30 uppercase">
+              CRM
+            </span>
+          </div>
+          <h3 id="login-modal-title" className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Acessar Conta
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Entre para acompanhar seus projetos e Kanban.
+          </p>
+        </div>
 
-        {error && <div className="mb-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-2 rounded">{error}</div>}
+        {error && (
+          <div className="mb-4 p-3 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-500/20 rounded-xl">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-700 dark:text-white/80">Usuário ou E-mail</label>
-            <input
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white"
-              placeholder="seu_usuario ou email@exemplo.com"
-            />
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+              Usuário ou E-mail
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <FiMail className="w-4 h-4" />
+              </div>
+              <input
+                ref={inputRef}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                placeholder="seu_usuario ou email@exemplo.com"
+                required
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm text-slate-700 dark:text-white/80">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-900 dark:text-white"
-              placeholder="Sua senha"
-            />
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+              Senha
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <FiLock className="w-4 h-4" />
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                placeholder="Sua senha"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-300"
+              >
+                {showPassword ? <FiEyeOff className="w-4 h-4" aria-hidden="true" /> : <FiEye className="w-4 h-4" aria-hidden="true" />}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-slate-900 dark:text-white font-semibold hover:bg-slate-800 disabled:opacity-60"
+              className="w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-lg transition-all hover:scale-[1.01] hover:opacity-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #004aad 0%, #00b09b 60%, #00d4aa 100%)' }}
             >
-              {isLoading ? "Entrando..." : "Entrar"}
+              {isLoading ? "Autenticando..." : "Entrar no Sistema"}
             </button>
+          </div>
+        </form>
 
+        <div className="mt-5 pt-4 border-t border-slate-200 dark:border-white/10 text-center space-y-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              router.push('/register');
+            }}
+            className="text-xs text-slate-600 dark:text-slate-400 hover:text-[var(--color-accent)] font-medium"
+          >
+            Não tem uma conta? <span className="font-bold text-[var(--color-accent)] underline">Criar conta</span>
+          </button>
+
+          <div>
             <button
               type="button"
               onClick={() => {
                 onClose();
-                // abrir página de cadastro separada
-                router.push('/register');
+                router.push('/iaagent');
               }}
-              className="text-sm text-slate-700 dark:text-white/80 underline"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-[var(--color-accent-dim)] text-[var(--color-accent)] hover:bg-[var(--color-accent)]/20 transition-all"
             >
-              Criar conta
+              <FiCpu className="w-3.5 h-3.5" />
+              Falar com a IA sem senha
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

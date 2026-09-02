@@ -1,26 +1,35 @@
 {
-  "name": "frontend_app",
+  "name": "easydev-crm",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 4000",
     "build": "next build",
     "start": "next start --port 4000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:generate -d src/lib/data-source.ts src/lib/typeorm-migrations/migration",
+    "db:migrate": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:run -d src/lib/data-source.ts",
+    "db:revert": "TS_NODE_PROJECT=tsconfig.typeorm.json typeorm-ts-node-commonjs migration:revert -d src/lib/data-source.ts"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.1",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.34.3",
     "groq-sdk": "^0.37.0",
+    "jose": "^6.2.10",
     "jsonwebtoken": "^9.0.3",
     "next": "^15.5.9",
     "pg": "^8.16.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "reflect-metadata": "^0.2.2",
+    "remark-gfm": "^4.0.1",
+    "typeorm": "^1.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
@@ -34,7 +43,9 @@
     "eslint-config-next": "^16.1.6",
     "lodash": "^4.17.23",
     "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.8.3",
-    "vite": "^7.3.0"
+    "vitest": "^4.1.11"
   }
 }

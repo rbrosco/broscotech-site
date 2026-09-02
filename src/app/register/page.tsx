@@ -1,6 +1,5 @@
 "use client";
 import Header from "../../component/Header";
-import Chatbot from "../../component/ChatBot";
 import Register from "../../component/register";
 import { motion } from "framer-motion";
 
@@ -16,7 +15,6 @@ export default function RegisterPage() {
       >
         <Register />
       </motion.main>
-      <Chatbot />
     </>
   );
 }

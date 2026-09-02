@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FiX } from 'react-icons/fi';
 
 interface PrivacyModalProps {
@@ -9,6 +9,9 @@ interface PrivacyModalProps {
 }
 
 const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }) => {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<Element | null>(null);
+
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -16,10 +19,15 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }
       }
     };
     if (isOpen) {
+      triggerRef.current = document.activeElement;
       document.body.style.overflow = 'hidden'; // Impede o scroll da página ao fundo
       window.addEventListener('keydown', handleEsc);
+      setTimeout(() => closeButtonRef.current?.focus(), 0);
     } else {
       document.body.style.overflow = 'auto';
+      if (triggerRef.current instanceof HTMLElement) {
+        triggerRef.current.focus();
+      }
     }
     return () => {
       document.body.style.overflow = 'auto';
@@ -34,8 +42,9 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }
   return (
     <div
       id="privacy-modal"
-      tabIndex={-1}
-      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="privacy-modal-title"
       className="fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-screen max-h-full bg-gray-200 bg-opacity-60 dark:bg-gray-900 dark:bg-opacity-75"
       onClick={onClose} // Fecha o modal ao clicar fora
     >
@@ -47,16 +56,17 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ isOpen, onClose, onAccept }
         <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
           {/* Modal header */}
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 id="privacy-modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
               Política de Privacidade
             </h3>
             <button
+              ref={closeButtonRef}
               type="button"
-              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-slate-900 dark:text-white"
+              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-slate-900 dark:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
               onClick={onClose}
+              aria-label="Fechar modal de política de privacidade"
             >
               <FiX className="w-4 h-4" aria-hidden="true" />
-              <span className="sr-only">Fechar modal</span>
             </button>
           </div>
           {/* Modal body */}

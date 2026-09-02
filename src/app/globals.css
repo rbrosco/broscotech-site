@@ -22,6 +22,7 @@ html:not(.dark) .tooltip {
 
 :root {
   --header-height: 60px;
+  --sidebar-width: 16rem;
 
   /* Light mode surfaces */
   --background: #ffffff;
@@ -77,6 +78,24 @@ html:not(.dark) .tooltip {
   --ia-bubble-contrast: #040d1a;
 }
 
+/* Form elements theme adaptation */
+select,
+input,
+textarea {
+  color-scheme: light dark;
+}
+
+html.dark select option,
+.dark select option {
+  background-color: #071324 !important;
+  color: #f8fafc !important;
+}
+
+html:not(.dark) select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-bg-surface: var(--bg-surface);
@@ -92,6 +111,7 @@ html:not(.dark) .tooltip {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-instrument);
+  --font-pixel: var(--font-pixel);
 }
 
 /* Accessibility: Focus ring global */
@@ -227,16 +247,6 @@ body {
 }
 
 
-/* Oculta a marca d'água do Chatwoot (se necessário) */
-/* Esconde links de branding sem quebrar o widget inteiro */
-a[href*="chatwoot"], div[title="Chatwoot"] {
-  display: none !important;
-}
-
-/* Posiciona o widget do Chatwoot acima da bolha verde da IA */
-.woot-widget-bubble, .woot-widget-holder {
-  bottom: 90px !important;
-}
 
 /* Animação para o IconBanner */
 @keyframes scroll {
@@ -315,6 +325,11 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
   font-style: italic;
 }
 
+/* 8-bit Nerd/Retro typeface helper */
+.font-pixel {
+  font-family: var(--font-pixel), "Courier New", monospace;
+}
+
 /* Gradient text helper */
 .gradient-text {
   background: linear-gradient(135deg, #004aad, #00b09b 55%, #00d4aa);
@@ -376,5 +391,49 @@ a[href*="chatwoot"], div[title="Chatwoot"] {
 /* Background overlay handled via Tailwind classes on the layout element */
 
 @utility pl-sidebar {
-  padding-left: var(--sidebar-width, 5rem);
+  padding-left: var(--sidebar-width, 16rem);
+}
+
+/* Moeda 3D — giro no hover (usado na faixa de stack) */
+.stack-coin {
+  perspective: 300px;
+}
+
+.stack-coin-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.stack-coin:hover .stack-coin-inner {
+  animation: stack-coin-spin 1s linear infinite;
+}
+
+.stack-coin-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  transform: translateZ(5px);
+}
+
+.stack-coin-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  transform: translateZ(-5px) rotateY(180deg);
+}
+
+@keyframes stack-coin-spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-coin:hover .stack-coin-inner {
+    animation: none;
+  }
 }

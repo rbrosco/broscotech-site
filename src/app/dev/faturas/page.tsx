@@ -20,7 +20,7 @@ type Invoice = {
   project_id: number | null;
 };
 
-type Project = { id: number; title: string; client_name: string };
+type Project = { id: number; title: string; client_name: string; client_email?: string | null; client_phone?: string | null };
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; bg: string; text: string; dot: string; icon: React.ReactNode }> = {
   pago:         { label: 'Pago',         bg: 'rgba(0,176,155,0.14)',  text: '#00d4aa', dot: '#00b09b', icon: <FiCheckCircle className="w-3.5 h-3.5" /> },
@@ -45,6 +45,9 @@ export default function DevFaturasPage() {
   // Form states
   const [projectId, setProjectId] = useState<string>('');
   const [clientName, setClientName] = useState('');
+  const [clientDocument, setClientDocument] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
   const [value, setValue] = useState('');
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
@@ -75,12 +78,14 @@ export default function DevFaturasPage() {
     }
   }
 
-  // Auto-fill client name if a project is selected
+  // Auto-fill client name/email/phone if a project is selected
   useEffect(() => {
     if (projectId) {
       const p = projects.find(x => x.id === Number(projectId));
       if (p && p.client_name) {
         setClientName(p.client_name);
+        setClientEmail(p.client_email || '');
+        setClientPhone(p.client_phone || '');
       }
     }
   }, [projectId, projects]);
@@ -96,6 +101,9 @@ export default function DevFaturasPage() {
         body: JSON.stringify({
           project_id: projectId || null,
           client_name: clientName,
+          client_document: clientDocument || null,
+          client_email: clientEmail || null,
+          client_phone: clientPhone || null,
           value: Number(value),
           issue_date: issueDate,
           due_date: dueDate,
@@ -104,10 +112,15 @@ export default function DevFaturasPage() {
           asaas_url: asaasUrl || null
         })
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
+        if (data?.asaas_warning) {
+          alert(`Fatura salva, mas a cobrança automática no Asaas falhou: ${data.asaas_warning}\nAdicione o link de pagamento manualmente.`);
+        }
         setIsModalOpen(false);
         // Reset form
-        setProjectId(''); setClientName(''); setValue(''); setDueDate(''); setDescription(''); setAsaasUrl(''); setStatus('pendente');
+        setProjectId(''); setClientName(''); setClientDocument(''); setClientEmail(''); setClientPhone('');
+        setValue(''); setDueDate(''); setDescription(''); setAsaasUrl(''); setStatus('pendente');
         await loadData();
       }
     } catch (err) {
@@ -228,9 +241,29 @@ export default function DevFaturasPage() {
                 <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className="rounded-lg p-2.5 text-sm border bg-slate-50 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-white" />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-slate-500">CPF/CNPJ do Cliente</label>
+                  <input value={clientDocument} onChange={e => setClientDocument(e.target.value)} placeholder="Necessário para cobrança automática" className="rounded-lg p-2.5 text-sm border bg-slate-50 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-white" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-slate-500">E-mail do Cliente</label>
+                  <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} className="rounded-lg p-2.5 text-sm border bg-slate-50 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-white" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-slate-500">Telefone do Cliente</label>
+                  <input value={clientPhone} onChange={e => setClientPhone(e.target.value)} className="rounded-lg p-2.5 text-sm border bg-slate-50 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-white" />
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-500">Link Asaas (Opcional, preenchimento manual por enquanto)</label>
+                <label className="text-xs font-semibold text-slate-500">
+                  Link Asaas (usado só se o CPF/CNPJ acima ficar em branco, ou se a geração automática falhar)
+                </label>
                 <input value={asaasUrl} onChange={e => setAsaasUrl(e.target.value)} placeholder="https://asaas.com/..." className="rounded-lg p-2.5 text-sm border bg-slate-50 dark:bg-[#1a2035] dark:border-[#2a3555] dark:text-white" />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Com o CPF/CNPJ preenchido e a integração do Asaas configurada no servidor, a cobrança (Pix/boleto/cartão) é gerada automaticamente e este link é ignorado.
+                </p>
               </div>
 
               <div className="mt-4 flex justify-end gap-3">

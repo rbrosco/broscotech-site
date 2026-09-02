@@ -78,7 +78,7 @@ const PopupPlanejamento: React.FC<PopupPlanejamentoProps> = ({
           <FiFileText className="inline-block text-[#00b09b]" /> Detalhes do Planejamento
         </h2>
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
-          <FiCalendar /> {new Date(update.created_at).toLocaleString()}
+          <FiCalendar /> {new Date(update.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
         <div className="mb-4 text-base text-slate-800 dark:text-slate-100 font-medium border-l-4 border-blue-400 pl-3 bg-blue-50/60 dark:bg-blue-900/20 rounded py-2">
           {(() => {

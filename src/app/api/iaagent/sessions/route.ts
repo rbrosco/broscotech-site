@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { ai_sessions, projects } from '@/lib/schema';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { getDataSource } from '@/lib/typeorm';
+import { AiSessionEntity, ProjectEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
 import { randomUUID } from 'crypto';
+import { In } from 'typeorm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,29 +12,35 @@ export async function GET(request: NextRequest) {
 
     const url = new URL(request.url);
     const projectId = url.searchParams.get('projectId');
-    
-    let dbSessions: { id: string; project_id: number; title: string; created_at: string | null; updated_at: string | null }[] = [];
-    
+
+    const dataSource = await getDataSource();
+    const sessionRepo = dataSource.getRepository(AiSessionEntity);
+
+    let dbSessions: AiSessionEntity[] = [];
+
     // Auth role usually comes from JWT or we can assume if it's admin or just query DB
     // But since we just need to list sessions for clients, let's treat everyone based on their projects
     const isAdmin = (auth as any).role === 'admin';
-    
+
     if (isAdmin) {
       if (projectId) {
-        dbSessions = await db.select().from(ai_sessions).where(eq(ai_sessions.project_id, Number(projectId))).orderBy(desc(ai_sessions.created_at));
+        dbSessions = await sessionRepo.find({ where: { project_id: Number(projectId) }, order: { created_at: 'DESC' } });
       } else {
-        dbSessions = await db.select().from(ai_sessions).orderBy(desc(ai_sessions.created_at));
+        dbSessions = await sessionRepo.find({ order: { created_at: 'DESC' } });
       }
     } else {
       // Cliente comum: só vê sessões dos seus próprios projetos
-      const userProjects = await db.select({ id: projects.id }).from(projects).where(eq(projects.user_id, Number(auth.id)));
+      const userProjects = await dataSource.getRepository(ProjectEntity).find({
+        select: { id: true },
+        where: { user_id: Number(auth.id) },
+      });
       const projectIds = userProjects.map(p => p.id);
-      
+
       if (projectIds.length > 0) {
         if (projectId && projectIds.includes(Number(projectId))) {
-          dbSessions = await db.select().from(ai_sessions).where(eq(ai_sessions.project_id, Number(projectId))).orderBy(desc(ai_sessions.created_at));
+          dbSessions = await sessionRepo.find({ where: { project_id: Number(projectId) }, order: { created_at: 'DESC' } });
         } else {
-          dbSessions = await db.select().from(ai_sessions).where(inArray(ai_sessions.project_id, projectIds)).orderBy(desc(ai_sessions.created_at));
+          dbSessions = await sessionRepo.find({ where: { project_id: In(projectIds) }, order: { created_at: 'DESC' } });
         }
       }
     }
@@ -43,7 +49,7 @@ export async function GET(request: NextRequest) {
       id: s.id,
       title: s.title,
       projectId: s.project_id,
-      updatedAt: s.updated_at || s.created_at
+      updatedAt: s.updated_at || s.created_at,
     }));
 
     return NextResponse.json({ sessions });
@@ -62,18 +68,22 @@ export async function POST(request: NextRequest) {
     if (!body.projectId) return NextResponse.json({ message: 'O ID do projeto é obrigatório.' }, { status: 400 });
 
     const newId = randomUUID();
-    
-    const [created] = await db.insert(ai_sessions).values({
-      id: newId,
-      project_id: Number(body.projectId),
-      title: body.title || 'Nova Sessão',
-    }).returning();
+
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(AiSessionEntity);
+    const created = await repo.save(
+      repo.create({
+        id: newId,
+        project_id: Number(body.projectId),
+        title: body.title || 'Nova Sessão',
+      })
+    );
 
     const session = {
       id: created.id,
       title: created.title,
       projectId: created.project_id,
-      updatedAt: created.updated_at || created.created_at
+      updatedAt: created.updated_at || created.created_at,
     };
 
     return NextResponse.json({ session });

@@ -253,7 +253,7 @@ export default function IAMonitorPage() {
                           </div>
                           <div className="flex flex-col">
                             <div
-                              className={`rounded-3xl px-6 py-4 text-[15px] leading-relaxed shadow-lg ${!isAgent ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none' : 'bg-gradient-to-br from-indigo-500 to-cyan-500 dark:from-indigo-600 dark:to-cyan-600 border border-indigo-400 dark:border-white/10 text-white rounded-tr-none'}`}
+                              className={`rounded-3xl px-6 py-4 text-[15px] leading-relaxed shadow-lg ${!isAgent ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-slate-200 rounded-tl-none' : 'bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] dark:from-[var(--color-accent-600)] dark:to-[var(--color-accent)] border border-[var(--color-accent)]/40 dark:border-white/10 text-white rounded-tr-none'}`}
                             >
                               {m.text}
                             </div>
@@ -269,7 +269,7 @@ export default function IAMonitorPage() {
                         <div className="w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center mt-1 bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20 shadow-sm">
                           <FiCpu className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                         </div>
-                        <div className="rounded-3xl rounded-tr-none px-6 py-5 flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-cyan-500 dark:from-indigo-600 dark:to-cyan-600 border border-indigo-400 dark:border-white/10 shadow-lg">
+                        <div className="rounded-3xl rounded-tr-none px-6 py-5 flex items-center gap-2 bg-gradient-to-br from-[var(--color-accent-600)] to-[var(--color-accent)] dark:from-[var(--color-accent-600)] dark:to-[var(--color-accent)] border border-[var(--color-accent)]/40 dark:border-white/10 shadow-lg">
                           {[0, 1, 2].map(i => (
                             <div key={i} className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                           ))}

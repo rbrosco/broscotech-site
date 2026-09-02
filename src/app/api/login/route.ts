@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '@/lib/drizzle';
-import { users } from '@/lib/schema';
-import { eq, or } from 'drizzle-orm';
+import { getDataSource } from '@/lib/typeorm';
+import { UserEntity } from '@/lib/entities';
+import { getJwtSecret } from '@/lib/jwtSecret';
+import { consumeRateLimit, getClientIp } from '@/lib/rateLimit';
+
+const LOGIN_ATTEMPTS_PER_IDENTIFIER = 8;
+const LOGIN_ATTEMPTS_PER_IP = 20;
+const LOGIN_WINDOW_MS = 5 * 60 * 1000; // 5 minutos
 
 export async function POST(request: Request) {
   try {
@@ -14,29 +19,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Login ou e-mail e senha são obrigatórios.' }, { status: 400 });
     }
 
+    // Rate limiting: protege contra brute-force tanto num usuário específico
+    // (IP + identifier) quanto num IP tentando vários usuários em sequência.
+    const ip = getClientIp(request.headers);
+    const perIdentifier = consumeRateLimit(`login:id:${ip}:${String(identifier).toLowerCase()}`, LOGIN_ATTEMPTS_PER_IDENTIFIER, LOGIN_WINDOW_MS);
+    const perIp = consumeRateLimit(`login:ip:${ip}`, LOGIN_ATTEMPTS_PER_IP, LOGIN_WINDOW_MS);
+    if (!perIdentifier.allowed || !perIp.allowed) {
+      const retryAfterSeconds = Math.max(perIdentifier.retryAfterSeconds, perIp.retryAfterSeconds);
+      return NextResponse.json(
+        { message: 'Muitas tentativas de login. Aguarde um momento e tente novamente.' },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+      );
+    }
 
     // Busca usuário por login OU email
-    const rows = await db
-      .select()
-      .from(users)
-      .where(or(eq(users.login, identifier), eq(users.email, identifier)))
-      .limit(1);
+    const dataSource = await getDataSource();
+    const user = await dataSource.getRepository(UserEntity).findOne({
+      where: [{ login: identifier }, { email: identifier }],
+    });
 
-    const user = rows[0];
     if (!user) {
-      console.log(`[LOGIN] Falha: usuário não encontrado para identifier="${identifier}"`);
-      return NextResponse.json({ message: 'Usuário não encontrado.' }, { status: 401 });
+      return NextResponse.json({ message: 'Credenciais inválidas.' }, { status: 401 });
     }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
-      console.log(`[LOGIN] Falha: senha incorreta para user id=${user.id}, login=${user.login}, email=${user.email}`);
       return NextResponse.json({ message: 'Credenciais inválidas.' }, { status: 401 });
     }
 
-    console.log(`[LOGIN] Sucesso: user id=${user.id}, login=${user.login}, email=${user.email}`);
-
-    const secret = process.env.JWT_SECRET ?? process.env.NEXTAUTH_SECRET ?? 'dev-secret';
+    const secret = getJwtSecret();
     const token = jwt.sign(
       {
         id: user.id,

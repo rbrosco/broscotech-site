@@ -90,7 +90,23 @@ Não duplicar — usar as variáveis:
 - **Tabs**: padrão do dashboard (pill) é referência — reutilizar em projeto/kanban.
 - **Badges/chips**: `text-xs` no mínimo, `rounded-full`, padding 8px horizontal.
 
-## Lista de débito técnico (auditoria de 29/08)
+## Lista de débito técnico (auditoria de 29/08, revisada em 31/08)
+**Atualização 31/08:** foco visível global (`* :focus-visible` em globals.css) e
+`prefers-reduced-motion` já estavam implementados no CSS — os itens abaixo que
+citavam essas duas pendências estão desatualizados. Emojis como ícone também
+não foram encontrados em nova varredura (Sobre.tsx, Header, KanbanBoard já
+usam SVG). O gradiente indigo→cyan duplicado no *botão de ação* (2 stops,
+`from-indigo-500 to-cyan-500`) foi trocado pelos tokens de marca em:
+dev/page.tsx, dev/ia-monitor/page.tsx, projeto/page.tsx, iaagent/page.tsx,
+configuracoes/page.tsx, dashboard/page.tsx.
+
+**Ainda pendente — maior que o previsto:** o ciano (`cyan-500`, `cyan-50`,
+`rgba(6,182,212,...)`) é usado como cor de destaque secundária em badges,
+bordas e sombras (não só no gradiente de 2 stops) em `dashboard/page.tsx`,
+`iaagent/page.tsx`, `planejamento/page.tsx`, `projeto/page.tsx`. Migrar isso
+para os tokens de marca é uma revisão visual maior — recomendo fazer com
+screenshot/preview ao vivo antes de aplicar em massa, não às cegas.
+
 Arquivos com mais hex hardcoded (prioridade de troca pelos tokens):
 - `app/dashboard/projeto/page.tsx` (36 hex / 23 brand-grad)
 - `projeto/page.tsx` (36/23) — possível duplicado de `app/dashboard/projeto`
@@ -98,13 +114,15 @@ Arquivos com mais hex hardcoded (prioridade de troca pelos tokens):
 - `app/globals.css` (30 — normal, é onde vivem os tokens), `app/dev/clientes/page.tsx` (28)
 - `component/IconBanner.tsx` (27), `component/KanbanBoard.tsx` (21)
 - `component/DevSidebar.tsx` (20), `component/Sidebar.tsx` (16)
-- `app/globals_new.css` (19) — arquivo morto? avaliar remoção
 
-Arquivos com botão sem estado de foco (14):
-`app/dev/faturas`, `app/dev/ia-monitor`, `app/dev/kanban`, `app/kanban`, `app/perfil`,
-`app/planejamento`, `component/DashboardNav`, `component/DevSidebar`, `component/IAAgentButton`,
-`component/KanbanBoard`, `component/LoginModal`, `component/PopupPlanejamento`,
-`component/Sidebar`, `component/ThemeToggle`.
+Texto abaixo de 12px (`text-[9px]`/`text-[10px]`/`text-[11px]`) ainda presente em
+15 arquivos (varredura 31/08): dev/page.tsx, dev/kanban/page.tsx,
+dev/ia-monitor/page.tsx, dev/faturas/page.tsx, projeto/page.tsx, page.tsx,
+iaagent/page.tsx, configuracoes/page.tsx, dashboard/projeto/page.tsx,
+faturas/page.tsx, planejamento/page.tsx, src/projeto/page.tsx,
+component/Sidebar.tsx, component/DevSidebar.tsx, component/DashboardNav.tsx.
+Requer revisão caso a caso (alguns podem ser badges com espaço apertado de
+propósito) — não é troca mecânica segura.
 
 ## Checklist pré-entrega (toda PR visual)
 - [ ] Sem hex novo hardcoded — usar tokens

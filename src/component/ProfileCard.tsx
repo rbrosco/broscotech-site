@@ -10,6 +10,7 @@ import {
   FiSettings,
   FiUser,
 } from "react-icons/fi";
+import { FaGithub } from "react-icons/fa";
 
 const ProfileCard: React.FC = () => {
   return (
@@ -27,10 +28,11 @@ const ProfileCard: React.FC = () => {
               <div className="relative">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 blur-xl opacity-30 animate-pulse"></div>
                 <Image
-                  src="/images/Perfil_Rogger.png"
+                  src="https://github.com/rbrosco.png"
                   alt="Foto de Rogger Brosco"
                   width={160}
                   height={160}
+                  unoptimized
                   className="relative rounded-full border-4 border-white/50 shadow-2xl dark:border-white/70"
                 />
               </div>
@@ -116,16 +118,25 @@ const ProfileCard: React.FC = () => {
           </p>
         </div>
 
-        {/* Contact and CV Download Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
+        {/* Contact and GitHub Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
           <a
-                        href="mailto:contato@easydev.com.br" // Substitua com seu e-mail
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-slate-900 dark:text-white shadow-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
+            href="https://github.com/rbrosco"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl border border-black/10 bg-white/70 hover:bg-white text-slate-800 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 shadow-md font-semibold text-sm transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            <FaGithub className="h-5 w-5 mr-2" />
+            GitHub
+          </a>
+          <a
+            href="mailto:contato@easydev.com.br"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl text-white font-semibold text-sm shadow-lg hover:opacity-95 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
+            style={{ background: 'linear-gradient(135deg, #004aad, #00b09b)' }}
           >
             <FiMail className="h-5 w-5 mr-2" />
             Entre em Contato
           </a>
-
         </div>
         </div>
       </div>

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { users } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { UserEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
@@ -15,12 +14,8 @@ export async function GET(request: Request) {
     }
 
     const userId = Number(auth.id);
-    const rows = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const row = rows[0];
+    const dataSource = await getDataSource();
+    const row = await dataSource.getRepository(UserEntity).findOne({ where: { id: userId } });
     if (!row) {
       return NextResponse.json({ message: 'Perfil não encontrado.' }, { status: 404 });
     }
@@ -55,12 +50,9 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { name, login, email, phone, currentPassword, newPassword } = body ?? {};
 
-    const rows = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const row = rows[0];
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(UserEntity);
+    const row = await repo.findOne({ where: { id: userId } });
     if (!row) {
       return NextResponse.json({ message: 'Perfil não encontrado.' }, { status: 404 });
     }
@@ -75,7 +67,20 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const updateData: Partial<typeof users.$inferInsert> = {};
+    // Garante que login/email não colidam com outro usuário antes de salvar
+    if (typeof login === 'string' || typeof email === 'string') {
+      const conflict = await repo.findOne({
+        where: [
+          ...(typeof login === 'string' ? [{ login }] : []),
+          ...(typeof email === 'string' ? [{ email }] : []),
+        ],
+      });
+      if (conflict && conflict.id !== userId) {
+        return NextResponse.json({ message: 'Login ou e-mail já cadastrado para outro usuário.' }, { status: 409 });
+      }
+    }
+
+    const updateData: Partial<UserEntity> = {};
     if (typeof name === 'string') updateData.name = name;
     if (typeof login === 'string') updateData.login = login;
     if (typeof email === 'string') updateData.email = email;
@@ -88,11 +93,8 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: 'Nada para atualizar.' });
     }
 
-    const [updated] = await db
-      .update(users)
-      .set({ ...updateData, updated_at: new Date().toISOString() })
-      .where(eq(users.id, userId))
-      .returning();
+    await repo.update({ id: userId }, { ...updateData, updated_at: new Date().toISOString() });
+    const updated = await repo.findOneOrFail({ where: { id: userId } });
 
     return NextResponse.json({
       message: 'Perfil atualizado com sucesso.',

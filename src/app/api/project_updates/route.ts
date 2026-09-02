@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/drizzle';
-import { project_updates, projects, notifications } from '@/lib/schema';
+import { getDataSource } from '@/lib/typeorm';
+import { ProjectUpdateEntity, ProjectEntity, NotificationEntity } from '@/lib/entities';
 import { requireAuth } from '@/lib/middlewareAuth';
-import { eq, desc } from 'drizzle-orm';
+import { sendWhatsappText, resolveInstanceForProject, isEvolutionConfigured } from '@/lib/evolution';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,21 +19,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'projectId inválido.' }, { status: 400 });
     }
 
-    const owner = await db
-      .select({ user_id: projects.user_id })
-      .from(projects)
-      .where(eq(projects.id, projectId))
-      .limit(1);
+    const dataSource = await getDataSource();
 
-    if (!owner[0] || (!isAdmin && Number(owner[0].user_id) !== Number(auth.id))) {
+    const owner = await dataSource.getRepository(ProjectEntity).findOne({
+      select: { user_id: true },
+      where: { id: projectId },
+    });
+
+    if (!owner || (!isAdmin && Number(owner.user_id) !== Number(auth.id))) {
       return NextResponse.json({ message: 'Não autorizado.' }, { status: 403 });
     }
 
-    const updates = await db
-      .select()
-      .from(project_updates)
-      .where(eq(project_updates.project_id, projectId))
-      .orderBy(desc(project_updates.created_at));
+    const updates = await dataSource.getRepository(ProjectUpdateEntity).find({
+      where: { project_id: projectId },
+      order: { created_at: 'DESC' },
+    });
 
     return NextResponse.json({ updates });
   } catch (error) {
@@ -60,21 +60,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Parâmetros inválidos.' }, { status: 400 });
     }
 
-    const owner = await db
-      .select({ user_id: projects.user_id })
-      .from(projects)
-      .where(eq(projects.id, projectId))
-      .limit(1);
+    const dataSource = await getDataSource();
+    const projectRepo = dataSource.getRepository(ProjectEntity);
+    const updateRepo = dataSource.getRepository(ProjectUpdateEntity);
+    const notificationRepo = dataSource.getRepository(NotificationEntity);
+
+    const owner = await projectRepo.findOne({ select: { user_id: true }, where: { id: projectId } });
 
     // Admins can post to any project
-    if (!owner[0] || (!isAdmin && (Number(owner[0].user_id) !== userId || Number(auth.id) !== userId))) {
+    if (!owner || (!isAdmin && (Number(owner.user_id) !== userId || Number(auth.id) !== userId))) {
       return NextResponse.json({ message: 'Não autorizado a atualizar este projeto.' }, { status: 403 });
     }
 
-    const [created] = await db
-      .insert(project_updates)
-      .values({ project_id: projectId, kind, message })
-      .returning();
+    const created = await updateRepo.save(
+      updateRepo.create({ project_id: projectId, kind, message })
+    );
 
     // Criar notificação correspondente
     try {
@@ -94,16 +94,52 @@ export async function POST(request: NextRequest) {
         }
         notifMsg = `Nova atualização no projeto: ${extractedMessage}`;
       }
-      
-      await db.insert(notifications).values({
-        id: notifId,
-        project_id: projectId,
-        message: notifMsg,
-        timestamp: Date.now(),
-        read: false
-      });
+
+      await notificationRepo.save(
+        notificationRepo.create({
+          id: notifId,
+          project_id: projectId,
+          message: notifMsg,
+          timestamp: Date.now(),
+          read: false,
+        })
+      );
     } catch (e) {
       console.error('Erro ao criar notificação do project_update:', e);
+    }
+
+    // Envia a atualização por WhatsApp (Evolution API) — best effort: se
+    // falhar ou não estiver configurado, o update já foi salvo normalmente.
+    if (isEvolutionConfigured()) {
+      try {
+        const project = await projectRepo.findOne({
+          select: { client_name: true, client_phone: true, title: true, assigned_dev: true },
+          where: { id: projectId },
+        });
+
+        if (project?.client_phone) {
+          const instance = resolveInstanceForProject(project.assigned_dev);
+          if (instance) {
+            let textoWhats = message;
+            if (message.startsWith('{')) {
+              try {
+                const parsed = JSON.parse(message);
+                if (parsed.texto) textoWhats = parsed.texto;
+              } catch {}
+            }
+            const result = await sendWhatsappText({
+              instance,
+              phone: project.client_phone,
+              text: `📌 *${project.title}*\n\n${textoWhats}`,
+            });
+            if (!result.ok) {
+              console.warn('Falha ao enviar WhatsApp para o cliente:', result.error);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao enviar notificação WhatsApp:', e);
+      }
     }
 
     return NextResponse.json({ update: created, message: 'Atualização registrada.' });

@@ -32,7 +32,7 @@ const depoimentos = [
 function DepoimentosBlock() {
   return (
     <section id="Depoimentos" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-accent)' }}>
             Depoimentos
@@ -72,8 +72,9 @@ import ContactFormModal from '../component/ContactFormModal';
 import Header from "../component/Header";
 import VCard from "../component/VCard";
 import IAHomeBanner from "../component/IAHomeBanner";
-import Chatbot from "../component/ChatBot";
 import Servicos from "../component/Servicos";
+import Planos from "../component/Planos";
+import EasyChatPromo from "../component/EasyChatPromo";
 import Sobre from "../component/Sobre";
 import LoadingSpinner from '../component/LoadingSpinner';
 import PrivacyModal from '../component/PrivacyModal';
@@ -258,6 +259,12 @@ export default function Home() {
         {/* SERVIÇOS (logo após o hero) */}
         <Servicos />
 
+        {/* PLANOS (serviço mensal / recorrência) */}
+        <Planos />
+
+        {/* EASYCHAT (produto irmão — chat omnichannel) */}
+        <EasyChatPromo />
+
         {/* STACK / PROVA SOCIAL */}
         <IconBanner icons={iconBannerData} speed="55s" />
 
@@ -273,28 +280,30 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-center items-stretch gap-6">
             <VCard
               name="Adriano Neco"
-              image="/images/Perfil_Adriano.png"
+              image="https://github.com/adrianoneco.png"
+              githubUrl="https://github.com/adrianoneco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
+              bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
               email="adriano@easydev.com.br"
             />
             <VCard
               name="Rogger Brosco"
-              image="/images/Perfil_Rogger.png"
+              image="https://github.com/rbrosco.png"
+              githubUrl="https://github.com/rbrosco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
+              bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
               email="contato@easydev.com.br"
             />
           </div>
         </div>
-
-
-
-        <Chatbot />
       </div>
-      <ContactFormModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
+      <ContactFormModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        interest={{ type: 'service', id: 'geral', label: 'Contato Geral' }}
+      />
       <PrivacyModal 
         isOpen={isPrivacyModalOpen} 
         onClose={handleClosePrivacyModal} 

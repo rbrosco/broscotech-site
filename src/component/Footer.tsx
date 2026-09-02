@@ -17,15 +17,18 @@ const Footer: React.FC = () => {
               {/* Brand column */}
               <div className="lg:col-span-2">
                 <Link href="/" className="inline-flex items-center gap-3 group">
-                  <Image
-                    src="/images/EASYDEVLOGO.png"
-                    alt="EASYDEV Logo"
-                    width={36}
-                    height={36}
-                    className="opacity-90 group-hover:opacity-100 transition"
-                  />
-                  <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    EASYDEV
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full blur-md opacity-40 bg-[radial-gradient(circle,#00b09b,#004aad)] group-hover:opacity-60 transition-opacity" />
+                    <Image
+                      src="/images/EASYDEVLOGO.png"
+                      alt="EASYDEV Logo"
+                      width={36}
+                      height={36}
+                      className="relative rounded-full border border-[#00b09b]/40 opacity-90 group-hover:opacity-100 transition"
+                    />
+                  </div>
+                  <span className="font-pixel text-sm sm:text-base tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)]">
+                    EasyDev <span className="text-cyan-500 dark:text-cyan-300 text-xs">CRM</span>
                   </span>
                 </Link>
                 <p className="mt-4 text-sm text-slate-600 dark:text-white/60 max-w-xs leading-relaxed">
@@ -78,6 +81,8 @@ const Footer: React.FC = () => {
                 <ul className="space-y-2.5 text-sm">
                   {[
                     { label: 'Serviços', href: '/#Servicos' },
+                    { label: 'Planos', href: '/#Planos' },
+                    { label: 'Portfólio', href: '/#Portfolio' },
                     { label: 'Sobre', href: '/#Sobre' },
                     { label: 'Depoimentos', href: '/#Depoimentos' },
                     { label: 'Dashboard', href: '/dashboard' },

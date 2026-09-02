@@ -19,6 +19,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "isolatedModules": true,
