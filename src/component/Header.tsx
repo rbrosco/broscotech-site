@@ -159,7 +159,7 @@ const Header: React.FC = () => {
           </Link>
           <Link href="/" className="flex items-center gap-1.5 group">
             <span
-              className="font-pixel text-[11px] sm:text-sm md:text-base lg:text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-400 to-cyan-400 dark:from-indigo-400 dark:via-purple-300 dark:to-cyan-300 hover:opacity-90 transition-all inline-block drop-shadow-sm"
+              className="font-pixel text-[11px] sm:text-sm md:text-base lg:text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)] hover:opacity-90 transition-all inline-block drop-shadow-sm"
             >
               EasyDev
             </span>

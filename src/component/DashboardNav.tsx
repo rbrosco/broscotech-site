@@ -130,7 +130,7 @@ const DashboardNav: React.FC = () => {
       <nav className="flex items-center gap-2 text-xs sm:text-sm pl-12 md:pl-0 font-medium">
         <Link
           href="/"
-          className="font-pixel text-[10px] sm:text-xs text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-400 to-cyan-400 dark:from-indigo-400 dark:via-purple-300 dark:to-cyan-300 hover:opacity-80 transition-opacity"
+          className="font-pixel text-[10px] sm:text-xs text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)] hover:opacity-80 transition-opacity"
         >
           EasyDev
         </Link>

@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
                     height={36}
                     className="opacity-90 group-hover:opacity-100 transition"
                   />
-                  <span className="font-pixel text-sm sm:text-base tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-400 to-cyan-400 dark:from-indigo-400 dark:via-purple-300 dark:to-cyan-300">
+                  <span className="font-pixel text-sm sm:text-base tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-600)] to-[var(--color-accent)]">
                     EasyDev <span className="text-cyan-500 dark:text-cyan-300 text-xs">CRM</span>
                   </span>
                 </Link>
