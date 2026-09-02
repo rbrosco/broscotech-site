@@ -36,6 +36,11 @@ const DashboardNav: React.FC = () => {
   const router = useRouter();
   const label = BREADCRUMB[pathname ?? ''] ?? (pathname?.startsWith('/dev') ? 'Área Dev' : 'Área do Cliente');
 
+  // Título da aba reflete a página atual do portal
+  useEffect(() => {
+    document.title = `${label} · EasyDev CRM`;
+  }, [label]);
+
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
