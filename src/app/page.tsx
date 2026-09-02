@@ -280,7 +280,7 @@ export default function Home() {
               githubUrl="https://github.com/adrianoneco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
+              bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
               email="adriano@easydev.com.br"
             />
             <VCard
@@ -289,7 +289,7 @@ export default function Home() {
               githubUrl="https://github.com/rbrosco"
               title="Full Stack • Banco de Dados • Automação"
               skills={["EasyDev", "Web Apps", "APIs", "PostgreSQL", "MongoDB", "n8n"]}
-              bio="Desenvolvedor Full Stack e fundador da EasyDev. Foco em arquitetura moderna, performance e experiências digitais que geram resultado real."
+              bio="Desenvolvedor Full Stack especialista em banco de dados, APIs robustas e automação de processos com n8n e integrações cloud-native."
               email="contato@easydev.com.br"
             />
           </div>

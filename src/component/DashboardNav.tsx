@@ -19,6 +19,8 @@ const BREADCRUMB: Record<string, string> = {
   '/dev/comunicacao': 'Dev • Comunicação',
   '/dev/faturas': 'Dev • Faturas',
   '/dev/ia-monitor': 'Dev • Monitor IA',
+  '/dev/leads': 'Dev • Leads',
+  '/dev/planos': 'Dev • Planos',
 };
 
 type NotificationItem = {

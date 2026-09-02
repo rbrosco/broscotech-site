@@ -12,6 +12,7 @@ import {
   AiSessionEntity,
   AiMessageEntity,
   LeadEntity,
+  PlanEntity,
 } from './entities';
 
 declare global {
@@ -33,6 +34,7 @@ export function buildDataSourceOptions() {
     AiSessionEntity,
     AiMessageEntity,
     LeadEntity,
+    PlanEntity,
   ];
 
   const sync = process.env.TYPEORM_SYNCHRONIZE === 'true';
