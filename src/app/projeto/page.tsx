@@ -251,13 +251,9 @@ export default function ProjetoPage() {
 
   useEffect(() => {
     const init = async () => {
-      if (!Number.isFinite(userId ?? NaN)) {
-        try {
-          const resMe = await fetch('/api/me', { credentials: 'include' });
-          if (resMe.ok) { const me = await resMe.json() as { id?: unknown }; setUserId(Number(me.id ?? NaN)); }
-          else return;
-        } catch { return; }
-      }
+      // userId é resolvido pelo efeito de "Auth" acima (única chamada a
+      // /api/me da página). Evita refazer o mesmo fetch aqui.
+      if (!Number.isFinite(userId ?? NaN)) return;
       setLoading(true);
       try {
         const uid = userId ?? NaN;

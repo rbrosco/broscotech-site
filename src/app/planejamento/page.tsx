@@ -275,9 +275,8 @@ export default function PlanejamentoPage() {
           } catch {}
           if (!projectId) return;
           if (!window.confirm('Excluir este projeto? Ação irreversível.')) return;
-          await fetch('/api/project_admin_status', {
-            method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ projectId }),
+          await fetch(`/api/projects?projectId=${projectId}`, {
+            method: 'DELETE', credentials: 'include',
           });
           setPopupOpen(false);
           window.location.reload();

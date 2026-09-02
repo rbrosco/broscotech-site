@@ -55,9 +55,8 @@ export class ProjectEntity {
   // Nome da instância Evolution API (WhatsApp) do dev responsável por este
   // projeto — define de qual número saem as notificações automáticas.
   // Ver EVOLUTION_DEFAULT_INSTANCE em src/lib/evolution.ts para o fallback.
-  // Coluna nova (fora do schema legado text/varchar) — ainda não existe no
-  // banco; precisa de `ALTER TABLE projects ADD COLUMN assigned_dev text;`
-  // aplicado manualmente (ver seção "Migrations" do README/skill do projeto).
+  // Coluna já existe no banco (aplicada manualmente via ALTER TABLE) e está
+  // em uso ativo em src/app/api/project_updates/route.ts e src/lib/evolution.ts.
   @Column({ type: 'text', nullable: true })
   assigned_dev?: string | null;
 }
