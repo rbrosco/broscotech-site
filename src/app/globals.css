@@ -22,6 +22,7 @@ html:not(.dark) .tooltip {
 
 :root {
   --header-height: 60px;
+  --sidebar-width: 16rem;
 
   /* Light mode surfaces */
   --background: #ffffff;
@@ -390,7 +391,7 @@ body {
 /* Background overlay handled via Tailwind classes on the layout element */
 
 @utility pl-sidebar {
-  padding-left: var(--sidebar-width, 5rem);
+  padding-left: var(--sidebar-width, 16rem);
 }
 
 /* Moeda 3D — giro no hover (usado na faixa de stack) */

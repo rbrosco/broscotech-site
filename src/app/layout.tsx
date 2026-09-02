@@ -72,6 +72,14 @@ export default function RootLayout({
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(isDark ? 'dark' : 'light');
+
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    root.style.setProperty('--sidebar-width', sidebarCollapsed ? '5rem' : '16rem');
+    if (sidebarCollapsed) {
+      root.classList.add('sidebar-collapsed');
+    } else {
+      root.classList.remove('sidebar-collapsed');
+    }
   } catch (_) {
     // noop
   }

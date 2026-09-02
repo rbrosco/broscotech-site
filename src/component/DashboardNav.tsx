@@ -125,7 +125,7 @@ const DashboardNav: React.FC = () => {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 md:left-[var(--sidebar-width,5rem)] transition-[left] duration-300 z-30 flex items-center justify-between px-5 sm:px-8 h-[65px] bg-white/80 dark:bg-[#071324]/85 backdrop-blur-2xl border-b border-slate-200 dark:border-white/10 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 md:left-[var(--sidebar-width,16rem)] transition-[left] duration-300 z-30 flex items-center justify-between px-5 sm:px-8 h-[65px] bg-white/80 dark:bg-[#071324]/85 backdrop-blur-2xl border-b border-slate-200 dark:border-white/10 shadow-sm">
       {/* Breadcrumb / Section Indicator */}
       <nav className="flex items-center gap-2 text-xs sm:text-sm pl-12 md:pl-0 font-medium">
         <Link
