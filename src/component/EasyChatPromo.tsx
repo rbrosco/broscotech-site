@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FiInbox, FiUsers, FiZap, FiArrowRight } from 'react-icons/fi';
 import { SiWhatsapp, SiInstagram, SiFacebook, SiGmail } from 'react-icons/si';
 
@@ -29,6 +30,36 @@ const HIGHLIGHTS = [
   },
 ];
 
+function BrowserFrame({
+  src,
+  alt,
+  url,
+  className,
+  imgClassName,
+}: {
+  src: string;
+  alt: string;
+  url: string;
+  className?: string;
+  imgClassName?: string;
+}) {
+  return (
+    <div className={`rounded-xl overflow-hidden border border-white/10 bg-[#0b1120] shadow-2xl ${className ?? ''}`}>
+      <div className="flex items-center gap-1.5 px-3 py-2 bg-white/[0.04] border-b border-white/10">
+        <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
+        <span className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
+        <span className="ml-2 flex-1 truncate rounded-md bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] text-white/40">
+          {url}
+        </span>
+      </div>
+      <div className="relative w-full aspect-[1807/878]">
+        <Image src={src} alt={alt} fill sizes="(max-width: 1024px) 100vw, 700px" className={`object-cover object-top ${imgClassName ?? ''}`} />
+      </div>
+    </div>
+  );
+}
+
 const EasyChatPromo: React.FC = () => {
   return (
     <section id="EasyChat" className="py-16 px-4 sm:px-6 lg:px-8 scroll-mt-24">
@@ -46,62 +77,88 @@ const EasyChatPromo: React.FC = () => {
             style={{ background: 'radial-gradient(circle, #004aad, transparent 70%)' }}
           />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 p-8 sm:p-12">
-            {/* Coluna de texto */}
-            <div className="flex flex-col justify-center">
-              <span
-                className="inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest mb-4"
-                style={{ background: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
-              >
-                Produto EasyDev
-              </span>
+          <div className="relative p-8 sm:p-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+              {/* Coluna de texto */}
+              <div className="flex flex-col justify-center">
+                <span
+                  className="inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest mb-4"
+                  style={{ background: 'var(--color-accent-dim)', color: 'var(--color-accent)' }}
+                >
+                  Produto EasyDev
+                </span>
 
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
-                easychat — todo seu atendimento, <span className="font-display italic">numa caixa só</span>
-              </h2>
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+                  easychat — todo seu atendimento, <span className="font-display italic">numa caixa só</span>
+                </h2>
 
-              <p className="mt-4 text-base text-slate-600 dark:text-white/70 max-w-lg">
-                Chega de responder cliente em cinco apps diferentes. O easychat junta WhatsApp, Instagram,
-                Facebook e e-mail com CRM completo, pra sua equipe atender rápido sem perder conversa nem contexto.
-              </p>
+                <p className="mt-4 text-base text-slate-600 dark:text-white/70 max-w-lg">
+                  Chega de responder cliente em cinco apps diferentes. O easychat junta WhatsApp, Instagram,
+                  Facebook e e-mail com CRM completo, pra sua equipe atender rápido sem perder conversa nem contexto.
+                </p>
 
-              {/* Canais suportados */}
-              <div className="flex flex-wrap items-center gap-3 mt-6">
-                {CHANNELS.map(({ Icon, label, color }) => (
-                  <span
-                    key={label}
-                    className="inline-flex items-center gap-1.5 rounded-full pl-1.5 pr-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-700 dark:text-white/80"
-                  >
+                {/* Canais suportados */}
+                <div className="flex flex-wrap items-center gap-3 mt-6">
+                  {CHANNELS.map(({ Icon, label, color }) => (
                     <span
-                      className="w-6 h-6 rounded-full flex items-center justify-center"
-                      style={{ background: `${color}1a` }}
+                      key={label}
+                      className="inline-flex items-center gap-1.5 rounded-full pl-1.5 pr-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-700 dark:text-white/80"
                     >
-                      <Icon className="w-3.5 h-3.5" style={{ color }} aria-hidden="true" />
+                      <span
+                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                        style={{ background: `${color}1a` }}
+                      >
+                        <Icon className="w-3.5 h-3.5" style={{ color }} aria-hidden="true" />
+                      </span>
+                      {label}
                     </span>
-                    {label}
+                  ))}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                  <Link
+                    href="https://chat.easydev.com.br"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg, var(--color-accent-600), var(--color-accent))' }}
+                  >
+                    Conhecer o easychat
+                    <FiArrowRight className="w-4 h-4" aria-hidden="true" />
+                  </Link>
+                  <span className="inline-flex items-center justify-center text-xs text-slate-400 dark:text-white/40 sm:px-2">
+                    chat.easydev.com.br
                   </span>
-                ))}
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                <Link
-                  href="https://chat.easydev.com.br"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02]"
-                  style={{ background: 'linear-gradient(135deg, var(--color-accent-600), var(--color-accent))' }}
+              {/* Coluna visual: mockup de navegador com prints reais */}
+              <div className="relative" style={{ perspective: 1400 }}>
+                <BrowserFrame
+                  src="/images/easychat/dashboard.png"
+                  alt="Dashboard do easychat mostrando conversas recentes e métricas de atendimento"
+                  url="app.easychat.com.br/dashboard"
+                  className="w-full"
+                  imgClassName=""
+                />
+                <div
+                  className="hidden md:block absolute -bottom-10 -left-10 w-[62%]"
+                  style={{
+                    transform: 'rotateY(6deg) rotateX(2deg)',
+                    boxShadow: '0 30px 60px -20px rgba(0,0,0,0.5)',
+                  }}
                 >
-                  Conhecer o easychat
-                  <FiArrowRight className="w-4 h-4" aria-hidden="true" />
-                </Link>
-                <span className="inline-flex items-center justify-center text-xs text-slate-400 dark:text-white/40 sm:px-2">
-                  chat.easydev.com.br
-                </span>
+                  <BrowserFrame
+                    src="/images/easychat/conversas.png"
+                    alt="Tela de conversas do easychat com atendimento via WhatsApp e sugestão de resposta por IA"
+                    url="app.easychat.com.br/conversas"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Coluna de destaques */}
-            <div className="flex flex-col justify-center gap-4">
+            {/* Destaques */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 md:mt-20">
               {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
                 <div
                   key={title}
