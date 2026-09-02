@@ -92,6 +92,16 @@ const ContactFormModal: React.FC<Props> = ({ isOpen, onClose, interest }) => {
       }
 
       setStatus('success');
+
+      // Evento de conversão de lead — só dispara se o GA4 estiver
+      // configurado (ver src/component/GoogleAnalytics.tsx). Não quebra
+      // nada se NEXT_PUBLIC_GA_MEASUREMENT_ID estiver vazio.
+      if (typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
+        (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', 'generate_lead', {
+          interest_type: interest?.type ?? 'service',
+          interest_label: interest?.label,
+        });
+      }
     } catch (err) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Erro inesperado. Tente novamente.');

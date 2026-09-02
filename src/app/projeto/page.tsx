@@ -407,6 +407,7 @@ export default function ProjetoPage() {
               </div>
               <button
                 onClick={openNewModal}
+                aria-label="Criar novo projeto"
                 className="group relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)] shrink-0"
                 style={{ background: 'linear-gradient(135deg,#004aad 0%,#00b09b 60%,#00d4aa 100%)' }}
               >
@@ -549,6 +550,7 @@ export default function ProjetoPage() {
                         <div className="flex gap-2">
                           <button
                             title="Editar projeto"
+                            aria-label="Editar projeto"
                             onClick={() => {
                               setEditMode(true); setEditProjectId(project.id);
                               setProjectName(project.title || ''); setClientName(project.client_name || '');
@@ -564,6 +566,7 @@ export default function ProjetoPage() {
                           </button>
                           <button
                             title="Excluir projeto"
+                            aria-label="Excluir projeto"
                             onClick={() => handleDeleteProject(project.id)}
                             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20"
                           >

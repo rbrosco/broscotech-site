@@ -5,6 +5,7 @@ import ConditionalFooter from "../component/ConditionalFooter";
 import ThemeProvider from "../component/ThemeProvider";
 import IAAgentButton from "../component/IAAgentButton";
 import MotionA11yProvider from "../component/MotionA11yProvider";
+import GoogleAnalytics from "../component/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +31,28 @@ const pressStart2P = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "EasyDev — Soluções Digitais que Entregam",
+  metadataBase: new URL("https://easydev.com.br"),
+  title: {
+    default: "EasyDev — Soluções Digitais que Entregam",
+    template: "%s | EasyDev",
+  },
   description: "Sites, sistemas, automações e integrações com foco em performance, clareza e resultado real.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://easydev.com.br",
+    siteName: "EasyDev",
+    title: "EasyDev — Soluções Digitais que Entregam",
+    description: "Sites, sistemas, automações e integrações com foco em performance, clareza e resultado real.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EasyDev — Soluções Digitais que Entregam",
+    description: "Sites, sistemas, automações e integrações com foco em performance, clareza e resultado real.",
+  },
 };
 
 export default function RootLayout({
@@ -59,6 +80,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${pressStart2P.variable} antialiased min-h-screen flex flex-col relative`}>
+        <GoogleAnalytics />
         <div
           aria-hidden="true"
           className="fixed inset-0 z-0 pointer-events-none select-none bg-[url('/images/bg-circuit.png?v=2')] bg-center bg-cover bg-fixed bg-no-repeat opacity-[0.04] dark:opacity-[0.06] w-screen h-screen"
