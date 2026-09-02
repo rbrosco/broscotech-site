@@ -2,7 +2,7 @@
 import React from 'react';
 import DashboardNav from '../../../component/DashboardNav';
 import DevSidebar from '../../../component/DevSidebar';
-import LeadsManagement from '../../configuracoes/LeadsManagement';
+import LeadsManagement from '@/app/(portal)/configuracoes/LeadsManagement';
 import { FiTarget } from 'react-icons/fi';
 
 export default function DevLeadsPage() {

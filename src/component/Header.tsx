@@ -148,13 +148,14 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-between px-3 sm:px-4"> {/* py-2 removido */}
         {/* Logo e Texto */}
         <div className="flex items-center space-x-2"> {/* Reduzido espaço para economizar em telas pequenas */}
-          <Link href="/">
+          <Link href="/" className="relative flex items-center justify-center group">
+            <div className="absolute inset-0 rounded-full blur-md opacity-50 bg-[radial-gradient(circle,#00b09b,#004aad)] group-hover:opacity-75 transition-opacity" />
             <Image
               src="/images/EASYDEVLOGO.png"
               alt="EASYDEV Logo"
-              width={80} // Reduzido para melhor ajuste em mobile
-              height={80} // Reduzido para melhor ajuste em mobile
-              className="cursor-pointer"
+              width={44}
+              height={44}
+              className="relative rounded-full border border-[#00b09b]/50 shadow-md cursor-pointer transition-transform group-hover:scale-105"
             />
           </Link>
           <Link href="/" className="flex items-center gap-1.5 group">
