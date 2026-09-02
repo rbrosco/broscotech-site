@@ -1,9 +1,8 @@
 
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
-import Sidebar from '../../component/Sidebar';
-import DashboardNav from '../../component/DashboardNav';
-import { useAuthSession } from '../../lib/hooks/useAuthSession';
+import DashboardNav from '@/component/DashboardNav';
+import { useAuthSession } from '@/lib/hooks/useAuthSession';
 import { FiAlertCircle, FiPlus } from 'react-icons/fi';
 
 type KanbanCard = {
@@ -235,9 +234,7 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="w-full relative flex ct-docs-disable-sidebar-content bg-blueGray-100 dark:bg-gray-900 min-h-screen min-w-0">
-      <Sidebar />
-      <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
+    <>
         <DashboardNav />
 
         <div className="px-4 md:px-6 mx-auto w-full pt-[65px] pb-8 min-w-0">
@@ -427,7 +424,6 @@ export default function KanbanPage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 }

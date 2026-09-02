@@ -21,7 +21,6 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import DashboardNav from "@/component/DashboardNav";
-import Sidebar from "@/component/Sidebar";
 import UserManagement from "./UserManagement";
 import LeadsManagement from "./LeadsManagement";
 import WhatsAppSettings from "./WhatsAppSettings";
@@ -402,8 +401,7 @@ export default function ConfiguracoesPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#040d1a] text-slate-900 dark:text-slate-200 flex items-center justify-center">
-        <Sidebar />
+      <div className="flex-1 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-[3px] animate-spin border-[var(--color-accent)] border-t-transparent shadow-lg" />
       </div>
     );
@@ -414,9 +412,7 @@ export default function ConfiguracoesPage() {
   const currentProviderConfig = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.groq;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#040d1a] text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
-      <Sidebar />
-      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
+    <>
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[70px] pb-12">
@@ -1104,7 +1100,6 @@ export default function ConfiguracoesPage() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+    </>
   );
 }

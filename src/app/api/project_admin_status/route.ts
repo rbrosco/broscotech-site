@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest) {
   // AiMessage, KanbanColumn, KanbanCard, ProjectUpdate, Notification, Invoice)
   // como o DELETE /api/projects faz corretamente, e sem checar se o usuário é
   // dono/admin do projeto. Use DELETE /api/projects?projectId=... em vez disso
-  // (já corrigido em src/app/planejamento/page.tsx).
+  // (já corrigido em src/app/(portal)/planejamento/page.tsx).
   return NextResponse.json(
     { message: 'Use DELETE /api/projects em vez desta rota.' },
     { status: 410 }

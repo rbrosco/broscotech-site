@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import PopupPlanejamento from '../../component/PopupPlanejamento';
-import DashboardNav from '../../component/DashboardNav';
-import Sidebar from '../../component/Sidebar';
+import PopupPlanejamento from '@/component/PopupPlanejamento';
+import DashboardNav from '@/component/DashboardNav';
 import { FiCalendar, FiClock, FiFolder, FiTrendingUp, FiAlertCircle, FiChevronRight } from 'react-icons/fi';
 
 type Update = { id: number; kind: string; message: string; created_at: string };
@@ -102,9 +101,7 @@ export default function PlanejamentoPage() {
   const totalUpdates = projectsData.reduce((s, p) => s + p.updates.length, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
-      <Sidebar />
-      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
+    <>
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
@@ -254,7 +251,6 @@ export default function PlanejamentoPage() {
             )}
           </div>
         </main>
-      </div>
 
       <PopupPlanejamento
         open={popupOpen}
@@ -290,6 +286,6 @@ export default function PlanejamentoPage() {
           setAcceptedStatus('rejected');
         }}
       />
-    </div>
+    </>
   );
 }

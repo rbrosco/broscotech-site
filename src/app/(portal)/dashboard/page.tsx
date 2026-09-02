@@ -1,9 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Sidebar from '../../component/Sidebar';
-import DashboardNav from '../../component/DashboardNav';
-import KanbanBoard from '../../component/KanbanBoard';
+import DashboardNav from '@/component/DashboardNav';
+import KanbanBoard from '@/component/KanbanBoard';
 import {
   FiPlus,
   FiFolder,
@@ -103,10 +102,7 @@ export default function DashboardPage() {
   const doneProjects = projects.filter((p) => p.status && p.status.toLowerCase().includes('conclu'));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
-      <Sidebar />
-
-      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
+    <>
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[70px] pb-12">
@@ -323,7 +319,6 @@ export default function DashboardPage() {
             )}
           </div>
         </main>
-      </div>
 
       {/* Request project modal */}
       {showModal && (
@@ -406,6 +401,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

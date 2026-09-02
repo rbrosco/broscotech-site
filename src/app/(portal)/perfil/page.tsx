@@ -3,8 +3,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { FiUser } from 'react-icons/fi';
-import DashboardNav from '../../component/DashboardNav';
-import Sidebar from '../../component/Sidebar';
+import DashboardNav from '@/component/DashboardNav';
 
 type Profile = {
   id: number;
@@ -164,9 +163,7 @@ export default function PerfilPage() {
   };
 
   return (
-    <div className="w-full relative flex ct-docs-disable-sidebar-content bg-blueGray-100 dark:bg-gray-900 min-h-screen min-w-0">
-      <Sidebar />
-      <div className="relative md:ml-64 bg-blueGray-100 dark:bg-gray-900 w-full min-w-0 flex-1">
+    <>
         <DashboardNav />
 
         <div className="px-4 md:px-6 mx-auto w-full pt-24 pb-10 min-w-0">
@@ -343,7 +340,6 @@ export default function PerfilPage() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 }

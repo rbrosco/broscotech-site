@@ -3,8 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiEdit2, FiTrash2, FiSend, FiPlus, FiCheckCircle, FiClock, FiFolder, FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import DashboardNav from '../../component/DashboardNav';
-import Sidebar from '../../component/Sidebar';
+import DashboardNav from '@/component/DashboardNav';
 
 type Project = {
   id: number;
@@ -370,9 +369,7 @@ export default function ProjetoPage() {
   const activeCount = projectsList.filter(p => p.status !== 'enviado' && p.status !== 'concluido').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
-      <Sidebar />
-      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
+    <>
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
@@ -581,7 +578,6 @@ export default function ProjetoPage() {
             )}
           </div>
         </main>
-      </div>
 
       {/* ── Create / Edit Modal ──────────────────────────────────────────────── */}
       {showModal && (
@@ -699,6 +695,6 @@ export default function ProjetoPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiDownload, FiEye, FiFileText, FiTrendingUp, FiClock, FiCheckCircle, FiAlertCircle, FiSearch, FiFilter } from 'react-icons/fi';
-import DashboardNav from '../../component/DashboardNav';
-import Sidebar from '../../component/Sidebar';
+import DashboardNav from '@/component/DashboardNav';
 
 type InvoiceStatus = 'pago' | 'pendente' | 'vencido' | 'processando';
 
@@ -86,9 +85,7 @@ export default function FaturasPage() {
   const pagoCount = invoices.filter(i => i.status === 'pago').length;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 selection:bg-cyan-500/30">
-      <Sidebar />
-      <div className="md:pl-sidebar transition-[padding] duration-300 flex flex-col min-h-screen">
+    <>
         <DashboardNav />
 
         <main className="flex-1 px-4 md:px-8 pt-[65px] pb-8">
@@ -258,7 +255,6 @@ export default function FaturasPage() {
             })}
           </div>
         </main>
-      </div>
-    </div>
+    </>
   );
 }
