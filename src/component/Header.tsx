@@ -130,6 +130,7 @@ const Header: React.FC = () => {
     { label: "Home", href: "/#Home" },
     { label: "Serviços", href: "/#Servicos" },
     { label: "Planos", href: "/#Planos" },
+    { label: "EasyChat", href: "/#EasyChat" },
     { label: "Portfólio", href: "/#Portfolio" },
     { label: "Sobre", href: "/#Sobre" },
     { label: "Depoimentos", href: "/#Depoimentos" },

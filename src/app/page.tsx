@@ -74,6 +74,7 @@ import VCard from "../component/VCard";
 import IAHomeBanner from "../component/IAHomeBanner";
 import Servicos from "../component/Servicos";
 import Planos from "../component/Planos";
+import EasyChatPromo from "../component/EasyChatPromo";
 import Sobre from "../component/Sobre";
 import LoadingSpinner from '../component/LoadingSpinner';
 import PrivacyModal from '../component/PrivacyModal';
@@ -260,6 +261,9 @@ export default function Home() {
 
         {/* PLANOS (serviço mensal / recorrência) */}
         <Planos />
+
+        {/* EASYCHAT (produto irmão — chat omnichannel) */}
+        <EasyChatPromo />
 
         {/* STACK / PROVA SOCIAL */}
         <IconBanner icons={iconBannerData} speed="55s" />
